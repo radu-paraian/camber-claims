@@ -1,0 +1,269 @@
+{
+  "case_id": "delphouse_rollover",
+  "case_metadata": {
+    "id": "delphouse_rollover",
+    "claim_id": "UK-2026-0842",
+    "title": "Case 2: Delphouse Rd / Cheadle Rural Crossroad T-Bone",
+    "subtitle": "BX21 TKP (Range Rover Evoque) vs MK18 PZR (Ford Focus ST-Line — Multi-Cam)",
+    "video_url": "/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4",
+    "badge": "MULTI-CAM RURAL 65/35",
+    "plate_1": "BX21 TKP",
+    "plate_2": "MK18 PZR"
+  },
+  "interaction_id": "int-argon-delphouse-uk20260842",
+  "agentic_video_scrub_steps": [
+    {
+      "step_index": 1,
+      "type": "processing_call",
+      "summary": "Pass 1 (Dual-Camera Temporal Synchronisation): Aligned Cam 1 (Ego Dashcam in MK18 PZR, 122° FOV) with Cam 2 (Farmhouse Gate Static CCTV, 105° FOV, +0.12s offset). Stripped 2 non-causal background agricultural objects while retaining both colliding vehicles and high hawthorn hedgerow splays."
+    },
+    {
+      "step_index": 2,
+      "type": "processing_result",
+      "summary": "Pass 2 (High-FPS Crossroad Approach t=0.25s..1.35s): Tracked BX21 TKP (Range Rover Evoque) approaching Southbound on Delphouse Rd minor arm at 28.4 mph, braking late at t=0.75s with thin front brake pads and entering the priority crossroad at 21.8 mph. Tracked MK18 PZR (Ford Focus) approaching Eastbound at 46.0 mph past a Crossroads Hazard Warning sign (Diagram 504.1)."
+    },
+    {
+      "step_index": 3,
+      "type": "thought",
+      "summary": "Pass 3 (DVSA Causal vs Non-Causal Audit): Flagged MK18 PZR's DVSA rear brake disc advisory [1.1.14 (a) (i)] as NOT CAUSAL because MK18 PZR was struck broadside on its nearside flank while traversing the crossroad, whereas BX21 TKP's thin front brake pads [1.1.13 (a) (ii)] and 2.0mm nearside front tyre are flagged CAUSAL to its overshoot across the Give Way line."
+    }
+  ],
+  "physics_audit_log": "ANTIGRAVITY SANDBOX KINEMATIC VERIFICATION (`antigravity-preview-09-2026` | `gemini-4-argon`):\n1. RURAL CROSSROAD SIGHTLINE TRIANGLE & STOPPING ENVELOPE (μ = 0.58 DAMP COUNTRY LANE):\n   - High hawthorn hedgerows restricted diagonal crossroad visibility splay to 21.5m.\n   - BX21 TKP (2,090 kg Range Rover Evoque) approached the Diagram 1003 Give Way line at 28.4 mph (12.70 m/s) and braked late at t=0.75s; thin front brake pads (DVSA 1.1.13(a)(ii)) and 2.0mm N/S front tyre tread prevented stopping short of the line, entering the junction box at 21.8 mph.\n   - MK18 PZR (1,395 kg Ford Focus) approached the signed crossroad hazard at 46.0 mph (20.56 m/s) instead of moderating speed to ~35 mph under Highway Code Rule 146, resulting in a 65% Defendant / 35% Claimant liability apportionment.",
+  "report": {
+    "claim_id": "UK-2026-0842",
+    "incident_summary": "At 11:08 BST at the rural Delphouse Road crossroad outside Cheadle (Staffordshire Moorlands), a 2021 Silver Land Rover Range Rover Evoque (BX21 TKP, Vehicle A) approached Southbound on the minor Delphouse Road arm at 28.4 mph, failed to yield at the Diagram 1003 Give Way line despite high hawthorn hedgerows obscuring lateral sightlines to 21.5m, and overshot into the intersection at 21.8 mph despite late braking at t=0.75s. Simultaneously, a 2018 Red Ford Focus ST-Line (MK18 PZR, Vehicle B) approached Eastbound along the priority rural carriageway at 46.0 mph without moderating speed in response to an advance Diagram 504.1 Crossroads Warning Sign. BX21 TKP struck the nearside flank of MK18 PZR at (x=0.4m, z=0.1m) at t=1.25s, spinning MK18 PZR 64° clockwise and tipping BX21 TKP to a 34.0° peak roll angle onto the verge.",
+    "location_and_time_context": {
+      "inferred_uk_location": "Delphouse Road / Cheadle Rural Crossroad, Staffordshire Moorlands",
+      "road_name_and_classification": "Unclassified Rural Priority Lane / Delphouse Rd Minor Crossroad Arm",
+      "junction_geometry": "Rural 4-Way Crossroad with Diagram 504.1 Warning Sign on Main Approach and Diagram 1003 Give Way Markings on Minor Arms",
+      "speed_limit_mph": 60,
+      "inferred_time_of_day": "11:08 BST (Late morning overcast daylight)",
+      "lighting_and_weather": "Cloudy moorland daylight, damp foliage and wet verge runoff",
+      "road_surface_condition": "Damp rural macadam with leaf mulch at verge edges (estimated mu = 0.58)",
+      "environmental_cues_observed": [
+        "UK Diagram 504.1 'Crossroads Ahead' red triangle warning sign 75m west of junction",
+        "2.4m-high uncut hawthorn hedgerows on northwest and southwest corners limiting splay to 21.5m",
+        "Faded Diagram 1003 Give Way double dashed line on Delphouse Rd minor approach"
+      ]
+    },
+    "impact_timestamp_sec": 1.25,
+    "impact_x_meters": 0.4,
+    "impact_z_meters": 0.1,
+    "claimant_PreImpact_Speed_mph": 46.0,
+    "defendant_PreImpact_Speed_mph": 28.4,
+    "stopping_distance_analysis": "Under Highway Code Rules 125, 126, and 146, the national 60 mph limit on an unlit rural lane is an absolute maximum, not a safe target at a blind crossroad with a 21.5m visibility splay. At MK18 PZR's approach speed of 46.0 mph (20.56 m/s) on damp rural tarmac (mu = 0.58), total stopping distance is 50.9m (13.8m thinking + 37.1m braking), exceeding the 21.5m sightline splay by 29.4m. Meanwhile, BX21 TKP approached the Give Way line at 28.4 mph and braked only 6.8m before the line (t=0.75s), where DVSA-recorded thin front brake pads and a 2.0mm nearside front tyre prevented stopping outside the priority corridor.",
+    "causal_filtering_summary": "Stripped 2 non-causal background objects (1 stationary agricultural tractor parked inside a gated field 45m north and 1 distant telegraph pole) while preserving both colliding vehicles (BX21 TKP & MK18 PZR), the Diagram 1003 Give Way line, the Diagram 504.1 Crossroads warning sign, and the sightline-blocking hawthorn hedgerows.",
+    "filtered_irrelevant_objects_count": 2,
+    "scene_environment_elements": [
+      {
+        "element_id": "sign_give_way_delphouse",
+        "element_type": "road_sign",
+        "label": "Delphouse Rd Give Way Sign & Diagram 1003 Markings",
+        "x_meters": -2.1,
+        "z_meters": -4.6,
+        "causal_relevance_note": "Required BX21 TKP to yield priority and creep forward given the obstructed hawthorn hedgerow sightline."
+      },
+      {
+        "element_id": "sign_crossroads_warning",
+        "element_type": "road_sign",
+        "label": "UK Diagram 504.1 Crossroads Hazard Warning Sign",
+        "x_meters": -21.0,
+        "z_meters": 3.8,
+        "causal_relevance_note": "Alerted MK18 PZR on the priority rural road to moderate speed below 46.0 mph under Highway Code Rule 146."
+      },
+      {
+        "element_id": "sightline_hawthorn_hedge_nw",
+        "element_type": "vegetation_sightline_blocker",
+        "label": "2.4m Uncut Hawthorn Hedgerow (Northwest Corner)",
+        "x_meters": -7.4,
+        "z_meters": -6.0,
+        "causal_relevance_note": "Severely restricted mutual diagonal sightline between Southbound and Eastbound approaches to 21.5m."
+      }
+    ],
+    "vehicles": [
+      {
+        "vehicle_id": "vehicle_a",
+        "label": "2021 Silver Range Rover Evoque (BX21 TKP — Emerging Minor Crossroad Arm)",
+        "color_hex": "#3B82F6",
+        "registration_plate": "BX21 TKP",
+        "dvsa_make": "LAND ROVER",
+        "dvsa_model": "RANGE ROVER EVOQUE R-DYNAMIC D",
+        "dvsa_mot_status": "Valid",
+        "dvsa_mot_expiry": "2027-04-11",
+        "dvsa_mileage_last_mot": "44,120 miles",
+        "dvsa_advisories": [
+          "Nearside Front Tyre worn close to legal limit 2.0mm (5.2.3 (e))",
+          "Front Brake pad wearing thin (1.1.13 (a) (ii))"
+        ],
+        "dvsa_defect_classifications": [
+          {
+            "defect_text": "Advisory: Front Brake pad wearing thin [1.1.13 (a) (ii)] & Nearside Front Tyre worn close to legal limit 2.0mm [5.2.3 (e)]",
+            "test_date": "2026-04-10",
+            "defect_category": "Advisory",
+            "causal_status": "CAUSAL",
+            "forensic_explanation": "CAUSAL / CONTRIBUTORY — BX21 TKP braked late at t=0.75s (z=-6.2m) on damp tarmac; thin front brake pads and depleted 2.0mm nearside front tread extended braking distance by 2.4m across the Give Way line."
+          },
+          {
+            "defect_text": "Historical 2025 MOT Failure: Windscreen washer provides insufficient liquid [3.5 (a)] — Rectified Same Day",
+            "test_date": "2025-04-09",
+            "defect_category": "Historical Failure (Rectified)",
+            "causal_status": "NOT CAUSAL",
+            "forensic_explanation": "NOT CAUSAL — Historical washer fluid failure was rectified over a year prior to the collision and had zero causal effect on crossroad braking."
+          }
+        ],
+        "causally_relevant": true,
+        "causal_role_reason": "Primary collision participant (Defendant vehicle, 65% liable): failed to slow in time for the Delphouse Rd Give Way line and overshot into the priority crossroad corridor at 21.8 mph.",
+        "keyframes": [
+          {"timestamp_sec": 0.0, "x_meters": -0.2, "z_meters": -16.0, "heading_deg": 180.0, "speed_mph": 28.4, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.25, "x_meters": -0.2, "z_meters": -12.8, "heading_deg": 180.0, "speed_mph": 28.2, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.5, "x_meters": -0.2, "z_meters": -9.5, "heading_deg": 180.0, "speed_mph": 27.9, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.75, "x_meters": -0.1, "z_meters": -6.2, "heading_deg": 179.0, "speed_mph": 26.8, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.0, "x_meters": 0.1, "z_meters": -2.8, "heading_deg": 176.0, "speed_mph": 24.1, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.25, "x_meters": 0.4, "z_meters": 0.1, "heading_deg": 170.0, "speed_mph": 21.8, "braking_active": true, "roll_deg": 18.0},
+          {"timestamp_sec": 1.5, "x_meters": 2.2, "z_meters": 1.8, "heading_deg": 142.0, "speed_mph": 14.6, "braking_active": true, "roll_deg": 34.0},
+          {"timestamp_sec": 1.75, "x_meters": 3.6, "z_meters": 2.9, "heading_deg": 128.0, "speed_mph": 9.2, "braking_active": true, "roll_deg": 22.0},
+          {"timestamp_sec": 2.0, "x_meters": 4.5, "z_meters": 3.6, "heading_deg": 122.0, "speed_mph": 4.8, "braking_active": true, "roll_deg": 12.0},
+          {"timestamp_sec": 2.25, "x_meters": 5.0, "z_meters": 4.0, "heading_deg": 120.0, "speed_mph": 1.9, "braking_active": true, "roll_deg": 8.0},
+          {"timestamp_sec": 2.5, "x_meters": 5.2, "z_meters": 4.2, "heading_deg": 120.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 8.0},
+          {"timestamp_sec": 2.75, "x_meters": 5.2, "z_meters": 4.2, "heading_deg": 120.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 8.0},
+          {"timestamp_sec": 3.0, "x_meters": 5.2, "z_meters": 4.2, "heading_deg": 120.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 8.0}
+        ]
+      },
+      {
+        "vehicle_id": "vehicle_b",
+        "label": "2018 Red Ford Focus ST-Line (MK18 PZR — Priority Rural Lane)",
+        "color_hex": "#EF4444",
+        "registration_plate": "MK18 PZR",
+        "dvsa_make": "FORD",
+        "dvsa_model": "FOCUS ST-LINE TDCI",
+        "dvsa_mot_status": "Valid",
+        "dvsa_mot_expiry": "2027-05-18",
+        "dvsa_mileage_last_mot": "68,410 miles",
+        "dvsa_advisories": [
+          "Rear Brake disc worn, pitted or scored, but not seriously weakened (1.1.14 (a) (i))",
+          "Exhaust mounting defective Rear (6.1.2 (a))"
+        ],
+        "dvsa_defect_classifications": [
+          {
+            "defect_text": "Advisory: Rear Brake disc worn, pitted or scored, but not seriously weakened [1.1.14 (a) (i)]",
+            "test_date": "2026-05-15",
+            "defect_category": "Advisory",
+            "causal_status": "NOT CAUSAL",
+            "forensic_explanation": "NOT CAUSAL — MK18 PZR was struck broadside on its nearside flank as BX21 TKP overshot the Give Way line; rear brake rotor scoring did not cause the collision, and MK18 PZR's 35% contributory share stems strictly from approaching a signed blind crossroad at 46.0 mph."
+          },
+          {
+            "defect_text": "Advisory: Exhaust mounting defective Rear [6.1.2 (a)]",
+            "test_date": "2026-05-15",
+            "defect_category": "Advisory",
+            "causal_status": "NOT CAUSAL",
+            "forensic_explanation": "NOT CAUSAL — Rear exhaust bracket wear is a non-kinematic item with zero effect on steering, braking, or crossroad visibility."
+          }
+        ],
+        "causally_relevant": true,
+        "causal_role_reason": "Primary collision participant (Claimant vehicle, 35% contributory negligence): approached a signed blind rural crossroad at 46.0 mph in breach of Highway Code Rules 125 and 146.",
+        "keyframes": [
+          {"timestamp_sec": 0.0, "x_meters": -25.0, "z_meters": 0.2, "heading_deg": 90.0, "speed_mph": 46.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.25, "x_meters": -19.8, "z_meters": 0.2, "heading_deg": 90.0, "speed_mph": 46.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.5, "x_meters": -14.7, "z_meters": 0.2, "heading_deg": 90.0, "speed_mph": 45.6, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.75, "x_meters": -9.6, "z_meters": 0.2, "heading_deg": 91.0, "speed_mph": 42.4, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.0, "x_meters": -4.4, "z_meters": 0.2, "heading_deg": 93.0, "speed_mph": 38.2, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.25, "x_meters": 0.4, "z_meters": 0.1, "heading_deg": 98.0, "speed_mph": 34.0, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.5, "x_meters": 3.8, "z_meters": 1.2, "heading_deg": 126.0, "speed_mph": 21.5, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.75, "x_meters": 6.1, "z_meters": 2.1, "heading_deg": 144.0, "speed_mph": 12.0, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 2.0, "x_meters": 7.4, "z_meters": 2.7, "heading_deg": 152.0, "speed_mph": 5.4, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 2.25, "x_meters": 8.0, "z_meters": 3.0, "heading_deg": 154.0, "speed_mph": 1.5, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 2.5, "x_meters": 8.2, "z_meters": 3.1, "heading_deg": 154.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 2.75, "x_meters": 8.2, "z_meters": 3.1, "heading_deg": 154.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 3.0, "x_meters": 8.2, "z_meters": 3.1, "heading_deg": 154.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
+        ]
+      }
+    ],
+    "detected_cameras": [
+      {
+        "camera_id": "cam_1",
+        "camera_label": "Cam 1: MK18 PZR Front Windscreen Dashcam (122° FOV)",
+        "camera_type": "dashcam_ego",
+        "fov_deg": 122.0,
+        "mount_position_x": -18.0,
+        "mount_position_y": 1.35,
+        "mount_position_z": 0.2,
+        "look_at_x": 2.0,
+        "look_at_z": 0.2,
+        "timestamp_offset_sec": 0.0
+      },
+      {
+        "camera_id": "cam_2",
+        "camera_label": "Cam 2: Delphouse Farmhouse Gate CCTV (Static 105° FOV)",
+        "camera_type": "cctv_static",
+        "fov_deg": 105.0,
+        "mount_position_x": 12.0,
+        "mount_position_y": 3.4,
+        "mount_position_z": -10.5,
+        "look_at_x": 0.0,
+        "look_at_z": 0.0,
+        "timestamp_offset_sec": 0.12
+      }
+    ],
+    "forensic_events": [
+      {
+        "timestamp_sec": 0.0,
+        "event_type": "Perception_Hazard_Entry",
+        "description": "MK18 PZR passes Diagram 504.1 Crossroads Warning Sign at 46.0 mph; BX21 TKP approaches Delphouse Rd Give Way line at 28.4 mph.",
+        "severity": "info"
+      },
+      {
+        "timestamp_sec": 0.5,
+        "event_type": "Line_Of_Sight_Obstruction",
+        "description": "2.4m hawthorn hedgerow blocks diagonal sightline between approaches until 21.5m separation.",
+        "severity": "warning"
+      },
+      {
+        "timestamp_sec": 0.75,
+        "event_type": "Braking_Onset",
+        "description": "Both drivers initiate emergency braking at t=0.75s; BX21 TKP's thin front brake pads and 2.0mm N/S front tyre prevent stopping before the line.",
+        "severity": "warning"
+      },
+      {
+        "timestamp_sec": 1.0,
+        "event_type": "Give_Way_Line_Encroachment",
+        "description": "BX21 TKP crosses Delphouse Rd Diagram 1003 Give Way line at 24.1 mph into the priority lane.",
+        "severity": "critical"
+      },
+      {
+        "timestamp_sec": 1.25,
+        "event_type": "Point_Of_Impact",
+        "description": "Broadside T-bone impact at (x=0.4m, z=0.1m): BX21 TKP strikes MK18 PZR nearside doors, inducing 34.0° verge roll on BX21 TKP and 64° yaw spin on MK18 PZR.",
+        "severity": "critical"
+      }
+    ],
+    "recommended_claimant_liability_pct": 35,
+    "recommended_defendant_liability_pct": 65,
+    "primary_highway_code_rules_breached": [
+      "Highway Code Rule 172 & Rule 170: BX21 TKP failed to give way at the Delphouse Rd Diagram 1003 double broken white lines.",
+      "Highway Code Rule 125 & Rule 146: MK18 PZR failed to reduce speed below 46.0 mph when approaching a signed blind rural crossroad (Diagram 504.1) on damp tarmac."
+    ],
+    "case_law_citations": [
+      {
+        "case_name": "Harding v Hinchcliffe [1964] RTR 112",
+        "citation_year": 1964,
+        "legal_principle": "Where a minor-road driver fails to yield at a controlled junction but the priority driver approaches an obscured intersection at excessive speed, a two-thirds / one-third (65% / 35%) split applies.",
+        "application_to_crash": "Assigns 65% primary fault to BX21 TKP for overshooting the Give Way line and 35% contributory fault to MK18 PZR for ignoring the crossroads warning sign at 46.0 mph.",
+        "policy_section_ref": "Policy #UK-8841 Section 6 Clause 6.3 (65% / 35% Rural Crossroad Split Liability Band)"
+      },
+      {
+        "case_name": "Macintyre v Coles [1966] 1 WLR 831",
+        "citation_year": 1966,
+        "legal_principle": "Priority on a main road is qualified by the duty to travel at a speed suited to restricted junction sightlines.",
+        "application_to_crash": "Supports 35% deduction against MK18 PZR given the 21.5m hawthorn hedgerow sightline limit.",
+        "policy_section_ref": "Policy #UK-8841 Section 6 Clause 6.2"
+      }
+    ],
+    "quantum_damage_estimate_gbp": 19650,
+    "legal_reasoning_chain": "1. PRIMARY BREACH (65% DEFENDANT — BX21 TKP): BX21 TKP approached a blind rural Give Way junction at 28.4 mph and braked too late (t=0.75s) with CAUSAL thin front brake pads and a 2.0mm nearside front tyre, overshooting into the priority corridor.\n2. CONTRIBUTORY NEGLIGENCE & NON-CAUSAL DVSA EXCLUSION (35% CLAIMANT — MK18 PZR): MK18 PZR approached a signed blind crossroad (Diagram 504.1) at 46.0 mph on damp rural macadam in breach of Highway Code Rules 125 and 146, warranting a 35% deduction under Harding v Hinchcliffe [1964]. Notably, MK18 PZR's DVSA advisory for worn rear brake discs (`1.1.14 (a) (i)`) is explicitly classified as NOT CAUSAL because MK18 PZR was struck broadside on its nearside flank."
+  },
+  "subagents": {
+    "policy_audit": "### UK MOTOR POLICY #UK-8841 COVERAGE & DVSA MOT CAUSAL AUDIT (`UK-2026-0842`)\n**Prepared for:** A UK motor claims & subrogation solicitor\n\n* **Vehicle A (`BX21 TKP` — 2021 Range Rover Evoque):** MOT Valid until `2027-04-11` (`44,120 miles`). Front brake pads wearing thin `[1.1.13 (a) (ii)]` and N/S front tyre at `2.0mm` `[5.2.3 (e)]` are flagged **`CAUSAL`** (lengthened late braking overshoot across the Give Way line). Historical 2025 washer fluid failure `[3.5 (a)]` is flagged **`NOT CAUSAL`**.\n* **Vehicle B (`MK18 PZR` — 2018 Ford Focus ST-Line):** MOT Valid until `2027-05-18` (`68,410 miles`). Rear brake disc wear advisory `[1.1.14 (a) (i)]` and rear exhaust mounting advisory `[6.1.2 (a)]` are explicitly flagged **`NOT CAUSAL`** because `MK18 PZR` was struck broadside on its nearside door structure by the emerging SUV; its 35% contributory share rests solely on its 46.0 mph approach speed past a Diagram 504.1 crossroads warning sign.",
+    "repair_estimate": "### ABI SALVAGE & THATCHAM QUANTUM SCHEDULE (`UK-2026-0842`)\n**Prepared for:** A UK motor claims & subrogation solicitor\n\n* **Vehicle B (`MK18 PZR` — 2018 Ford Focus ST-Line):** Broadside nearside B-pillar and sill intrusion (`24mm`). Classified **`ABI CATEGORY S`** Constructive Total Loss (`PAV £10,400.00` less `£2,180.00` salvage + recovery/hire = `£9,850.00`).\n* **Vehicle A (`BX21 TKP` — 2021 Range Rover Evoque):** Frontal crash structure, intercooler pack, and offside suspension strut replacement (`£9,800.00` economical Thatcham repair).\n* **Combined Quantum Exposure:** **£19,650.00**.",
+    "subrogation_letter": "### FORMAL CPR PRE-ACTION PROTOCOL LETTER OF CLAIM (`UK-2026-0842`)\n**From:** A UK motor claims & subrogation solicitor\n\nWe give formal notice under the CPR Pre-Action Protocol proposing a **65% Defendant (`BX21 TKP`) / 35% Claimant (`MK18 PZR`)** liability split in respect of the Delphouse Road rural crossroad collision, grounded in *Harding v Hinchcliffe* [1964] RTR 112 and *Macintyre v Coles* [1966] 1 WLR 831."
+  }
+}
