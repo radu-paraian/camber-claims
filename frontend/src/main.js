@@ -125,6 +125,85 @@ function setupNavigationAndViewSwitching() {
   });
 }
 
+const CASE_SHORT_TAGLINES = {
+  cheadle_a521:
+    'Blue Peugeot 2008 emerges across Give Way; struck & rolled 86° by speeding VW Golf (41.2 mph, expired MOT).',
+  delphouse_rollover:
+    'Land Rover Evoque overshoots blind rural Give Way crossroad; T-bones Red Ford Focus at 46 mph.',
+  a521_hgv:
+    'DAF 6x2 HGV encroaches 1.15m across wet S-bend hazard line into oncoming Vauxhall Astra.',
+};
+
+function renderCaseCardMedia(key, meta) {
+  if (key === 'cheadle_a521') {
+    return `
+      <div class="card-media-preview">
+        <video
+          class="card-preview-video"
+          src="${escapeHtml(meta.video_url || '/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4')}#t=0.95"
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          width="480"
+          height="270"
+          aria-hidden="true"
+        ></video>
+        <div class="card-media-overlay">
+          <span class="badge-tag cyan mono">🎥 RING CCTV SNAPSHOT</span>
+          <span class="badge-tag crimson mono">86° ROLLOVER @ t=1.15s</span>
+        </div>
+      </div>
+    `;
+  }
+  if (key === 'delphouse_rollover') {
+    return `
+      <div class="card-media-preview schematic-preview">
+        <svg viewBox="0 0 400 225" width="400" height="225" aria-hidden="true" class="card-schematic-svg">
+          <rect width="400" height="225" fill="#181c19"/>
+          <rect x="0" y="84" width="400" height="58" fill="#141417"/>
+          <rect x="172" y="0" width="56" height="225" fill="#141417"/>
+          <line x1="0" y1="113" x2="400" y2="113" stroke="#71717a" stroke-width="2" stroke-dasharray="10 8"/>
+          <line x1="174" y1="82" x2="226" y2="82" stroke="#f4f4f5" stroke-width="3" stroke-dasharray="5 4"/>
+          <!-- Hedgerow obstruction -->
+          <rect x="92" y="34" width="68" height="38" rx="10" fill="#233026" stroke="#52525b" stroke-width="1.5"/>
+          <text x="126" y="57" fill="#d4d4d8" font-size="9" font-family="monospace" text-anchor="middle">HEDGEROW</text>
+          <!-- Trajectories -->
+          <path d="M 196 18 L 196 105" stroke="#e4e4e7" stroke-width="3" stroke-dasharray="4 3"/>
+          <path d="M 45 102 L 192 105" stroke="#a1a1aa" stroke-width="3"/>
+          <!-- Vehicles -->
+          <rect x="184" y="64" width="22" height="36" rx="4" fill="#a1a1aa" stroke="#fafafa" stroke-width="2"/>
+          <rect x="142" y="92" width="38" height="20" rx="4" fill="#dc2626" stroke="#f4f4f5" stroke-width="2"/>
+          <circle cx="192" cy="104" r="11" fill="rgba(239,68,68,0.35)" stroke="#ef4444" stroke-width="2"/>
+        </svg>
+        <div class="card-media-overlay">
+          <span class="badge-tag cyan mono">📐 3D RECONSTRUCTION</span>
+          <span class="badge-tag emerald mono">RURAL CROSSROAD T-BONE</span>
+        </div>
+      </div>
+    `;
+  }
+  return `
+    <div class="card-media-preview schematic-preview">
+      <svg viewBox="0 0 400 225" width="400" height="225" aria-hidden="true" class="card-schematic-svg">
+        <rect width="400" height="225" fill="#18181b"/>
+        <path d="M 0 145 C 130 145, 250 75, 400 75" stroke="#111113" stroke-width="64" fill="none"/>
+        <path d="M 0 145 C 130 145, 250 75, 400 75" stroke="#e4e4e7" stroke-width="2" stroke-dasharray="10 7" fill="none"/>
+        <!-- HGV encroaching across centerline -->
+        <path d="M 350 66 C 260 68, 215 104, 185 118" stroke="#f43f5e" stroke-width="3" stroke-dasharray="5 3" fill="none"/>
+        <rect x="195" y="88" width="58" height="22" rx="3" transform="rotate(-18 224 99)" fill="#f4f4f5" stroke="#f43f5e" stroke-width="2"/>
+        <!-- Oncoming Astra -->
+        <rect x="142" y="114" width="36" height="18" rx="4" transform="rotate(-14 160 123)" fill="#52525b" stroke="#e4e4e7" stroke-width="2"/>
+        <circle cx="186" cy="113" r="11" fill="rgba(244,63,94,0.35)" stroke="#f43f5e" stroke-width="2"/>
+      </svg>
+      <div class="card-media-overlay">
+        <span class="badge-tag cyan mono">📐 3D RECONSTRUCTION</span>
+        <span class="badge-tag crimson mono">HGV LANE ENCROACHMENT</span>
+      </div>
+    </div>
+  `;
+}
+
 function renderWorkspaceCards() {
   const grid = document.getElementById('workspace-cards-grid');
   if (!grid) return;
@@ -140,15 +219,20 @@ function renderWorkspaceCards() {
       const vehB = r.vehicles?.[1] || {};
       const motAExpired = String(vehA.dvsa_mot_status || '').toUpperCase().includes('EXPIRED');
       const motBExpired = String(vehB.dvsa_mot_status || '').toUpperCase().includes('EXPIRED');
+      const shortTagline = CASE_SHORT_TAGLINES[key] || meta.subtitle || '';
 
       return `
         <article class="workspace-case-card ${key === activeCaseId ? 'active-card' : ''}" data-case-id="${escapeHtml(key)}">
-          <div class="card-top-badges">
-            <span class="badge-tag cyan mono">${escapeHtml(r.claim_id)}</span>
-            <span class="badge-tag emerald mono">${escapeHtml(meta.badge || 'VERIFIED 3D + DVSA')}</span>
+          ${renderCaseCardMedia(key, meta)}
+
+          <div class="card-header-group">
+            <div class="card-top-badges">
+              <span class="badge-tag cyan mono">${escapeHtml(r.claim_id)}</span>
+              <span class="badge-tag emerald mono">£${Number(r.quantum_damage_estimate_gbp || 18450).toLocaleString('en-GB')} Quantum</span>
+            </div>
+            <h3 class="card-title">${escapeHtml(meta.title || r.claim_id)}</h3>
+            <p class="card-short-tagline">${escapeHtml(shortTagline)}</p>
           </div>
-          <h3 class="card-title">${escapeHtml(meta.title || r.claim_id)}</h3>
-          <p class="card-subtitle">${escapeHtml(r.incident_summary)}</p>
 
           <div class="card-vrm-strip">
             <div class="vrm-mini-row">
@@ -167,30 +251,44 @@ function renderWorkspaceCards() {
             </div>
           </div>
 
-          <div class="card-causal-strip">
-            <span class="badge-tag emerald mono">
-              Causal Filter: ${escapeHtml(r.filtered_irrelevant_objects_count ?? 3)} non-causal objects stripped
-            </span>
-          </div>
+          <details class="compact-disclosure card-synopsis-details">
+            <summary>Full incident synopsis</summary>
+            <p>${escapeHtml(r.incident_summary)}</p>
+          </details>
 
-          <div class="card-split-bar-wrap">
-            <div class="card-split-labels mono-text">
-              <span>Claimant: ${escapeHtml(r.recommended_claimant_liability_pct)}%</span>
-              <span>Defendant: ${escapeHtml(r.recommended_defendant_liability_pct)}%</span>
+          <footer class="card-footer-stack">
+            <div class="card-split-bar-wrap">
+              <div class="card-split-labels mono-text">
+                <span>Claimant: ${escapeHtml(r.recommended_claimant_liability_pct)}%</span>
+                <span>Defendant: ${escapeHtml(r.recommended_defendant_liability_pct)}%</span>
+              </div>
+              <div class="split-progress-bar">
+                <div class="split-fill-claimant" style="width: ${r.recommended_claimant_liability_pct}%"></div>
+                <div class="split-fill-defendant" style="width: ${r.recommended_defendant_liability_pct}%"></div>
+              </div>
             </div>
-            <div class="split-progress-bar">
-              <div class="split-fill-claimant" style="width: ${r.recommended_claimant_liability_pct}%"></div>
-              <div class="split-fill-defendant" style="width: ${r.recommended_defendant_liability_pct}%"></div>
-            </div>
-          </div>
 
-          <button type="button" class="btn-primary-cta full-width open-case-btn" data-case-id="${escapeHtml(key)}">
-            Open 3D Forensic Cockpit →
-          </button>
+            <button type="button" class="btn-primary-cta full-width open-case-btn" data-case-id="${escapeHtml(key)}">
+              Open 3D Forensic Cockpit →
+            </button>
+          </footer>
         </article>
       `;
     })
     .join('');
+
+  // Auto-preview video on card hover
+  grid.querySelectorAll('.workspace-case-card').forEach((card) => {
+    const vid = card.querySelector('video');
+    if (vid) {
+      card.addEventListener('mouseenter', () => {
+        vid.play().catch(() => {});
+      });
+      card.addEventListener('mouseleave', () => {
+        vid.pause();
+      });
+    }
+  });
 
   grid.querySelectorAll('.open-case-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -259,16 +357,26 @@ function loadCaseIntoCockpit(caseId) {
   // Render DVSA Telemetry Cards with explicit [CAUSAL] vs [NOT CAUSAL] badges
   renderDvsaTelemetryCards(report.vehicles || []);
 
-  // Update Camera POV Button Labels for current vehicles
+  // Update Camera POV Button Tooltips for current vehicles (preserving Blender SVG icons)
   const vehA = report.vehicles?.[0];
   const vehB = report.vehicles?.[1];
+  const btnPovA = document.getElementById('btn-cam-pov-a');
+  const btnPovB = document.getElementById('btn-cam-pov-b');
   if (vehA) {
-    setTxt('btn-cam-pov-a', `Peugeot POV (${vehA.registration_plate})`);
-    CAMERA_MODE_LABELS.pov_a = `CAM: ${vehA.dvsa_make} POV (${vehA.registration_plate})`;
+    const labelA = `${vehA.dvsa_make || 'Vehicle A'} POV (${vehA.registration_plate})`;
+    if (btnPovA) {
+      btnPovA.title = labelA;
+      btnPovA.setAttribute('aria-label', labelA);
+    }
+    CAMERA_MODE_LABELS.pov_a = `CAM: ${labelA}`;
   }
   if (vehB) {
-    setTxt('btn-cam-pov-b', `VW Golf POV (${vehB.registration_plate})`);
-    CAMERA_MODE_LABELS.pov_b = `CAM: ${vehB.dvsa_make} POV (${vehB.registration_plate})`;
+    const labelB = `${vehB.dvsa_make || 'Vehicle B'} POV (${vehB.registration_plate})`;
+    if (btnPovB) {
+      btnPovB.title = labelB;
+      btnPovB.setAttribute('aria-label', labelB);
+    }
+    CAMERA_MODE_LABELS.pov_b = `CAM: ${labelB}`;
   }
 
   // Update Right Pane Liability Hero Card
@@ -286,9 +394,27 @@ function loadCaseIntoCockpit(caseId) {
 
   const rulesRow = document.getElementById('rules-breached-pills');
   if (rulesRow && Array.isArray(report.primary_highway_code_rules_breached)) {
-    rulesRow.innerHTML = report.primary_highway_code_rules_breached
-      .map((rule) => `<span class="rule-pill crimson">${escapeHtml(rule.split('—')[0].trim())}</span>`)
+    const shortPills = report.primary_highway_code_rules_breached
+      .map((rule) => {
+        const shortTag = rule
+          .split(/[:—–]/)[0]
+          .replace('Highway Code ', '')
+          .trim();
+        return `<span class="rule-pill crimson">${escapeHtml(shortTag)}</span>`;
+      })
       .join('');
+    const fullList = report.primary_highway_code_rules_breached
+      .map((rule) => `<li>${escapeHtml(rule)}</li>`)
+      .join('');
+    rulesRow.innerHTML = `
+      ${shortPills}
+      <details class="compact-disclosure" style="width: 100%; margin-top: 4px;">
+        <summary>Statutory breach details (${report.primary_highway_code_rules_breached.length})</summary>
+        <ul style="margin: 6px 0 2px; padding-left: 16px; color: var(--text-secondary); font-size: 10.5px; line-height: 1.4;">
+          ${fullList}
+        </ul>
+      </details>
+    `;
   }
 
   // Populate Right Pane 4 Forensic Tabs
@@ -313,8 +439,24 @@ function loadCaseIntoCockpit(caseId) {
 }
 
 function getEffectiveDefectClassifications(vehicle) {
+  const isNegativeActiveDefect = (item) => {
+    const text = String(item?.defect_text || '').toLowerCase();
+    const cat = String(item?.defect_category || '').toLowerCase();
+    if (
+      text.includes('mot test pass') ||
+      cat.includes('statutory compliance') ||
+      cat.includes('rectified') ||
+      text.includes('rectified') ||
+      text.includes('no safety-critical') ||
+      text.includes('no unrectified')
+    ) {
+      return false;
+    }
+    return true;
+  };
+
   const rawList = Array.isArray(vehicle.dvsa_defect_classifications)
-    ? structuredClone(vehicle.dvsa_defect_classifications)
+    ? structuredClone(vehicle.dvsa_defect_classifications).filter(isNegativeActiveDefect)
     : [];
 
   // Apply interactive Solicitor Kinematic Context Override if selected
@@ -333,23 +475,28 @@ function getEffectiveDefectClassifications(vehicle) {
 
   if (rawList.length > 0) return rawList;
 
-  // Fallback automatic classification if a custom vehicle only has raw advisories
-  return (vehicle.dvsa_advisories || []).map((adv) => {
-    const lower = adv.toLowerCase();
-    const isCausal =
-      (lower.includes('brake') || lower.includes('tyre')) &&
-      !lower.includes('parking') &&
-      !lower.includes('corroded');
-    return {
-      defect_text: adv,
-      test_date: vehicle.dvsa_mot_expiry || '2026',
-      defect_category: 'DVSA MOT Advisory',
-      causal_status: isCausal ? 'CAUSAL' : 'NOT CAUSAL',
-      forensic_explanation: isCausal
-        ? 'CAUSAL / CONTRIBUTORY — Degraded braking or wet-tarmac tyre grip during active collision approach.'
-        : 'NOT CAUSAL — Defect had no mechanical bearing on collision kinematics or stopping distance.',
-    };
-  });
+  // Fallback automatic classification if a custom vehicle only has raw advisories (negative only)
+  return (vehicle.dvsa_advisories || [])
+    .filter((adv) => {
+      const lower = String(adv || '').toLowerCase();
+      return !lower.includes('rectified') && !lower.includes('no safety-critical');
+    })
+    .map((adv) => {
+      const lower = adv.toLowerCase();
+      const isCausal =
+        (lower.includes('brake') || lower.includes('tyre') || lower.includes('expired')) &&
+        !lower.includes('parking') &&
+        !lower.includes('corroded');
+      return {
+        defect_text: adv,
+        test_date: vehicle.dvsa_mot_expiry || '2026',
+        defect_category: 'DVSA MOT Advisory',
+        causal_status: isCausal ? 'CAUSAL' : 'NOT CAUSAL',
+        forensic_explanation: isCausal
+          ? 'CAUSAL / CONTRIBUTORY — Degraded braking or wet-tarmac tyre grip during active collision approach.'
+          : 'NOT CAUSAL — Negative MOT advisory had no mechanical bearing on collision kinematics or stopping distance.',
+      };
+    });
 }
 
 function renderDvsaTelemetryCards(vehicles) {
@@ -365,22 +512,24 @@ function renderDvsaTelemetryCards(vehicles) {
         .map((d) => {
           const isCausal = String(d.causal_status).toUpperCase() === 'CAUSAL';
           return `
-            <div class="dvsa-defect-item ${isCausal ? 'defect-causal' : 'defect-non-causal'}">
-              <div class="defect-item-top">
+            <details class="dvsa-defect-item defect-disclosure ${isCausal ? 'defect-causal is-causal' : 'defect-non-causal is-not-causal'}">
+              <summary class="defect-summary-row">
                 <span class="badge-tag ${isCausal ? 'crimson' : 'emerald'} mono">
                   [${isCausal ? 'CAUSAL / CONTRIBUTORY' : 'NOT CAUSAL'}]
                 </span>
-                <span class="mono-muted">${escapeHtml(d.test_date || '')} • ${escapeHtml(d.defect_category || 'MOT Record')}</span>
+                <span class="defect-title">${escapeHtml(d.defect_text)}</span>
+              </summary>
+              <div class="defect-disclosure-body">
+                <div class="mono-muted">${escapeHtml(d.test_date || '')} • ${escapeHtml(d.defect_category || 'MOT Record')}</div>
+                <div class="defect-explanation">${escapeHtml(d.forensic_explanation)}</div>
               </div>
-              <div class="defect-title">${escapeHtml(d.defect_text)}</div>
-              <div class="defect-explanation">${escapeHtml(d.forensic_explanation)}</div>
-            </div>
+            </details>
           `;
         })
         .join('');
 
       return `
-        <div class="dvsa-vehicle-card ${isExpired ? 'mot-expired-border' : ''}">
+        <div class="dvsa-vehicle-card ${isExpired ? 'mot-expired-border expired-mot' : ''}">
           <div class="dvsa-card-top">
             <span class="uk-vrm-plate">${escapeHtml(v.registration_plate)}</span>
             <span class="badge-tag ${isExpired ? 'crimson' : 'emerald'} mono">
@@ -389,11 +538,7 @@ function renderDvsaTelemetryCards(vehicles) {
           </div>
           <div class="dvsa-make-model">
             <strong>${escapeHtml(v.dvsa_make)} ${escapeHtml(v.dvsa_model)}</strong>
-            <span class="mono-muted">Odometer: ${escapeHtml(v.dvsa_mileage_last_mot)}</span>
-          </div>
-          <div class="dvsa-causal-role-note">
-            <span class="badge-tag cyan mono">3D Scene Retained</span>
-            <span>${escapeHtml(v.causal_role_reason)}</span>
+            <span class="mono-muted"> • ${escapeHtml(v.dvsa_mileage_last_mot)}</span>
           </div>
           <div class="dvsa-defects-list">
             ${defectsHtml}
@@ -438,24 +583,57 @@ function renderForensicDossierTabs(bundle) {
   const report = bundle.report || {};
   const subagents = bundle.subagents || {};
 
-  // Tab 1: Case Law Citations, Stopping Distance & Reasoning
+  // Tab 1: Case Law Citations + Agent Road Sign & Traffic Control Legal Analysis (Compact Collapsible Accordions)
   const citationsList = document.getElementById('caselaw-citations-list');
-  if (citationsList && Array.isArray(report.case_law_citations)) {
-    citationsList.innerHTML = report.case_law_citations
-      .map(
-        (c) => `
-        <div class="citation-card">
-          <div class="citation-header">
-            <strong>${escapeHtml(c.case_name)}</strong>
-            <span class="badge-tag cyan mono">${escapeHtml(c.citation_year)}</span>
-          </div>
-          <p class="citation-principle">${escapeHtml(c.legal_principle)}</p>
-          <p class="citation-application">${escapeHtml(c.application_to_crash)}</p>
-          <div class="citation-policy-ref mono-muted">${escapeHtml(c.policy_section_ref)}</div>
-        </div>
-      `
-      )
-      .join('');
+  if (citationsList) {
+    const citationHtml = Array.isArray(report.case_law_citations)
+      ? report.case_law_citations
+          .map(
+            (c, idx) => `
+          <details class="citation-card citation-disclosure" name="caselaw-citation-item" ${idx === 0 ? 'open' : ''}>
+            <summary class="citation-header">
+              <strong>${escapeHtml(c.case_name)}</strong>
+              <span class="badge-tag cyan mono">${escapeHtml(c.citation_year)}</span>
+            </summary>
+            <div class="citation-body">
+              <p class="citation-principle">${escapeHtml(c.legal_principle)}</p>
+              <p class="citation-application">${escapeHtml(c.application_to_crash)}</p>
+              <div class="citation-policy-ref mono-muted">${escapeHtml(c.policy_section_ref)}</div>
+            </div>
+          </details>
+        `
+          )
+          .join('')
+      : '';
+
+    const signElements = Array.isArray(report.scene_environment_elements)
+      ? report.scene_environment_elements.filter(
+          (el) => el.is_causal !== false && (el.tsrgd_diagram || el.statutory_duty || String(el.element_type || '').includes('sign'))
+        )
+      : [];
+
+    const signAnalysisHtml =
+      signElements.length > 0
+        ? signElements
+            .map(
+              (el) => `
+          <details class="citation-card citation-disclosure">
+            <summary class="citation-header">
+              <strong>Road Sign / Marking: ${escapeHtml(el.label || el.element_type)}</strong>
+              <span class="badge-tag amber mono">${escapeHtml(el.tsrgd_diagram || 'TSRGD 2016')}</span>
+            </summary>
+            <div class="citation-body">
+              ${el.statutory_duty ? `<p class="citation-principle"><strong>Statutory Duty:</strong> ${escapeHtml(el.statutory_duty)}</p>` : ''}
+              ${el.driver_compliance ? `<p class="citation-application"><strong>Observed Compliance:</strong> ${escapeHtml(el.driver_compliance)}</p>` : ''}
+              <p class="citation-application">${escapeHtml(el.legal_liability_impact || el.causal_relevance)}</p>
+            </div>
+          </details>
+        `
+            )
+            .join('')
+        : '';
+
+    citationsList.innerHTML = citationHtml + signAnalysisHtml;
   }
 
   const stoppingProse = document.getElementById('stopping-distance-prose');
@@ -473,21 +651,23 @@ function renderForensicDossierTabs(bundle) {
           .map((d) => {
             const isCausal = String(d.causal_status).toUpperCase() === 'CAUSAL';
             return `
-              <div class="audit-defect-row">
-                <span class="badge-tag ${isCausal ? 'crimson' : 'emerald'} mono">
-                  ${isCausal ? 'CAUSAL' : 'NOT CAUSAL'}
-                </span>
-                <div>
-                  <strong>${escapeHtml(d.defect_text)}</strong>
-                  <p>${escapeHtml(d.forensic_explanation)}</p>
+              <details class="dvsa-defect-item defect-disclosure ${isCausal ? 'is-causal' : 'is-not-causal'}">
+                <summary class="defect-summary-row">
+                  <span class="badge-tag ${isCausal ? 'crimson' : 'emerald'} mono">
+                    ${isCausal ? 'CAUSAL' : 'NOT CAUSAL'}
+                  </span>
+                  <strong class="defect-title">${escapeHtml(d.defect_text)}</strong>
+                </summary>
+                <div class="defect-disclosure-body">
+                  <p class="defect-explanation-text">${escapeHtml(d.forensic_explanation)}</p>
                 </div>
-              </div>
+              </details>
             `;
           })
           .join('');
         return `
           <div class="audit-vehicle-block">
-            <h4>${escapeHtml(v.registration_plate)} — ${escapeHtml(v.dvsa_make)} ${escapeHtml(v.dvsa_model)}</h4>
+            <h4 class="audit-veh-heading">${escapeHtml(v.registration_plate)} — ${escapeHtml(v.dvsa_make)} ${escapeHtml(v.dvsa_model)}</h4>
             ${items}
           </div>
         `;
@@ -519,10 +699,29 @@ function renderForensicDossierTabs(bundle) {
       .join('');
   }
 
-  // Tab 3: Thatcham Repair & Salvage Schedule
+  // Tab 3: Thatcham Repair & Salvage Schedule (Summary KPIs + Collapsible Full Schedule)
+  const thatchamSummary = document.getElementById('thatcham-summary-cards');
+  if (thatchamSummary) {
+    const q = Number(report.quantum_damage_estimate_gbp || 18450);
+    thatchamSummary.innerHTML = `
+      <div class="thatcham-kpi-box">
+        <span class="mono-muted">TOTAL QUANTUM</span>
+        <strong class="mono emerald-text">£${q.toLocaleString('en-GB')}</strong>
+      </div>
+      <div class="thatcham-kpi-box">
+        <span class="mono-muted">SALVAGE STATUS</span>
+        <strong class="mono">ABI Cat S / Repair</strong>
+      </div>
+      <div class="thatcham-kpi-box">
+        <span class="mono-muted">POLICY EXCESS</span>
+        <strong class="mono">£500.00</strong>
+      </div>
+    `;
+  }
+
   const thatchamBox = document.getElementById('thatcham-schedule-container');
   if (thatchamBox) {
-    thatchamBox.innerHTML = `<pre class="cpr-letter-box">${escapeHtml(subagents.repair_estimate || '')}</pre>`;
+    thatchamBox.innerHTML = `<pre class="cpr-letter-box" tabindex="0"><code>${escapeHtml(subagents.repair_estimate || '')}</code></pre>`;
   }
 
   // Tab 4: CPR Pre-Action Protocol Letter of Claim
