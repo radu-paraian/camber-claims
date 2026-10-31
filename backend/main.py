@@ -12,6 +12,7 @@ import asyncio
 import copy
 import json
 import os
+import shutil
 import tempfile
 import uuid
 from contextlib import asynccontextmanager
@@ -27,8 +28,10 @@ from pydantic import BaseModel, Field
 from backend.gemini_pipeline import (
     analyze_crash_video_and_legal_corpus,
     enforce_rigid_body_obb_physics,
+    ensure_production_case_quality,
     execute_human_approved_settlement,
     fetch_uk_dvsa_mot_history,
+    filter_negative_dvsa_records,
     load_env_safely,
     pre_scan_crash_video,
     register_dvsa_credentials_and_verify_physics,
@@ -69,10 +72,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory store for loaded cases and async background jobs
+# In-memory store for loaded cases, uploaded videos, and async background jobs
 _CASES_CACHE: Dict[str, Dict[str, Any]] = {}
 _JOBS_STORE: Dict[str, Dict[str, Any]] = {}
+_UPLOADED_VIDEOS: Dict[str, str] = {}
 _DVSA_ENRICHED: bool = False
+UPLOADS_TMP_DIR = Path("/tmp/camber_uploads")
 
 CASE_FILE_MAP: Dict[str, str] = {
     "cheadle_a521": "case_cheadle_a521_junction.json",
@@ -83,9 +88,9 @@ CASE_FILE_MAP: Dict[str, str] = {
 
 def _sanitize_case_report_physics_and_dvsa(case_dict: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Validates `case_dict["report"]` against `ForensicLegalReport`, strips any positive/pass or rectified
-    historical DVSA entries from `dvsa_defect_classifications` and `dvsa_advisories`, and enforces
-    deterministic Rigid-Body OBB / Separating Axis Theorem (SAT) non-interpenetration physics.
+    Validates `case_dict["report"]` against `ForensicLegalReport`, runs `ensure_production_case_quality`
+    (negative-only DVSA records, TSRGD 2016 road sign legal analysis, strict video duration bounding
+    to `[0.0, duration_seconds]`, and Rigid-Body OBB / Separating Axis Theorem non-interpenetration physics).
     """
     report_raw = case_dict.get("report")
     if not report_raw:
@@ -93,32 +98,30 @@ def _sanitize_case_report_physics_and_dvsa(case_dict: Dict[str, Any]) -> Dict[st
 
     try:
         report_obj = ForensicLegalReport.model_validate(report_raw)
-        for veh in report_obj.vehicles:
-            # Strip positive pass / rectified historical entries if any remain
-            filtered_defects = [
-                d
-                for d in veh.dvsa_defect_classifications
-                if "MOT TEST PASS" not in d.defect_category.upper()
-                and "STATUTORY COMPLIANCE" not in d.defect_category.upper()
-                and "PASS WITH NO ADVISORIES" not in d.defect_text.upper()
-                and "NO STATUTORY DEFECTS" not in d.defect_text.upper()
-                and not (
-                    "HISTORICAL" in d.defect_category.upper()
-                    and "RECTIFIED" in d.defect_category.upper()
-                )
-            ]
-            if filtered_defects:
-                veh.dvsa_defect_classifications = filtered_defects
-            filtered_adv = [
-                a
-                for a in veh.dvsa_advisories
-                if "PASS WITH NO ADVISORIES" not in a.upper()
-                and "NO STATUTORY DEFECTS" not in a.upper()
-            ]
-            if filtered_adv:
-                veh.dvsa_advisories = filtered_adv
+        video_url = (
+            case_dict.get("case_metadata", {}).get("video_url")
+            or report_obj.video_url
+        )
+        duration_sec = (
+            case_dict.get("duration_seconds")
+            or case_dict.get("case_metadata", {}).get("duration_seconds")
+            or report_obj.duration_seconds
+        )
+        report_obj = ensure_production_case_quality(
+            report_obj,
+            video_url=video_url,
+            duration_seconds=float(duration_sec) if duration_sec else None,
+        )
+        if "is_public_demo" in case_dict:
+            report_obj.is_public_demo = bool(case_dict["is_public_demo"])
+        if "local_only" in case_dict:
+            report_obj.local_only = bool(case_dict["local_only"])
 
-        report_obj = enforce_rigid_body_obb_physics(report_obj)
+        case_dict["duration_seconds"] = report_obj.duration_seconds
+        if "case_metadata" in case_dict and isinstance(case_dict["case_metadata"], dict):
+            case_dict["case_metadata"]["duration_seconds"] = report_obj.duration_seconds
+            if video_url:
+                case_dict["case_metadata"]["video_url"] = video_url
         case_dict["report"] = report_obj.model_dump()
     except Exception:
         pass
@@ -199,19 +202,50 @@ async def health_check() -> Dict[str, Any]:
 
 
 @app.get("/api/cases")
-async def list_cases() -> Dict[str, Any]:
-    """Return all 3 pre-loaded UK crash reconstruction cases, enriched with live DVSA telemetry."""
+async def list_cases(request: Request, include_local: Optional[bool] = None) -> Dict[str, Any]:
+    """
+    Return UK crash reconstruction cases enriched with live DVSA telemetry.
+    - When `include_local=True` or the request `Host` is local (`localhost`, `127.0.0.1`, `testserver`)
+      and `include_local` is not explicitly `False`, returns all 3 cases (Public Demo Case 1 + Local Cases 2 & 3).
+    - On public hosts (e.g., Vercel production deployment) or when `include_local=False`, filters out
+      static `local_only=True` cases so only Case 1 (`cheadle_a521`, `"is_public_demo": true`) and any
+      newly created runtime cases are returned in the public selector.
+    """
     cases_map = _load_cases_from_disk(enrich_live_dvsa=True)
+    host = (request.headers.get("host") or "").lower()
+    if include_local is not None:
+        is_local = bool(include_local)
+    else:
+        is_local = any(h in host for h in ("localhost", "127.0.0.1", "testserver"))
+
     ordered_keys = ["cheadle_a521", "delphouse_rollover", "a521_hgv"]
-    cases_list = [cases_map[k] for k in ordered_keys if k in cases_map]
-    return {
+    for k in cases_map:
+        if k not in ordered_keys:
+            ordered_keys.append(k)
+
+    def _is_visible(case_payload: Dict[str, Any]) -> bool:
+        if is_local:
+            return True
+        if case_payload.get("local_only") is True:
+            return False
+        if case_payload.get("report", {}).get("local_only") is True:
+            return False
+        return True
+
+    filtered_map = {k: v for k, v in cases_map.items() if _is_visible(v)}
+    cases_list = [filtered_map[k] for k in ordered_keys if k in filtered_map]
+
+    response_payload: Dict[str, Any] = {
         "default_case_id": "cheadle_a521",
+        "is_local_environment": is_local,
         "cases": cases_list,
-        "cases_by_id": cases_map,
-        "cheadle_a521": cases_map.get("cheadle_a521"),
-        "delphouse_rollover": cases_map.get("delphouse_rollover"),
-        "a521_hgv": cases_map.get("a521_hgv"),
+        "cases_by_id": filtered_map,
+        "cheadle_a521": filtered_map.get("cheadle_a521"),
     }
+    if is_local:
+        response_payload["delphouse_rollover"] = filtered_map.get("delphouse_rollover")
+        response_payload["a521_hgv"] = filtered_map.get("a521_hgv")
+    return response_payload
 
 
 @app.get("/api/cases/{case_id}")
@@ -237,8 +271,20 @@ async def get_case_by_id(case_id: str) -> Dict[str, Any]:
     target_key = alias_map.get(normalized, normalized)
     if target_key in cases_map:
         return cases_map[target_key]
+    if case_id in cases_map:
+        return cases_map[case_id]
 
     raise HTTPException(status_code=404, detail=f"Case '{case_id}' not found.")
+
+
+@app.get("/api/uploaded-video/{job_id}")
+async def get_uploaded_video(job_id: str) -> FileResponse:
+    """Serve a user-uploaded crash video cached at `/tmp/camber_uploads/{job_id}.mp4` for side-by-side playback."""
+    safe_job_id = Path(job_id).name
+    cached_path = _UPLOADED_VIDEOS.get(safe_job_id) or str(UPLOADS_TMP_DIR / f"{safe_job_id}.mp4")
+    if not cached_path or not os.path.exists(cached_path):
+        raise HTTPException(status_code=404, detail=f"Uploaded video for job '{job_id}' not found.")
+    return FileResponse(cached_path, media_type="video/mp4")
 
 
 @app.get("/api/dvsa/{registration}")
@@ -302,6 +348,7 @@ async def _run_full_pipeline_task(
     saved_paths: List[str],
     plate_1: str,
     plate_2: str,
+    has_custom_upload: bool = False,
 ) -> Dict[str, Any]:
     """Execute the full 5-stage Gemini 4 Argon + Live UK DVSA + Antigravity + Flash Sub-Agents pipeline."""
     _JOBS_STORE[job_id] = {
@@ -309,6 +356,17 @@ async def _run_full_pipeline_task(
         "status": "processing",
         "stage": "guardrail_and_dvsa_lookup",
     }
+
+    resolved_video_url = "/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4"
+    if has_custom_upload and saved_paths and os.path.exists(saved_paths[0]):
+        try:
+            UPLOADS_TMP_DIR.mkdir(parents=True, exist_ok=True)
+            cached_video_file = UPLOADS_TMP_DIR / f"{job_id}.mp4"
+            shutil.copyfile(saved_paths[0], str(cached_video_file))
+            _UPLOADED_VIDEOS[job_id] = str(cached_video_file)
+            resolved_video_url = f"/api/uploaded-video/{job_id}"
+        except Exception:
+            resolved_video_url = f"/api/uploaded-video/{job_id}"
 
     guardrail = await asyncio.to_thread(
         run_fast_guardrail_check,
@@ -322,7 +380,10 @@ async def _run_full_pipeline_task(
         plate_1,
         plate_2,
     )
-    report_obj = enforce_rigid_body_obb_physics(report_obj)
+    report_obj = ensure_production_case_quality(
+        report_obj,
+        video_url=resolved_video_url,
+    )
     report_dict = report_obj.model_dump()
 
     _JOBS_STORE[job_id]["stage"] = "antigravity_physics_and_parallel_subagents"
@@ -345,12 +406,18 @@ async def _run_full_pipeline_task(
         "status": "completed",
         "job_id": job_id,
         "case_id": "custom_upload",
+        "is_public_demo": False,
+        "local_only": False,
+        "duration_seconds": report_obj.duration_seconds,
         "case_metadata": {
             "id": "custom_upload",
             "claim_id": report_dict.get("claim_id", "UK-2026-0819"),
             "title": f"Live Forensic Analysis: {dvsa_1['registration']} vs {dvsa_2['registration']}",
             "subtitle": f"{dvsa_1['make']} {dvsa_1['model']} vs {dvsa_2['make']} {dvsa_2['model']}",
-            "video_url": "/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4",
+            "video_url": resolved_video_url,
+            "duration_seconds": report_obj.duration_seconds,
+            "is_public_demo": False,
+            "local_only": False,
             "badge": "GEMINI 4 ARGON + LIVE DVSA",
             "plate_1": dvsa_1["registration"],
             "plate_2": dvsa_2["registration"],
@@ -367,6 +434,7 @@ async def _run_full_pipeline_task(
         "subagents": subagents_out,
     }
     _JOBS_STORE[job_id] = completed_payload
+    _CASES_CACHE[job_id] = completed_payload
     return completed_payload
 
 
@@ -391,13 +459,18 @@ async def analyze_claim_endpoint(
     p1_clean = (plate_1 or "").strip()
     p2_clean = (plate_2 or "").strip()
 
+    uploaded_only = await _save_uploaded_videos(videos, video, use_default_if_empty=False)
+    has_custom_upload = bool(uploaded_only)
+
     if require_clarification_check or not p1_clean or not p2_clean:
-        uploaded_only = await _save_uploaded_videos(videos, video, use_default_if_empty=False)
         pre_scan_result = await asyncio.to_thread(pre_scan_crash_video, uploaded_only, p1_clean, p2_clean)
         pre_scan_result["status"] = "clarification_required"
         return pre_scan_result
 
-    saved_paths = await _save_uploaded_videos(videos, video, use_default_if_empty=True)
+    if uploaded_only:
+        saved_paths = uploaded_only
+    else:
+        saved_paths = await _save_uploaded_videos(None, None, use_default_if_empty=True)
 
     job_id = f"job-{uuid.uuid4().hex[:10]}"
     if mode.lower() == "background":
@@ -406,14 +479,18 @@ async def analyze_claim_endpoint(
             "status": "processing",
             "stage": "queued",
         }
-        background_tasks.add_task(_run_full_pipeline_task, job_id, saved_paths, p1_clean, p2_clean)
+        background_tasks.add_task(
+            _run_full_pipeline_task, job_id, saved_paths, p1_clean, p2_clean, has_custom_upload
+        )
         return {
             "status": "processing",
             "job_id": job_id,
             "poll_url": f"/api/job-status/{job_id}",
         }
 
-    result = await _run_full_pipeline_task(job_id, saved_paths, p1_clean, p2_clean)
+    result = await _run_full_pipeline_task(
+        job_id, saved_paths, p1_clean, p2_clean, has_custom_upload=has_custom_upload
+    )
     return result
 
 
