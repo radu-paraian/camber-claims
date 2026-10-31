@@ -611,6 +611,9 @@ if FRONTEND_DIST_DIR.exists():
     assets_dir = FRONTEND_DIST_DIR / "assets"
     if assets_dir.exists():
         app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
+    thumbs_dir = FRONTEND_DIST_DIR / "thumbnails"
+    if thumbs_dir.exists():
+        app.mount("/thumbnails", StaticFiles(directory=str(thumbs_dir)), name="thumbnails")
 
 
 @app.get("/")

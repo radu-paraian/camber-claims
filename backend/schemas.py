@@ -9,6 +9,7 @@ class Keyframe3D(BaseModel):
     heading_deg: float = Field(description="Vehicle yaw heading in degrees (0 = North, 90 = East)")
     speed_mph: float = Field(description="Instantaneous speed in UK miles per hour (mph)")
     braking_active: bool = Field(description="True if brake lights or deceleration pitch observed")
+    pitch_deg: Optional[float] = Field(default=0.0, description="Pitch angle in degrees (negative = nose dive under braking)")
     roll_deg: Optional[float] = Field(default=0.0, description="Roll angle in degrees (e.g. 85.0 if rolled onto side post-impact)")
 
 
@@ -51,7 +52,7 @@ class VehicleTrajectory(BaseModel):
 
 
 class SceneEnvironmentElement(BaseModel):
-    element_id: str = Field(description="Unique identifier, e.g. 'sign_give_way_draycott'")
+    element_id: str = Field(default="env_element", description="Unique identifier, e.g. 'sign_give_way_draycott'")
     element_type: Literal[
         "road_sign",
         "vegetation_sightline_blocker",
@@ -63,11 +64,18 @@ class SceneEnvironmentElement(BaseModel):
         "stop_line",
         "hazard_line",
         "sightline_blocker",
+        "traffic_sign",
+        "boundary_wall",
+        "foliage_obstruction",
     ]
     label: str = Field(description="Human-readable label, e.g. 'UK Give Way Sign & Double Dashed Line'")
     x_meters: float = Field(description="East-West coordinate in meters relative to junction center")
     z_meters: float = Field(description="North-South coordinate in meters relative to junction center")
-    causal_relevance_note: str = Field(description="Why this static object is causally relevant to the collision")
+    radius_meters: Optional[float] = Field(default=0.5, description="Approximate footprint radius in meters")
+    causal_relevance_note: str = Field(
+        default="Causally relevant static road environment feature.",
+        description="Why this static object is causally relevant to the collision",
+    )
     tsrgd_diagram: Optional[str] = Field(
         default=None,
         description="UK TSRGD 2016 Diagram number, e.g., 'Diagram 602 (Give Way Sign)' or 'Diagram 1003 (Give Way Markings)' or 'Diagram 670 (30 mph Speed Limit)'",
@@ -122,9 +130,16 @@ class ForensicEvent3D(BaseModel):
         "Evasive_Steering",
         "Point_Of_Impact",
         "Post_Impact_Rollover_Rest",
+        "hazard_visibility",
+        "emergency_braking",
+        "impact",
+        "rollover_initiation",
+        "rest_position",
     ]
     description: str
-    severity: Literal["info", "warning", "critical"]
+    severity: Literal["info", "warning", "critical", "INFO", "WARNING", "HIGH", "CRITICAL", "MEDIUM", "LOW"] = Field(
+        default="warning"
+    )
 
 
 class CaseLawCitation(BaseModel):

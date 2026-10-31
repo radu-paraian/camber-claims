@@ -1,4 +1,15 @@
 import { ForensicScene3D } from './scene3d.js';
+import {
+  iconSvg,
+  formatPartyLabel,
+  renderThatchamScheduleHtml,
+  renderFormattedLetterHtml,
+  renderMotAdvisoryRowHtml,
+} from './uiFormatters.js';
+import {
+  initArchitectureModal,
+  updateArchitectureModalCaseData,
+} from './architectureModal.js';
 import cheadleCaseData from '../../data/case_cheadle_a521_junction.json';
 import delphouseCaseData from '../../data/case_delphouse_rollover.json';
 import a521HgvCaseData from '../../data/case_a521_hgv_corridor.json';
@@ -8,51 +19,51 @@ const IS_LOCAL_ENV = ['localhost', '127.0.0.1'].includes(window.location.hostnam
 const CASE_VIDEO_MAP = {
   'UK-2026-0891': {
     url: '/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4',
-    previewTime: 1.15,
-    camLabel: 'RING CCTV · CHEADLE A521',
-    impactBadge: '86° ROLLOVER @ t=1.15s',
+    previewTime: 0.4,
+    camLabel: 'Ring CCTV · Cheadle A521',
+    impactBadge: 'Impact at t = 0.40s',
   },
   'UK-2026-0819': {
     url: '/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4',
-    previewTime: 1.15,
-    camLabel: 'RING CCTV · CHEADLE A521',
-    impactBadge: '86° ROLLOVER @ t=1.15s',
+    previewTime: 0.4,
+    camLabel: 'Ring CCTV · Cheadle A521',
+    impactBadge: 'Impact at t = 0.40s',
   },
   cheadle_a521: {
     url: '/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4',
-    previewTime: 1.15,
-    camLabel: 'RING CCTV · CHEADLE A521',
-    impactBadge: '86° ROLLOVER @ t=1.15s',
+    previewTime: 0.4,
+    camLabel: 'Ring CCTV · Cheadle A521',
+    impactBadge: 'Impact at t = 0.40s',
   },
   'UK-2026-0842': {
     url: '/videos/clip1_0s_to_5.03s_suv_vs_van.mp4',
-    previewTime: 2.1,
-    camLabel: 'RING CCTV · DELPHOUSE RD',
-    impactBadge: 'CROSSROAD T-BONE @ t=1.20s',
+    previewTime: 1.25,
+    camLabel: 'Ring CCTV · Delphouse Rd',
+    impactBadge: 'Impact at t = 1.25s',
   },
   delphouse_rollover: {
     url: '/videos/clip1_0s_to_5.03s_suv_vs_van.mp4',
-    previewTime: 2.1,
-    camLabel: 'RING CCTV · DELPHOUSE RD',
-    impactBadge: 'CROSSROAD T-BONE @ t=1.20s',
+    previewTime: 1.25,
+    camLabel: 'Ring CCTV · Delphouse Rd',
+    impactBadge: 'Impact at t = 1.25s',
   },
   'UK-2026-0915': {
     url: '/videos/clip2_5.07s_to_10.90s_pickup_vs_lorry.mp4',
-    previewTime: 2.45,
-    camLabel: 'RING CCTV · A521 HGV JUNCTION',
-    impactBadge: 'HGV ENCROACHMENT @ t=1.40s',
+    previewTime: 1.35,
+    camLabel: 'Ring CCTV · A521 Corridor',
+    impactBadge: 'Impact at t = 1.35s',
   },
   'UK-2026-0904': {
     url: '/videos/clip2_5.07s_to_10.90s_pickup_vs_lorry.mp4',
-    previewTime: 2.45,
-    camLabel: 'RING CCTV · A521 HGV JUNCTION',
-    impactBadge: 'HGV ENCROACHMENT @ t=1.40s',
+    previewTime: 1.35,
+    camLabel: 'Ring CCTV · A521 Corridor',
+    impactBadge: 'Impact at t = 1.35s',
   },
   a521_hgv: {
     url: '/videos/clip2_5.07s_to_10.90s_pickup_vs_lorry.mp4',
-    previewTime: 2.45,
-    camLabel: 'RING CCTV · A521 HGV JUNCTION',
-    impactBadge: 'HGV ENCROACHMENT @ t=1.40s',
+    previewTime: 1.35,
+    camLabel: 'Ring CCTV · A521 Corridor',
+    impactBadge: 'Impact at t = 1.35s',
   },
 };
 
@@ -333,7 +344,11 @@ function getActiveCase() {
 document.addEventListener('DOMContentLoaded', async () => {
   const canvasContainer = document.getElementById('three-canvas-container');
   if (canvasContainer) {
-    scene3d = new ForensicScene3D(canvasContainer);
+    try {
+      scene3d = new ForensicScene3D(canvasContainer);
+    } catch (err) {
+      console.error('ForensicScene3D initialization error:', err);
+    }
   }
 
   setupNavigationAndViewSwitching();
@@ -347,13 +362,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Render initial pre-loaded state immediately
   renderWorkspaceCards();
   loadCaseIntoCockpit('cheadle_a521');
+  initArchitectureModal(getActiveCase());
 
-  // Ensure back button visibility matches active initial view
-  const workspaceEl = document.getElementById('workspace-view');
-  if (workspaceEl && !workspaceEl.hidden) {
-    showView('workspace');
-  } else {
+  // Always open on the Workspace Home landing page unless ?case= is explicitly requested
+  const requestedCase = new URLSearchParams(window.location.search).get('case');
+  if (requestedCase && CASES_STORE[requestedCase]) {
+    loadCaseIntoCockpit(requestedCase);
     showView('cockpit');
+  } else {
+    showView('workspace');
   }
 
   // Hydrate with live DVSA-enriched backend state if server is running
@@ -373,6 +390,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         renderWorkspaceCards();
         loadCaseIntoCockpit(activeCaseId);
+        updateArchitectureModalCaseData(getActiveCase());
       }
     }
   } catch (_err) {
@@ -386,11 +404,34 @@ document.addEventListener('DOMContentLoaded', async () => {
 function showView(viewName) {
   const workspaceEl = document.getElementById('workspace-view');
   const cockpitEl = document.getElementById('cockpit-view');
+  const archEl = document.getElementById('architecture-view');
   const btnBackWorkspace = document.getElementById('btn-back-workspace');
   const btnNavWorkspace = document.getElementById('btn-nav-workspace');
+  const headerDivider = document.getElementById('header-case-divider');
+  const headerTitle = document.getElementById('header-case-title');
+  const btnOpenUpload = document.getElementById('btn-open-upload-modal');
+  const btnReviewApprove = document.getElementById('btn-header-review-approve');
   if (!workspaceEl || !cockpitEl) return;
 
   const isWorkspaceHome = viewName === 'workspace' || viewName === 'home';
+  const isArchView = viewName === 'architecture';
+
+  if (isArchView && archEl) {
+    workspaceEl.hidden = true;
+    workspaceEl.classList.remove('active-view');
+    cockpitEl.hidden = true;
+    cockpitEl.classList.remove('active-view');
+    archEl.hidden = false;
+    if (btnBackWorkspace) btnBackWorkspace.hidden = false;
+    if (headerDivider) headerDivider.hidden = true;
+    if (headerTitle) headerTitle.hidden = true;
+    if (btnOpenUpload) btnOpenUpload.hidden = true;
+    if (btnReviewApprove) btnReviewApprove.hidden = true;
+    setPlaybackState(false);
+    return;
+  }
+
+  if (archEl) archEl.hidden = true;
 
   if (isWorkspaceHome) {
     workspaceEl.hidden = false;
@@ -399,6 +440,10 @@ function showView(viewName) {
     cockpitEl.classList.remove('active-view');
     if (btnBackWorkspace) btnBackWorkspace.hidden = true;
     if (btnNavWorkspace) btnNavWorkspace.hidden = true;
+    if (headerDivider) headerDivider.hidden = true;
+    if (headerTitle) headerTitle.hidden = true;
+    if (btnOpenUpload) btnOpenUpload.hidden = false;
+    if (btnReviewApprove) btnReviewApprove.hidden = true;
     setPlaybackState(false);
   } else {
     workspaceEl.hidden = true;
@@ -407,6 +452,10 @@ function showView(viewName) {
     cockpitEl.classList.add('active-view');
     if (btnBackWorkspace) btnBackWorkspace.hidden = false;
     if (btnNavWorkspace) btnNavWorkspace.hidden = false;
+    if (headerDivider) headerDivider.hidden = false;
+    if (headerTitle) headerTitle.hidden = false;
+    if (btnOpenUpload) btnOpenUpload.hidden = true;
+    if (btnReviewApprove) btnReviewApprove.hidden = false;
     if (scene3d) {
       setTimeout(() => scene3d._onResize(), 40);
     }
@@ -415,10 +464,28 @@ function showView(viewName) {
 
 const switchView = showView;
 
+function activateTabById(tabId) {
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const tabPanels = document.querySelectorAll('.tab-panel');
+  tabBtns.forEach((b) => {
+    const active = b.dataset.tab === tabId;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-selected', String(active));
+  });
+  tabPanels.forEach((panel) => {
+    const match = panel.id === tabId;
+    panel.classList.toggle('active', match);
+    panel.hidden = !match;
+  });
+}
+
 function setupNavigationAndViewSwitching() {
   const btnBackWorkspace = document.getElementById('btn-back-workspace');
   const btnNavWorkspace = document.getElementById('btn-nav-workspace');
   const brandTrigger = document.getElementById('brand-home-trigger');
+  const btnReviewApprove = document.getElementById('btn-header-review-approve');
+  const btnTopReviewApprove = document.getElementById('btn-top-review-approve');
+  const btnArchBack = document.getElementById('btn-arch-back');
 
   if (btnBackWorkspace) {
     btnBackWorkspace.addEventListener('click', () => {
@@ -433,6 +500,17 @@ function setupNavigationAndViewSwitching() {
   if (brandTrigger) {
     brandTrigger.addEventListener('click', () => switchView('workspace'));
   }
+  if (btnArchBack) {
+    btnArchBack.addEventListener('click', () => switchView('workspace'));
+  }
+
+  const jumpToSignOff = () => {
+    activateTabById('tab-signoff');
+    const gate = document.getElementById('settlement-gate-section');
+    if (gate) gate.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  if (btnReviewApprove) btnReviewApprove.addEventListener('click', jumpToSignOff);
+  if (btnTopReviewApprove) btnTopReviewApprove.addEventListener('click', jumpToSignOff);
 
   document.querySelectorAll('.case-pill').forEach((pill) => {
     const caseId = pill.dataset.caseId;
@@ -450,11 +528,22 @@ function setupNavigationAndViewSwitching() {
 
 const CASE_SHORT_TAGLINES = {
   cheadle_a521:
-    'Blue Peugeot 2008 emerges across Give Way; struck & rolled 86° by speeding VW Golf (41.2 mph, expired MOT).',
+    'Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant emerged across a Give Way line; struck at t = 0.40s by Vehicle B: Silver VW Golf (GD64 LKU), Claimant approaching at 41.2 mph in a 30 mph limit.',
   delphouse_rollover:
-    'Land Rover Evoque overshoots blind rural Give Way crossroad; T-bones Red Ford Focus at 46 mph.',
+    'White Ford Puma (BX21 TKP) overshoots a rural Give Way junction across the path of an oncoming Grey BMW 320d (MK18 PZR).',
   a521_hgv:
-    'DAF 6x2 HGV encroaches 1.15m across wet S-bend hazard line into oncoming Vauxhall Astra.',
+    'Scania R500 HGV (KX71 HGV) encroaches across the centre hazard line into the path of a Red Vauxhall Corsa (LV20 RTY).',
+};
+
+const CASE_THUMBNAIL_MAP = {
+  cheadle_a521: '/thumbnails/case_cheadle_a521.png',
+  'UK-2026-0891': '/thumbnails/case_cheadle_a521.png',
+  'UK-2026-0819': '/thumbnails/case_cheadle_a521.png',
+  delphouse_rollover: '/thumbnails/case_delphouse_rollover.png',
+  'UK-2026-0842': '/thumbnails/case_delphouse_rollover.png',
+  a521_hgv: '/thumbnails/case_a521_hgv.png',
+  'UK-2026-0915': '/thumbnails/case_a521_hgv.png',
+  'UK-2026-0904': '/thumbnails/case_a521_hgv.png',
 };
 
 function renderCaseCardMedia(key, meta, report) {
@@ -462,25 +551,25 @@ function renderCaseCardMedia(key, meta, report) {
     CASE_VIDEO_MAP[key] ||
     CASE_VIDEO_MAP[report?.claim_id] ||
     CASE_VIDEO_MAP.cheadle_a521;
-  const videoUrl = report?.video_url || meta?.video_url || videoMeta.url;
+  const thumbUrl =
+    meta?.thumbnail_url ||
+    CASE_THUMBNAIL_MAP[key] ||
+    CASE_THUMBNAIL_MAP[report?.claim_id] ||
+    '/thumbnails/case_cheadle_a521.png';
 
   return `
     <div class="card-media-preview case-card-thumbnail">
-      <video
+      <img
         class="case-thumb-media card-preview-video"
-        src="${escapeHtml(videoUrl)}"
-        data-preview-time="${escapeHtml(videoMeta.previewTime)}"
-        muted
-        loop
-        playsinline
-        preload="auto"
+        src="${escapeHtml(thumbUrl)}"
+        alt="3D forensic reconstruction preview for ${escapeHtml(meta?.title || report?.claim_id || key)}"
+        loading="lazy"
         width="480"
         height="270"
-        aria-hidden="true"
-      ></video>
+      />
       <div class="card-media-overlay">
-        <span class="badge-tag cyan mono thumb-badge-cam">🎥 ${escapeHtml(videoMeta.camLabel)}</span>
-        <span class="badge-tag crimson mono thumb-badge-time">${escapeHtml(videoMeta.impactBadge)}</span>
+        <span class="status-badge badge-neutral">${escapeHtml(videoMeta.camLabel)}</span>
+        <span class="status-badge badge-causal mono-num">${escapeHtml(videoMeta.impactBadge)}</span>
       </div>
     </div>
   `;
@@ -494,9 +583,6 @@ function renderWorkspaceCards() {
   const userKeys = Object.keys(CASES_STORE).filter((k) => !baseKeys.includes(k));
   const allKeys = [...baseKeys, ...userKeys];
 
-  // Filter cases based on environment:
-  // - On public Vercel (!IS_LOCAL_ENV): show ONLY Case 1 (is_public_demo) + any newly constructed user cases (is_user_created)
-  // - On localhost (IS_LOCAL_ENV): show Case 1 + Cases 2 & 3 (local_only) + any newly constructed user cases
   const visibleKeys = allKeys.filter((key) => {
     const item = CASES_STORE[key];
     if (!item || !item.report) return false;
@@ -504,21 +590,12 @@ function renderWorkspaceCards() {
     return Boolean(item.is_public_demo || item.is_user_created);
   });
 
-  // Dynamically update section header subtitle
-  const sectionSubtitle = document.querySelector('.workspace-projects-section .mono-muted');
-  if (sectionSubtitle) {
-    const userCount = userKeys.length;
-    if (IS_LOCAL_ENV) {
-      sectionSubtitle.textContent =
-        userCount > 0
-          ? `1 Public Demo + 2 Local Dossiers + ${userCount} New Reconstruction${userCount > 1 ? 's' : ''} • 1M Token Implicit Cache Ready`
-          : '1 Public Demo + 2 Local Dossiers • 1M Token Implicit Cache Ready';
-    } else {
-      sectionSubtitle.textContent =
-        userCount > 0
-          ? `1 Public Demo + ${userCount} User Reconstruction${userCount > 1 ? 's' : ''} • Upload Footage to Construct New Cases`
-          : '1 Public Demo Reconstruction • Upload Footage to Construct New Cases';
-    }
+  const countLabel = document.getElementById('workspace-cases-count');
+  if (countLabel) {
+    countLabel.textContent =
+      visibleKeys.length === 1
+        ? '1 claim ready for review'
+        : `${visibleKeys.length} claims ready for review`;
   }
 
   const isSingleCard = visibleKeys.length === 1;
@@ -532,83 +609,54 @@ function renderWorkspaceCards() {
       const meta = item.case_metadata || {};
       const vehA = r.vehicles?.[0] || {};
       const vehB = r.vehicles?.[1] || {};
-      const motAExpired =
-        String(vehA.mot_status || vehA.dvsa_mot_status || '')
-          .toUpperCase()
-          .includes('EXPIRED') ||
-        String(vehA.mot_expiry_date || vehA.dvsa_mot_expiry || '')
-          .toUpperCase()
-          .includes('EXPIRED');
-      const motBExpired =
-        String(vehB.mot_status || vehB.dvsa_mot_status || '')
-          .toUpperCase()
-          .includes('EXPIRED') ||
-        String(vehB.mot_expiry_date || vehB.dvsa_mot_expiry || '')
-          .toUpperCase()
-          .includes('EXPIRED');
+      const partyA = formatPartyLabel(vehA, item);
+      const partyB = formatPartyLabel(vehB, item);
       const shortTagline = CASE_SHORT_TAGLINES[key] || meta.subtitle || r.incident_summary || '';
-
-      let scopeBadgeHtml = '';
-      if (item.is_public_demo) {
-        scopeBadgeHtml = '<span class="badge-tag emerald">PUBLIC DEMO / EXAMPLE</span>';
-      } else if (item.local_only) {
-        scopeBadgeHtml = '<span class="badge-tag amber mono">LOCAL ONLY</span>';
-      } else if (item.is_user_created) {
-        scopeBadgeHtml = '<span class="badge-tag cyan mono">NEW AGENT CASE</span>';
-      }
-
-      const singleCardStyle = isSingleCard ? 'style="max-width: 560px; width: 100%;"' : '';
+      const grossGbp = Number(r.quantum_damage_estimate_gbp || 14250);
+      const defPct = Number(r.recommended_defendant_liability_pct ?? 75);
+      const clmPct = Number(r.recommended_claimant_liability_pct ?? 25);
+      const netRecoveryGbp = grossGbp * (defPct / 100);
 
       return `
-        <article class="workspace-case-card ${key === activeCaseId ? 'active-card' : ''} ${isSingleCard ? 'single-demo-card' : ''}" data-case-id="${escapeHtml(key)}" ${singleCardStyle}>
+        <article class="workspace-case-card ${key === activeCaseId ? 'active-card' : ''} ${isSingleCard ? 'single-demo-card' : ''}" data-case-id="${escapeHtml(key)}" tabindex="0" role="button" aria-label="Open claim ${escapeHtml(r.claim_id)}">
           ${renderCaseCardMedia(key, meta, r)}
 
           <div class="card-header-group">
             <div class="card-top-badges">
-              <span class="badge-tag cyan mono">${escapeHtml(r.claim_id)}</span>
-              ${scopeBadgeHtml}
-              <span class="badge-tag emerald mono">£${Number(r.quantum_damage_estimate_gbp || 18450).toLocaleString('en-GB')} Quantum</span>
+              <span class="status-badge badge-verified">Ready for review</span>
+              <span class="mono-num section-meta-text">Claim #${escapeHtml(r.claim_id)}</span>
+              <span class="mono-num section-meta-text">£${netRecoveryGbp.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} net recovery</span>
             </div>
-            <h3 class="card-title">${escapeHtml(meta.title || r.claim_id)}</h3>
+            <h3 class="card-title">${escapeHtml(meta.title || `Claim #${r.claim_id} — Cheadle, Staffs (A521 / Draycott Cross Rd)`)}</h3>
             <p class="card-short-tagline">${escapeHtml(shortTagline)}</p>
           </div>
 
-          <div class="card-vrm-strip">
-            <div class="vrm-mini-row">
-              <span class="uk-vrm-plate">${escapeHtml(vehA.registration_plate)}</span>
-              <span class="badge-tag ${motAExpired ? 'crimson' : 'emerald'} mono">
-                ${escapeHtml(formatMotBadgeText(vehA))}
-              </span>
-              <span class="mono-muted">${escapeHtml(r.defendant_PreImpact_Speed_mph)} mph</span>
+          <div class="party-summary-rows">
+            <div class="party-summary-row">
+              <span class="vehicle-dot dot-defendant" aria-hidden="true"></span>
+              <span class="party-full-name">${escapeHtml(partyA)}</span>
             </div>
-            <div class="vrm-mini-row">
-              <span class="uk-vrm-plate">${escapeHtml(vehB.registration_plate)}</span>
-              <span class="badge-tag ${motBExpired ? 'crimson' : 'emerald'} mono">
-                ${escapeHtml(formatMotBadgeText(vehB))}
-              </span>
-              <span class="mono-muted">${escapeHtml(r.claimant_PreImpact_Speed_mph)} mph</span>
+            <div class="party-summary-row">
+              <span class="vehicle-dot dot-claimant" aria-hidden="true"></span>
+              <span class="party-full-name">${escapeHtml(partyB)}</span>
             </div>
           </div>
 
-          <details class="compact-disclosure card-synopsis-details">
-            <summary>Full incident synopsis</summary>
-            <p>${escapeHtml(r.incident_summary)}</p>
-          </details>
-
           <footer class="card-footer-stack">
             <div class="card-split-bar-wrap">
-              <div class="card-split-labels mono-text">
-                <span>Claimant: ${escapeHtml(r.recommended_claimant_liability_pct)}%</span>
-                <span>Defendant: ${escapeHtml(r.recommended_defendant_liability_pct)}%</span>
+              <div class="card-split-labels">
+                <span class="mono-num">Defendant ${escapeHtml(defPct)}%</span>
+                <span class="mono-num">Claimant ${escapeHtml(clmPct)}%</span>
               </div>
               <div class="split-progress-bar">
-                <div class="split-fill-claimant" style="width: ${r.recommended_claimant_liability_pct}%"></div>
-                <div class="split-fill-defendant" style="width: ${r.recommended_defendant_liability_pct}%"></div>
+                <div class="split-fill-defendant" style="width: ${defPct}%"></div>
+                <div class="split-fill-claimant" style="width: ${clmPct}%"></div>
               </div>
             </div>
 
-            <button type="button" class="btn-primary-cta full-width open-case-btn" data-case-id="${escapeHtml(key)}">
-              Open 3D Forensic Cockpit →
+            <button type="button" class="btn-primary btn-primary-cta full-width open-case-btn" data-case-id="${escapeHtml(key)}">
+              <span>Review evidence &amp; approve split</span>
+              ${iconSvg('arrow-left', 16).replace('m15 18-6-6 6-6', 'M5 12h14M12 5l7 7-7 7')}
             </button>
           </footer>
         </article>
@@ -616,9 +664,8 @@ function renderWorkspaceCards() {
     })
     .join('');
 
-  // Seek each card video to its collision frame and auto-preview on card hover
   grid.querySelectorAll('video.case-thumb-media').forEach((v) => {
-    const seekTime = parseFloat(v.dataset.previewTime || '1.15');
+    const seekTime = parseFloat(v.dataset.previewTime || '0.40');
     v.addEventListener(
       'loadeddata',
       () => {
@@ -647,11 +694,14 @@ function renderWorkspaceCards() {
     }
   });
 
-  grid.querySelectorAll('.open-case-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const targetId = btn.dataset.caseId;
-      switchView('cockpit');
-      loadCaseIntoCockpit(targetId);
+  grid.querySelectorAll('.workspace-case-card').forEach((card) => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('summary') || e.target.closest('details')) return;
+      const targetId = card.dataset.caseId;
+      if (targetId && CASES_STORE[targetId]) {
+        loadCaseIntoCockpit(targetId);
+        switchView('cockpit');
+      }
     });
   });
 }
@@ -747,70 +797,51 @@ function loadCaseIntoCockpit(caseId) {
   }
 
   // Update Right Pane Liability Hero Card
-  setTxt('cockpit-claim-title', `Claim #${report.claim_id} — ${meta.title || ''}`);
-  setTxt(
-    'quantum-estimate-val',
-    `£${Number(report.quantum_damage_estimate_gbp || 18450).toLocaleString('en-GB')}`
-  );
-  setTxt('hero-claimant-pct', `${report.recommended_claimant_liability_pct}%`);
-  setTxt('hero-defendant-pct', `${report.recommended_defendant_liability_pct}%`);
-  if (vehB) setTxt('hero-claimant-label', `Claimant (${vehB.registration_plate})`);
-  if (vehA) setTxt('hero-defendant-label', `Defendant (${vehA.registration_plate})`);
+  const shortClaimTitle = `Claim #${report.claim_id} — ${meta.title || 'Cheadle, Staffs (A521 / Draycott Cross Rd)'}`;
+  setTxt('cockpit-claim-title', shortClaimTitle);
+  setTxt('header-case-title', shortClaimTitle);
+  const grossVal = Number(report.quantum_damage_estimate_gbp || 14250);
+  const defPctVal = Number(report.recommended_defendant_liability_pct ?? 75);
+  const clmPctVal = Number(report.recommended_claimant_liability_pct ?? 25);
+  const netVal = Math.round(grossVal * (defPctVal / 100));
+
+  setTxt('quantum-estimate-val', `£${netVal.toLocaleString('en-GB')}`);
+  setTxt('quantum-gross-sub', `of £${grossVal.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} gross`);
+  setTxt('hero-claimant-pct', `${clmPctVal}%`);
+  setTxt('hero-defendant-pct', `${defPctVal}%`);
+  if (vehA) setTxt('hero-defendant-plate', formatPartyLabel(vehA, bundle));
+  if (vehB) setTxt('hero-claimant-plate', formatPartyLabel(vehB, bundle));
 
   const barClaimant = document.getElementById('hero-bar-claimant');
   const barDefendant = document.getElementById('hero-bar-defendant');
-  if (barClaimant) barClaimant.style.width = `${report.recommended_claimant_liability_pct}%`;
-  if (barDefendant) barDefendant.style.width = `${report.recommended_defendant_liability_pct}%`;
+  if (barClaimant) barClaimant.style.width = `${clmPctVal}%`;
+  if (barDefendant) barDefendant.style.width = `${defPctVal}%`;
 
-  const rulesRow = document.getElementById('rules-breached-pills');
-  if (rulesRow && Array.isArray(report.primary_highway_code_rules_breached)) {
-    const shortPills = report.primary_highway_code_rules_breached
-      .map((rule) => {
-        const shortTag = rule
-          .split(/[:—–]/)[0]
-          .replace('Highway Code ', '')
-          .trim();
-        return `<span class="rule-pill crimson">${escapeHtml(shortTag)}</span>`;
-      })
-      .join('');
-    const fullList = report.primary_highway_code_rules_breached
-      .map((rule) => `<li>${escapeHtml(rule)}</li>`)
-      .join('');
-    rulesRow.innerHTML = `
-      ${shortPills}
-      <details class="compact-disclosure" style="width: 100%; margin-top: 4px;">
-        <summary>Statutory breach details (${report.primary_highway_code_rules_breached.length})</summary>
-        <ul style="margin: 6px 0 2px; padding-left: 16px; color: var(--text-secondary); font-size: 10.5px; line-height: 1.4;">
-          ${fullList}
-        </ul>
-      </details>
-    `;
-  }
-
-  // Populate Right Pane 4 Forensic Tabs
+  // Populate Right Pane 5 Forensic Tabs
   renderForensicDossierTabs(bundle);
+  updateArchitectureModalCaseData(bundle);
 
   // Sync Solicitor Slider to Recommended Split
   const solSlider = document.getElementById('solicitor-liability-slider');
   if (solSlider) {
-    solSlider.value = String(report.recommended_defendant_liability_pct);
-    updateSolicitorSplitReadout(Number(report.recommended_defendant_liability_pct));
+    solSlider.value = String(defPctVal);
+    updateSolicitorSplitReadout(defPctVal);
   }
-  const receiptBox = document.getElementById('settlement-receipt-box');
+  const receiptBox = document.getElementById('settlement-receipt-box') || document.getElementById('settlement-receipt-banner');
   if (receiptBox) receiptBox.hidden = true;
 
   // Load 3D Scene & Timeline Markers strictly bounded to [0.0s, effectiveDuration]
   syncTimelineDurationWithVideo(
     videoEl && Number.isFinite(videoEl.duration) && videoEl.duration > 0
       ? videoEl.duration
-      : report.video_duration_sec || report.duration_seconds || 3.0,
+      : report.video_duration_sec || report.duration_seconds || 4.5,
     report
   );
   if (scene3d) {
     scene3d.loadCaseData(report);
   }
   renderTimelineMarkers(report.forensic_events || []);
-  const impactT = Math.max(0, Math.min(maxDuration, Number(report.impact_timestamp_sec ?? 1.15)));
+  const impactT = Math.max(0, Math.min(maxDuration, Number(report.impact_timestamp_sec ?? 0.40)));
   scrubToTime(impactT);
 }
 
@@ -972,7 +1003,41 @@ function renderForensicDossierTabs(bundle) {
   const report = bundle.report || {};
   const subagents = bundle.subagents || {};
 
-  // Tab 1: Case Law Citations + Agent Road Sign & Traffic Control Legal Analysis
+  // Tab 1 (Summary): Claim badge, incident summary, stopping distance comparison, fault rationales
+  const setTxt = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
+  setTxt('claim-id-badge', `Claim ${report.claim_id || 'UK-2026-0891'}`);
+  if (report.incident_summary) {
+    setTxt('incident-summary-text', report.incident_summary);
+  }
+  if (report.stopping_distance_analysis) {
+    const stopEl = document.getElementById('summary-stopping-explanation');
+    if (stopEl) stopEl.textContent = report.stopping_distance_analysis;
+  }
+  if (report.primary_fault_rationale) {
+    setTxt('primary-fault-rationale', report.primary_fault_rationale);
+  }
+  if (report.contributory_negligence_rationale) {
+    setTxt('contributory-negligence-rationale', report.contributory_negligence_rationale);
+  }
+
+  // Tab 3 (Law): Highway code rules list + Road signs + Case law citations
+  const hwList = document.getElementById('highway-code-list');
+  if (hwList && Array.isArray(report.primary_highway_code_rules_breached)) {
+    hwList.innerHTML = report.primary_highway_code_rules_breached
+      .map(
+        (rule) => `
+        <div class="statute-item">
+          <span class="status-badge badge-causal">Statutory breach</span>
+          <p class="statute-text">${escapeHtml(rule)}</p>
+        </div>
+      `
+      )
+      .join('');
+  }
+
   const citationsList = document.getElementById('caselaw-citations-list');
   const roadSignsLegalList = document.getElementById('road-signs-legal-list');
 
@@ -1038,101 +1103,20 @@ function renderForensicDossierTabs(bundle) {
     citationsList.innerHTML = citationHtml + signAnalysisHtml;
   }
 
-  const stoppingProse = document.getElementById('stopping-distance-prose');
-  if (stoppingProse) stoppingProse.textContent = report.stopping_distance_analysis || '';
-
-  const reasoningProse = document.getElementById('legal-reasoning-prose');
-  if (reasoningProse) reasoningProse.textContent = report.legal_reasoning_chain || '';
-
-  // Tab 2: DVSA Defect Causality Audit + Antigravity Sandbox Log + Policy Audit + Agentic Video Steps
-  const dvsaAuditBox = document.getElementById('dvsa-causal-audit-box');
-  if (dvsaAuditBox && Array.isArray(report.vehicles)) {
-    dvsaAuditBox.innerHTML = report.vehicles
-      .map((v) => {
-        const items = getEffectiveDefectClassifications(v)
-          .map((d) => {
-            const isCausal = String(d.causal_status).toUpperCase() === 'CAUSAL';
-            return `
-              <details class="dvsa-defect-item defect-disclosure ${isCausal ? 'defect-causal is-causal' : 'defect-non-causal is-not-causal'}">
-                <summary class="defect-summary-row" style="display: flex; flex-direction: column; align-items: stretch; gap: 6px; width: 100%;">
-                  <div class="defect-header-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <span class="defect-causality-pill badge-tag ${isCausal ? 'pill-causal crimson' : 'pill-non-causal emerald'} mono">
-                      ${isCausal ? 'Causal / Contributory' : 'Non-Causal Advisory'}
-                    </span>
-                    <span class="defect-expand-hint mono-muted" style="font-size: 0.72rem; opacity: 0.75;">Details ▾</span>
-                  </div>
-                  <strong class="defect-text-preview defect-title" style="display: block; width: 100%;">${escapeHtml(d.defect_text)}</strong>
-                </summary>
-                <div class="defect-detail-body defect-disclosure-body">
-                  <p class="defect-forensic-note defect-explanation-text">${escapeHtml(d.forensic_explanation)}</p>
-                </div>
-              </details>
-            `;
-          })
-          .join('');
-        return `
-          <div class="audit-vehicle-block">
-            <h4 class="audit-veh-heading">${escapeHtml(v.registration_plate)} — ${escapeHtml(v.dvsa_make)} ${escapeHtml(v.dvsa_model)} (${escapeHtml(formatMotBadgeText(v))})</h4>
-            ${items}
-          </div>
-        `;
-      })
-      .join('');
+  // Tab 4 (Costs): Thatcham schedule + CPR Pre-Action Letter + Policy Audit formatted cleanly
+  const thatchamBox = document.getElementById('thatcham-schedule-container');
+  if (thatchamBox) {
+    thatchamBox.innerHTML = renderThatchamScheduleHtml(subagents.repair_estimate || '', report);
   }
 
-  const antigravityLog = document.getElementById('antigravity-audit-log');
-  if (antigravityLog) {
-    antigravityLog.textContent = bundle.physics_audit_log || '';
+  const cprBox = document.getElementById('cpr-letter-content');
+  if (cprBox) {
+    cprBox.innerHTML = renderFormattedLetterHtml(subagents.subrogation_letter || '');
   }
 
   const policyContent = document.getElementById('policy-audit-content');
   if (policyContent) {
-    policyContent.textContent = subagents.policy_audit || '';
-  }
-
-  const stepsList = document.getElementById('agentic-steps-list');
-  if (stepsList && Array.isArray(bundle.agentic_video_scrub_steps)) {
-    stepsList.innerHTML = bundle.agentic_video_scrub_steps
-      .map(
-        (s) => `
-        <div class="agentic-step-card">
-          <span class="badge-tag cyan mono">Pass ${escapeHtml(s.step_index)} (${escapeHtml(s.type)})</span>
-          <p>${escapeHtml(s.summary)}</p>
-        </div>
-      `
-      )
-      .join('');
-  }
-
-  // Tab 3: Thatcham Repair & Salvage Schedule (Summary KPIs + Collapsible Full Schedule)
-  const thatchamSummary = document.getElementById('thatcham-summary-cards');
-  if (thatchamSummary) {
-    const q = Number(report.quantum_damage_estimate_gbp || 18450);
-    thatchamSummary.innerHTML = `
-      <div class="thatcham-kpi-box">
-        <span class="mono-muted">TOTAL QUANTUM</span>
-        <strong class="mono emerald-text">£${q.toLocaleString('en-GB')}</strong>
-      </div>
-      <div class="thatcham-kpi-box">
-        <span class="mono-muted">SALVAGE STATUS</span>
-        <strong class="mono">ABI Cat S / Repair</strong>
-      </div>
-      <div class="thatcham-kpi-box">
-        <span class="mono-muted">POLICY EXCESS</span>
-        <strong class="mono">£500.00</strong>
-      </div>
-    `;
-  }
-
-  const thatchamBox = document.getElementById('thatcham-schedule-container');
-  if (thatchamBox) {
-    thatchamBox.innerHTML = `<pre class="cpr-letter-box" tabindex="0"><code>${escapeHtml(subagents.repair_estimate || '')}</code></pre>`;
-  }
-
-  // Tab 4: CPR Pre-Action Protocol Letter of Claim
-  const cprBox = document.getElementById('cpr-letter-content');
-  if (cprBox) {
-    cprBox.textContent = subagents.subrogation_letter || '';
+    policyContent.innerHTML = renderFormattedLetterHtml(subagents.policy_audit || '');
   }
 }
 
@@ -1246,6 +1230,21 @@ function setupTimelineScrubber() {
         scrubToTime(0.0);
       }
       setPlaybackState(!isPlaying);
+    });
+  }
+
+  const speedSelect = document.getElementById('playback-speed-select');
+  if (speedSelect) {
+    speedSelect.addEventListener('change', () => {
+      playbackSpeed = parseFloat(speedSelect.value || '1.0');
+      const vEl = document.getElementById('crash-video');
+      if (vEl) {
+        try {
+          vEl.playbackRate = playbackSpeed;
+        } catch (_e) {
+          // ignore
+        }
+      }
     });
   }
 

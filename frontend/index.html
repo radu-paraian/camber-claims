@@ -3,703 +3,898 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Camber Claims // 3D Forensic Crash Reconstruction &amp; UK Liability Engine</title>
+  <title>Camber Claims · UK Motor Liability &amp; Crash Reconstruction</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
-  <!-- TOP COMMAND HEADER (56px) -->
+  <!-- TOP NAVIGATION BAR (64px) -->
   <header class="top-command-header" role="banner">
     <div class="header-left">
-      <button type="button" id="btn-back-workspace" class="btn-ghost-nav nav-back-btn" title="Return to Claims Workspace" hidden>
-        <span class="nav-arrow">←</span> Claims Workspace
+      <button type="button" id="btn-back-workspace" class="btn-ghost btn-ghost-nav nav-back-btn" title="Return to all cases" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+        <span>Back</span>
       </button>
+
       <div class="brand-lockup" id="brand-home-trigger">
-        <span class="brand-dot"></span>
-        <span class="brand-title">CAMBER CLAIMS</span>
-        <span class="brand-divider">//</span>
-        <span class="brand-subtitle">3D FORENSIC RECONSTRUCTION &amp; UK LIABILITY ENGINE</span>
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span class="brand-title">Camber Claims</span>
       </div>
+
+      <span class="header-divider" id="header-case-divider" hidden aria-hidden="true"></span>
+      <span id="header-case-title" class="cockpit-case-title" hidden>
+        Claim #UK-2026-0819 — Cheadle, Staffs (A521 / Draycott Cross Rd)
+      </span>
+      <span id="cockpit-case-title" hidden aria-hidden="true">
+        Claim #UK-2026-0819 — Cheadle, Staffs (A521 / Draycott Cross Rd)
+      </span>
     </div>
 
     <div class="header-right">
-      <div class="model-status-pills">
-        <span class="status-pill status-pill-argon" title="Interactions API with Agentic Video Scrubbing &amp; 1M Token Implicit Cache">
-          <span class="pulse-dot cyan"></span>
-          gemini-4-argon • Agentic Video
-        </span>
-        <span class="status-pill status-pill-dvsa" title="UK GOV.UK DVSA MOT History API via Antigravity Credentials Proxy">
-          <span class="pulse-dot emerald"></span>
-          UK DVSA Live API
-        </span>
-      </div>
+      <button type="button" id="btn-architecture-view" class="btn-ghost" title="View system architecture and model telemetry">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="4" y="4" width="16" height="16" rx="2" />
+          <rect x="9" y="9" width="6" height="6" />
+          <path d="M9 1v3" /><path d="M15 1v3" /><path d="M9 20v3" /><path d="M15 20v3" />
+          <path d="M20 9h3" /><path d="M20 14h3" /><path d="M1 9h3" /><path d="M1 14h3" />
+        </svg>
+        <span>Architecture</span>
+      </button>
+      <button type="button" id="nav-btn-architecture" hidden aria-hidden="true">Architecture</button>
+
+      <button type="button" id="btn-open-upload-modal" class="btn-secondary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14" />
+          <path d="M12 5v14" />
+        </svg>
+        <span>New reconstruction</span>
+      </button>
+
+      <button type="button" id="btn-header-review-approve" class="btn-primary btn-primary-cta" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+        <span>Review &amp; approve</span>
+      </button>
+      <button type="button" id="btn-top-review-approve" hidden aria-hidden="true">Review &amp; approve</button>
     </div>
   </header>
 
-  <!-- VIEW 1: CLAIMS WORKSPACE HOMESCREEN (#workspace-view) -->
-  <main id="workspace-view" class="workspace-view" hidden>
+  <!-- ========================================================================
+       1. LANDING PAGE / WORKSPACE VIEW (Default Initial View)
+       ======================================================================== -->
+  <main id="workspace-view" class="workspace-view">
     <div class="workspace-container">
-      <!-- Hero Banner -->
-      <section class="workspace-hero-banner">
+      <!-- Clean Solicitor Hero -->
+      <section class="workspace-hero">
         <div class="hero-copy">
-          <div class="hero-eyebrow">
-            <span class="badge-tag cyan">UK MOTOR CLAIMS &amp; SUBROGATION COCKPIT</span>
-            <span class="badge-tag mono">CPR PRE-ACTION PROTOCOL</span>
-          </div>
-          <h1 class="hero-headline">
-            3D Crash Reconstruction &amp; UK Liability Engine
-          </h1>
-          <p class="hero-description">
-            Built for <strong>a UK motor claims &amp; subrogation solicitor</strong> — turn dashcam or CCTV clips into interactive 3D trajectories, live GOV.UK DVSA MOT causality checks, and case-law liability splits in seconds.
+          <p class="section-eyebrow">UK motor claims &amp; subrogation</p>
+          <h1>Reconstruct a crash and agree liability in minutes</h1>
+          <p class="hero-lead">
+            Forensic video reconstruction, automated DVSA verification, and case-law backed liability assessment.
           </p>
         </div>
-        <div class="hero-action-card" id="workspace-cta-new-crash">
-          <div class="cta-card-header">
-            <span class="cta-icon" aria-hidden="true">🎥</span>
-            <span class="badge-tag emerald">GEMINI 4 ARGON • AGENTIC VIDEO</span>
-          </div>
-          <h2>+ New Crash Upload</h2>
-          <p>Drop 1–3 video clips (<code>.mp4</code>, <code>.mov</code>) and UK plates — or let the agent scan the footage first.</p>
-          <button type="button" id="btn-hero-upload" class="btn-primary-cta full-width">
-            + Upload Crash Video
+        <div class="hero-actions">
+          <button type="button" id="btn-hero-upload" class="btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <span>New reconstruction</span>
           </button>
         </div>
       </section>
 
-      <!-- Live Background Job Progress Banner (Visible when an upload/analysis is running) -->
+      <!-- Live Background Reconstruction Progress Banner -->
       <section id="live-job-banner" class="live-job-banner" hidden aria-live="polite">
         <div class="job-banner-top">
           <div class="job-title-group">
-            <span class="spinner-ring"></span>
+            <span class="spinner-ring" aria-hidden="true"></span>
             <div>
-              <h3 id="live-job-title">Running Multi-Agent Forensic Reconstruction Pipeline…</h3>
-              <p id="live-job-subtitle" class="mono-text">Interactions API (background=True) • Polling server-side state via previous_interaction_id</p>
+              <h2 id="live-job-title">Reconstructing collision and checking DVSA MOT history…</h2>
+              <p id="live-job-subtitle">Extracting vehicle speeds, sightlines, and Highway Code stopping distances</p>
             </div>
           </div>
-          <span id="live-job-elapsed" class="badge-tag cyan mono">0.0s</span>
+          <span id="live-job-elapsed" class="mono-num num-mono">0.0s</span>
         </div>
         <div class="pipeline-steps-grid" id="pipeline-steps-grid">
           <div class="pipeline-step active" data-step="1">
-            <span class="step-num">01</span>
+            <span class="step-num mono-num">01</span>
             <div class="step-meta">
-              <strong>gemini-3.5-flash-lite</strong>
-              <span>Intake Guardrail &amp; VRM Validation</span>
+              <strong>Registration &amp; footage check</strong>
+              <span>Verifying UK number plates and camera angles</span>
             </div>
           </div>
           <div class="pipeline-step" data-step="2">
-            <span class="step-num">02</span>
+            <span class="step-num mono-num">02</span>
             <div class="step-meta">
-              <strong>gemini-4-argon (processing="agentic")</strong>
-              <span>3D Keyframes &amp; Causal Relevance Filter</span>
+              <strong>3D trajectory reconstruction</strong>
+              <span>Mapping speeds, braking onset, and point of impact</span>
             </div>
           </div>
           <div class="pipeline-step" data-step="3">
-            <span class="step-num">03</span>
+            <span class="step-num mono-num">03</span>
             <div class="step-meta">
-              <strong>UK DVSA API + antigravity-preview-09-2026</strong>
-              <span>Live MOT History &amp; Sandbox Kinematics</span>
+              <strong>UK DVSA MOT check</strong>
+              <span>Separating causal defects from non-causal advisories</span>
             </div>
           </div>
           <div class="pipeline-step" data-step="4">
-            <span class="step-num">04</span>
+            <span class="step-num mono-num">04</span>
             <div class="step-meta">
-              <strong>3x Parallel gemini-3.8-flash</strong>
-              <span>Policy Audit, Thatcham &amp; CPR Letter</span>
+              <strong>Quantum &amp; CPR protocol pack</strong>
+              <span>Preparing repair schedule and Pre-Action Letter of Claim</span>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Grid of 3 Pre-Loaded UK Crash Project Cards -->
-      <section class="workspace-projects-section">
-        <div class="section-header-bar">
-          <h2>Active UK Motor Claims &amp; Subrogation Dossiers</h2>
-          <span class="mono-muted">3 Pre-Verified Forensic Reconstructions • 1M Token Implicit Cache Ready</span>
+      <!-- Active Claim Dossiers -->
+      <section class="workspace-cases-section" aria-label="Claims ready for liability review">
+        <div class="section-header-row">
+          <h2>Claims ready for liability review</h2>
+          <span class="section-meta-text" id="workspace-cases-count">Pre-loaded Cheadle A521 file</span>
         </div>
         <div class="workspace-cards-grid" id="workspace-cards-grid">
-          <!-- Populated dynamically and pre-rendered by main.js -->
+          <!-- Populated dynamically by main.js -->
         </div>
       </section>
     </div>
   </main>
 
-  <!-- VIEW 2: 4-QUADRANT SINGLE-VIEWPORT 3D FORENSIC COCKPIT (#cockpit-view) -->
-  <main id="cockpit-view" class="cockpit-view">
+  <!-- ========================================================================
+       2. COCKPIT VIEW (2-Column Solicitor Review Workspace — Hidden on Boot)
+       ======================================================================== -->
+  <main id="cockpit-view" class="cockpit-view" hidden>
     <div class="cockpit-main-grid">
-      <!-- LEFT PANE (340px): Reference Video, Location Context, Causal Filter, Live UK DVSA MOT Cards -->
-      <aside class="cockpit-left-pane" aria-label="Source Footage, Causal Filter &amp; UK DVSA Telemetry">
-        <!-- Synchronized Reference Footage Player -->
-        <section class="panel-card video-panel-card">
-          <div class="panel-card-header">
-            <span class="panel-title" id="video-source-badge">Cam 1: Ring Doorbell CCTV — Cheadle A521</span>
-            <span class="badge-tag cyan mono" title="Agentic Video Scrubbing">processing: "agentic"</span>
-          </div>
-          <div class="video-container">
-            <video
-              id="crash-video"
-              src="/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4"
-              muted
-              playsinline
-              preload="auto"
-            ></video>
-            <div class="video-overlay-pill">
-              <span id="video-time-pill" class="mono-text">CLIP t=0.00s</span>
-              <span class="badge-tag emerald mono">88% Token Savings</span>
-            </div>
-          </div>
-          <div class="video-controls-strip">
-            <label class="checkbox-toggle-label" for="chk-sync-video">
-              <input type="checkbox" id="chk-sync-video" checked />
-              <span>Sync Video to 3D Scrubber</span>
-            </label>
-            <span class="mono-muted" id="video-fov-meta">FOV 110° • Static CCTV</span>
-          </div>
-        </section>
-
-        <!-- Causal Relevance Filter Card (Compact with collapsible details) -->
-        <section class="panel-card causal-filter-card" id="causal-filter-card">
-          <div class="panel-card-header">
-            <span class="panel-title">Causal 3D Scene Filter</span>
-            <span class="badge-tag emerald mono" id="causal-stripped-badge">3 non-causal stripped</span>
-          </div>
-          <label class="causal-toggle-box" for="chk-causal-filter">
-            <input type="checkbox" id="chk-causal-filter" checked />
-            <div class="causal-toggle-copy">
-              <strong>Hide Non-Causal Background Clutter</strong>
-              <span>Uncheck to preview stripped background wireframes</span>
-            </div>
-          </label>
-          <details class="compact-disclosure">
-            <summary>Why were objects stripped?</summary>
-            <p class="panel-body-text" id="causal-filter-summary">
-              Agentic video pass stripped 3 irrelevant background objects while retaining both colliding vehicles, UK Diagram 1003 Give Way markings, 30 mph signage, and the NW sightline-blocking hedgerow.
-            </p>
-          </details>
-        </section>
-
-        <!-- Inferred UK Location & Environmental Context (Compact collapsible card) -->
-        <details class="panel-card compact-panel-details" id="location-context-card">
-          <summary class="panel-card-summary">
-            <span class="panel-title">UK Road &amp; Weather Context</span>
-            <span class="badge-tag crimson mono" id="context-speed-limit-badge">30 MPH ZONE</span>
-          </summary>
-          <div class="details-body-pad">
-            <div class="kv-grid" id="location-kv-grid">
-              <div class="kv-row">
-                <span class="kv-label">Location</span>
-                <span class="kv-val" id="ctx-location">Cheadle, Staffs (A521 / Draycott Cross Rd)</span>
-              </div>
-              <div class="kv-row">
-                <span class="kv-label">Junction</span>
-                <span class="kv-val" id="ctx-junction">Uncontrolled T-Junction (Diagram 1003 Give Way)</span>
-              </div>
-              <div class="kv-row">
-                <span class="kv-label">Surface &amp; Grip</span>
-                <span class="kv-val mono-text" id="ctx-surface">Damp tarmacadam (μ = 0.55)</span>
-              </div>
-              <div class="kv-row">
-                <span class="kv-label">Lighting / Time</span>
-                <span class="kv-val" id="ctx-weather">12:05 BST • Overcast / Damp visibility</span>
-              </div>
-            </div>
-            <div class="cues-chip-list" id="ctx-cues-list"></div>
-          </div>
-        </details>
-
-        <!-- Live UK DVSA MOT & Vehicle Telemetry Cards -->
-        <section class="panel-card dvsa-section-card">
-          <div class="panel-card-header">
-            <span class="panel-title">UK DVSA MOT &amp; Defect Causality</span>
-            <span class="badge-tag emerald mono">LIVE API</span>
-          </div>
-          <div id="dvsa-cards-container" class="dvsa-cards-stack">
-            <!-- Vehicle A & Vehicle B compact DVSA cards rendered by main.js -->
-          </div>
-        </section>
+      <!-- Hidden legacy left-column hook for backward compatibility -->
+      <aside id="left-telemetry-column" class="cockpit-left-pane left-telemetry-column" hidden aria-hidden="true">
+        <span id="active-case-badge">LIVE DVSA + RING CCTV</span>
+        <span id="env-road-class">A521 Priority Corridor</span>
+        <span id="env-speed-limit">30 mph</span>
+        <span id="env-surface-mu">Damp tarmac (μ = 0.55)</span>
+        <span id="env-sightline">26.0m West sightline</span>
       </aside>
 
-      <!-- CENTER VIEWPORT (1fr, #three-canvas-container) -->
-      <section class="cockpit-center-viewport" id="three-canvas-container" aria-label="Interactive 3D Forensic Crash Viewport">
-        <!-- Floating Live HUD Overlay (Sleek & Compact) -->
-        <div class="viewport-hud-overlay" id="viewport-hud-overlay">
-          <div class="hud-telemetry-cluster">
-            <div class="hud-metric-box">
-              <span class="hud-label">TIMECODE</span>
-              <span class="hud-value cyan mono" id="hud-timestamp">t = 1.15s</span>
-            </div>
-            <div class="hud-metric-box">
-              <span class="hud-label" id="hud-label-veh-a">VL19 OKP (MINOR)</span>
-              <span class="hud-value blue mono" id="hud-speed-a">18.6 mph</span>
-              <span class="hud-sub mono" id="hud-roll-a">Roll: 0.0°</span>
-            </div>
-            <div class="hud-metric-box">
-              <span class="hud-label" id="hud-label-veh-b">GD64 LKU (MAIN)</span>
-              <span class="hud-value crimson mono" id="hud-speed-b">41.2 mph</span>
-              <span class="hud-sub mono" id="hud-brake-b">30 mph Zone</span>
-            </div>
-            <div class="hud-metric-box">
-              <span class="hud-label">SEPARATION</span>
-              <span class="hud-value amber mono" id="hud-impact-dist">0.0m (IMPACT)</span>
-              <span class="hud-sub mono" id="hud-g-force">Peak: 5.4 G</span>
-            </div>
-          </div>
-
-          <!-- Compact 1-Line Event Pill + Collapsible Stopping Distance Drawer -->
-          <div class="hud-bottom-row">
-            <div class="hud-event-banner critical" id="hud-event-banner">
-              <span class="event-badge-dot"></span>
-              <strong id="hud-event-type">POINT OF IMPACT (t = 1.15s):</strong>
-              <span id="hud-event-desc">GD64 LKU strikes VL19 OKP offside B-pillar, inducing 86° nearside rollover.</span>
-            </div>
-
-            <details class="hud-stopping-details" id="hud-stopping-strip">
-              <summary class="hud-stopping-summary mono-text">
-                <span>📏 Stopping Distance</span>
-                <span class="badge-tag crimson mono" id="stopping-delta-label">+12.4m Excess</span>
-              </summary>
-              <div class="stopping-bars-wrap">
-                <div class="stopping-bar-row">
-                  <span class="bar-caption mono">30 mph Legal Limit</span>
-                  <div class="bar-track">
-                    <div class="bar-fill emerald" style="width: 53%">14.0m (Stops Safe)</div>
-                  </div>
+      <!-- LEFT 65%: 3D Forensic Viewport & Timeline Bar -->
+      <section class="cockpit-center-viewport cockpit-left-stage" id="canvas-stage" aria-label="3D Crash Reconstruction Stage">
+        <div class="viewport-canvas-wrapper">
+          <div id="three-canvas-container" class="three-canvas-container">
+            <!-- ONE Compact Top-Left HUD Card (#viewport-hud-overlay / #hud-overlay) -->
+            <div id="viewport-hud-overlay" class="viewport-hud-overlay hud-compact-card hud-overlay">
+              <div id="hud-overlay" class="hud-compact-inner">
+                <div class="hud-compact-row">
+                  <span class="hud-label hud-row-label">Time</span>
+                  <span class="hud-value mono-num num-mono" id="hud-timestamp">01.15s</span>
+                  <span id="hud-timecode" hidden aria-hidden="true">1.15s</span>
                 </div>
-                <div class="stopping-bar-row">
-                  <span class="bar-caption mono">41.2 mph Actual</span>
-                  <div class="bar-track">
-                    <div class="bar-fill crimson" style="width: 100%">26.4m Required (Impact)</div>
-                  </div>
+                <div class="hud-compact-row">
+                  <span class="hud-label hud-row-label">
+                    <span class="vehicle-dot dot-defendant" aria-hidden="true"></span>
+                    <span id="hud-label-a">Vehicle A (VL19 OKP)</span>
+                  </span>
+                  <span class="hud-value mono-num num-mono" id="hud-speed-a">18.6 mph</span>
+                  <span id="hud-v1-speed" hidden aria-hidden="true">18.6 mph</span>
+                </div>
+                <div class="hud-compact-row">
+                  <span class="hud-label hud-row-label">
+                    <span class="vehicle-dot dot-claimant" aria-hidden="true"></span>
+                    <span id="hud-label-b">Vehicle B (GD64 LKU)</span>
+                  </span>
+                  <span class="hud-value mono-num num-mono" id="hud-speed-b">33.4 mph</span>
+                  <span id="hud-v2-speed" hidden aria-hidden="true">33.4 mph</span>
                 </div>
               </div>
-            </details>
-          </div>
-        </div>
 
-        <!-- Camera Mode Legend Pill (Bottom Right of Viewport) -->
-        <div class="viewport-legend-pill">
-          <span><i class="legend-dot blue"></i> VL19 OKP</span>
-          <span><i class="legend-dot silver"></i> GD64 LKU</span>
-          <span class="mono-muted" id="active-cam-readout">CAM: 3D ORBIT</span>
-        </div>
-      </section>
-
-      <!-- RIGHT PANE (410px): Liability Hero Card & 4 Tabbed Forensic & Legal Panels -->
-      <aside class="cockpit-right-pane" aria-label="UK Liability Split, Case Law &amp; Solicitor Settlement Gate">
-        <!-- Liability Split Hero Card -->
-        <section class="panel-card liability-hero-card" id="liability-hero-card">
-          <div class="liability-card-top">
-            <div>
-              <span class="eyebrow-label">CONTRIBUTORY NEGLIGENCE SPLIT</span>
-              <h2 class="claim-id-heading" id="cockpit-claim-title">Claim #UK-2026-0819 — Cheadle A521</h2>
-            </div>
-            <div class="quantum-box">
-              <span class="eyebrow-label">QUANTUM</span>
-              <strong class="quantum-val mono" id="quantum-estimate-val">£18,450</strong>
-            </div>
-          </div>
-
-          <div class="liability-split-Numbers">
-            <div class="split-side claimant-side">
-              <span class="split-pct amber mono" id="hero-claimant-pct">25%</span>
-              <span class="split-role" id="hero-claimant-label">Claimant (GD64 LKU)</span>
-              <span class="split-sub">41.2 mph + Expired MOT</span>
-            </div>
-            <div class="split-vs">VS</div>
-            <div class="split-side defendant-side">
-              <span class="split-pct cyan mono" id="hero-defendant-pct">75%</span>
-              <span class="split-role" id="hero-defendant-label">Defendant (VL19 OKP)</span>
-              <span class="split-sub">Failed to Give Way</span>
-            </div>
-          </div>
-
-          <div class="split-progress-bar" aria-label="Liability Split Ratio">
-            <div class="split-fill-claimant" id="hero-bar-claimant" style="width: 25%"></div>
-            <div class="split-fill-defendant" id="hero-bar-defendant" style="width: 75%"></div>
-          </div>
-
-          <div class="rules-breached-row" id="rules-breached-pills">
-            <span class="rule-pill crimson">Rule 170</span>
-            <span class="rule-pill crimson">Rule 172</span>
-            <span class="rule-pill amber">Rule 125</span>
-            <span class="rule-pill crimson">RTA 1988 s.47</span>
-          </div>
-        </section>
-
-        <!-- 4 Tabbed Forensic Panels Navigation -->
-        <div class="forensic-tabs-nav" role="tablist" aria-label="Forensic &amp; Legal Dossier Tabs">
-          <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="tab-caselaw">
-            1. Case Law
-          </button>
-          <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tab-audit">
-            2. Policy &amp; DVSA
-          </button>
-          <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tab-thatcham">
-            3. Thatcham
-          </button>
-          <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tab-subrogation">
-            4. CPR Sign-Off
-          </button>
-        </div>
-
-        <!-- Tab 1: UK Case Law & Reasoning (Collapsible Exclusive Accordions) -->
-        <section id="tab-caselaw" class="tab-panel active" role="tabpanel">
-          <div class="tab-section-block">
-            <div class="block-header">
-              <h3>Binding English Authorities (Click to Expand)</h3>
-              <span class="badge-tag cyan">1M Cache • 95% Off</span>
-            </div>
-            <div id="caselaw-citations-list" class="citations-stack">
-              <!-- Populated by main.js as mutually exclusive <details name="caselaw-accordion"> -->
-            </div>
-          </div>
-
-          <details class="section-disclosure" name="reasoning-accordion" open>
-            <summary class="section-disclosure-summary">
-              <span>🚦 Road Signs &amp; Traffic Control Legal Analysis</span>
-              <span class="badge-tag emerald">TSRGD 2016</span>
-            </summary>
-            <div class="disclosure-content-pad">
-              <div id="road-signs-legal-list" class="citations-stack"></div>
-            </div>
-          </details>
-
-          <details class="section-disclosure" name="reasoning-accordion">
-            <summary class="section-disclosure-summary">
-              <span>📏 Highway Code Stopping Distance Math</span>
-              <span class="badge-tag amber">Rule 126</span>
-            </summary>
-            <div class="disclosure-content-pad">
-              <p class="legal-prose" id="stopping-distance-prose"></p>
-            </div>
-          </details>
-
-          <details class="section-disclosure" name="reasoning-accordion">
-            <summary class="section-disclosure-summary">
-              <span>⚖️ Full Forensic &amp; Legal Reasoning Chain</span>
-              <span class="badge-tag cyan">gemini-4-argon</span>
-            </summary>
-            <div class="disclosure-content-pad">
-              <p class="legal-prose" id="legal-reasoning-prose"></p>
-            </div>
-          </details>
-        </section>
-
-        <!-- Tab 2: Policy & DVSA Audit (Collapsible Exclusive Accordions) -->
-        <section id="tab-audit" class="tab-panel" role="tabpanel" hidden>
-          <details class="section-disclosure" name="audit-accordion" open>
-            <summary class="section-disclosure-summary">
-              <span>🔧 DVSA MOT Defect Causality Breakdown</span>
-              <span class="badge-tag crimson mono">CAUSAL vs NOT CAUSAL</span>
-            </summary>
-            <div class="disclosure-content-pad">
-              <div id="dvsa-causal-audit-box" class="dvsa-causal-audit-stack"></div>
-            </div>
-          </details>
-
-          <details class="section-disclosure" name="audit-accordion">
-            <summary class="section-disclosure-summary">
-              <span>📜 UK Policy #UK-8841 Coverage &amp; Indemnity Audit</span>
-              <span class="badge-tag amber mono">RTA 1988 s.148</span>
-            </summary>
-            <div class="disclosure-content-pad">
-              <div class="subagent-markdown-box" id="policy-audit-content"></div>
-            </div>
-          </details>
-
-          <details class="section-disclosure" name="audit-accordion">
-            <summary class="section-disclosure-summary">
-              <span>🐍 Antigravity Physics &amp; DVSA Credential Log</span>
-              <span class="badge-tag emerald mono">pytest PASS</span>
-            </summary>
-            <div class="disclosure-content-pad">
-              <pre class="terminal-log-box mono-text" tabindex="0"><code id="antigravity-audit-log"></code></pre>
-            </div>
-          </details>
-
-          <details class="section-disclosure" name="audit-accordion">
-            <summary class="section-disclosure-summary">
-              <span>🎥 Agentic Video Scrubbing Passes</span>
-              <span class="badge-tag cyan mono">processing="agentic"</span>
-            </summary>
-            <div class="disclosure-content-pad">
-              <div class="agentic-steps-list" id="agentic-steps-list"></div>
-            </div>
-          </details>
-        </section>
-
-        <!-- Tab 3: Thatcham Repair & Salvage -->
-        <section id="tab-thatcham" class="tab-panel" role="tabpanel" hidden>
-          <div id="thatcham-summary-cards" class="thatcham-summary-grid"></div>
-          <details class="section-disclosure" open>
-            <summary class="section-disclosure-summary">
-              <span>🔧 Itemised ABI / Thatcham Schedule</span>
-              <span class="badge-tag cyan mono">gemini-3.8-flash</span>
-            </summary>
-            <div class="disclosure-content-pad">
-              <div id="thatcham-schedule-container" class="thatcham-schedule-container"></div>
-            </div>
-          </details>
-        </section>
-
-        <!-- Tab 4: CPR Subrogation & Sign-Off -->
-        <section id="tab-subrogation" class="tab-panel" role="tabpanel" hidden>
-          <!-- Solicitor Human-in-the-Loop Settlement Gate -->
-          <div class="tab-section-block settlement-gate-card">
-            <div class="block-header">
-              <h3>Solicitor Settlement Sign-Off</h3>
-              <span class="badge-tag emerald mono">Human-in-the-Loop</span>
-            </div>
-            <p class="gate-intro">
-              Confirm or adjust the contributory negligence split as <strong>a UK motor claims &amp; subrogation solicitor</strong>.
-            </p>
-
-            <div class="slider-control-box">
-              <div class="slider-labels-row mono-text">
-                <span id="gate-claimant-readout">Claimant (GD64 LKU): 25%</span>
-                <span id="gate-defendant-readout">Defendant (VL19 OKP): 75%</span>
-              </div>
-              <input
-                type="range"
-                id="solicitor-liability-slider"
-                min="0"
-                max="100"
-                step="1"
-                value="75"
-                aria-label="Defendant Liability Percentage"
-              />
-              <div class="net-recovery-row">
-                <span>Net Recovery (after £500 excess):</span>
-                <strong class="emerald-text mono" id="gate-net-recovery">£13,337.50</strong>
+              <!-- Hidden legacy HUD hooks so existing JS updates never throw null errors -->
+              <div hidden aria-hidden="true">
+                <span id="hud-phase-label">IMPACT &amp; ROLLOVER</span>
+                <span id="hud-state-a">Roll 86°</span>
+                <span id="hud-state-b">Braking</span>
+                <span id="hud-separation">1.4 m</span>
+                <span id="hud-impact-coords">POI (0.0m, 0.2m)</span>
+                <div id="hud-event-banner" hidden>
+                  <span id="hud-event-type">PRIMARY IMPACT</span>
+                  <span id="hud-event-desc">Impact at t=1.15s</span>
+                </div>
+                <details id="hud-stopping-strip" hidden>
+                  <summary>Stopping Distance</summary>
+                  <span id="stop-bar-30-label">25.6m</span>
+                  <span id="stop-bar-actual-title">41.2 mph</span>
+                  <span id="stop-bar-actual-label">46.3m</span>
+                  <div id="stop-bar-actual-fill"></div>
+                </details>
+                <span id="active-cam-readout">Orbit</span>
               </div>
             </div>
 
-            <div class="form-group">
-              <label for="solicitor-notes">Solicitor Endorsement Notes</label>
-              <textarea
-                id="solicitor-notes"
-                rows="2"
-              >Approved 75/25 split in favour of Claimant pursuant to Powell v Moody [1966] and Law Reform (Contributory Negligence) Act 1945.</textarea>
+            <!-- ONE Top-Right Segmented Camera Control (#camera-segmented-control) -->
+            <div id="camera-segmented-control" class="camera-segmented-control" role="toolbar" aria-label="3D camera viewpoints">
+              <button type="button" id="cam-btn-orbit" class="cam-seg-btn cam-btn active" data-cam="orbit" title="Orbit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                  <polyline points="3.29 7 12 12 20.71 7" />
+                  <line x1="12" y1="22" x2="12" y2="12" />
+                </svg>
+                <span>Orbit</span>
+              </button>
+              <button type="button" id="cam-btn-top" class="cam-seg-btn cam-btn" data-cam="top" title="Top">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="12" y1="3" x2="12" y2="21" />
+                </svg>
+                <span>Top</span>
+              </button>
+              <button type="button" id="cam-btn-side" class="cam-seg-btn cam-btn" data-cam="side" title="Side">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="2" y1="18" x2="22" y2="18" />
+                  <rect x="5" y="10" width="14" height="6" rx="2" />
+                </svg>
+                <span>Side</span>
+              </button>
+              <button type="button" id="cam-btn-pov-a" class="cam-seg-btn cam-btn" data-cam="pov_a" title="Vehicle A">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+                  <circle cx="7" cy="17" r="2" />
+                  <path d="M9 17h6" />
+                  <circle cx="17" cy="17" r="2" />
+                </svg>
+                <span>Vehicle A</span>
+              </button>
+              <button type="button" id="cam-btn-pov-b" class="cam-seg-btn cam-btn" data-cam="pov_b" title="Vehicle B">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+                  <circle cx="7" cy="17" r="2" />
+                  <path d="M9 17h6" />
+                  <circle cx="17" cy="17" r="2" />
+                </svg>
+                <span>Vehicle B</span>
+              </button>
+              <button type="button" id="cam-btn-cctv" class="cam-seg-btn cam-btn" data-cam="cctv_1" title="CCTV">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m22 8-6 4 6 4V8Z" />
+                  <rect width="14" height="12" x="2" y="6" rx="2" ry="2" />
+                </svg>
+                <span>CCTV</span>
+              </button>
             </div>
+          </div>
+        </div>
 
-            <button type="button" id="btn-approve-settlement" class="btn-emerald-cta full-width">
-              Approve Split &amp; Issue Subrogation Demand
+        <!-- Bottom Timeline Bar (#timeline-bar) -->
+        <footer id="timeline-bar" class="timeline-bar timeline-footer-bar" aria-label="Simulation playback controls">
+          <div class="timeline-controls-row">
+            <button type="button" id="btn-play-pause" class="btn-play-pause" title="Play or pause reconstruction">
+              <span id="play-icon" class="play-icon-wrap" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="6 3 20 12 6 21 6 3" />
+                </svg>
+              </span>
+              <span id="play-label">Play</span>
             </button>
 
-            <!-- Cryptographic SHA-256 Settlement Audit Receipt -->
-            <div id="settlement-receipt-box" class="settlement-receipt-box" hidden>
-              <div class="receipt-header">
-                <span class="badge-tag emerald mono">✓ CPR SUBROGATION DEMAND ISSUED</span>
-                <span class="mono-muted" id="receipt-timestamp"></span>
-              </div>
-              <div class="receipt-kv mono-text">
-                <div><span>Role:</span> <strong>UK Motor Claims &amp; Subrogation Solicitor</strong></div>
-                <div><span>Split:</span> <strong id="receipt-split-val">75% Defendant / 25% Claimant</strong></div>
-                <div><span>Net Recovery:</span> <strong id="receipt-net-val">£13,337.50</strong></div>
-                <div><span>SHA-256 Hash:</span> <code id="receipt-sha256"></code></div>
+            <div class="scrubber-track-wrapper">
+              <input
+                type="range"
+                id="timeline-slider"
+                class="timeline-scrubber"
+                min="0"
+                max="3.0"
+                step="0.01"
+                value="1.15"
+                aria-label="Reconstruction timeline in seconds"
+              />
+              <!-- Hidden alias for #timeline-scrubber -->
+              <input type="range" id="timeline-scrubber" min="0" max="3.0" step="0.01" value="1.15" hidden aria-hidden="true" />
+              <!-- Small event dots on the scrubber track with hover tooltips -->
+              <div id="timeline-markers" class="timeline-dots-track timeline-event-dots" aria-label="Key collision events"></div>
+              <div id="timeline-event-dots" hidden aria-hidden="true"></div>
+            </div>
+
+            <div class="timeline-meta-right">
+              <span id="timecode-display" class="timecode-display mono-num num-mono">01.15s / 03.00s</span>
+              <div class="speed-select-wrapper">
+                <select id="playback-speed-select" class="speed-select playback-speed-select" aria-label="Playback speed">
+                  <option value="0.25">0.25x</option>
+                  <option value="0.5">0.5x</option>
+                  <option value="1" selected>1x</option>
+                </select>
               </div>
             </div>
           </div>
+        </footer>
+      </section>
 
-          <details class="section-disclosure">
-            <summary class="section-disclosure-summary">
-              <span>✉️ Preview Full CPR Pre-Action Letter of Claim</span>
-              <span class="badge-tag cyan mono">gemini-3.8-flash</span>
-            </summary>
-            <div class="disclosure-content-pad">
-              <pre class="cpr-letter-box" tabindex="0"><code id="cpr-letter-content"></code></pre>
+      <!-- RIGHT 35% (min-width: 400px): Single Scroll Legal Decision Panel -->
+      <aside id="right-dossier-column" class="cockpit-right-pane right-dossier-column" aria-label="Solicitor Liability Dossier">
+        <div class="dossier-scroll-area" id="dossier-scroll-area">
+          <!-- 1. Liability Summary Card at Top -->
+          <section class="liability-hero-card liability-summary-card" id="liability-hero-card">
+            <div class="liability-card-top">
+              <div>
+                <p class="section-eyebrow">Recommended liability split</p>
+                <div class="split-big-numbers">
+                  <div class="split-party-block">
+                    <span class="split-pct mono-num num-mono pct-defendant" id="hero-defendant-pct">75%</span>
+                    <span id="split-pct-def" hidden aria-hidden="true">75%</span>
+                    <span class="split-role-tag">Defendant fault</span>
+                  </div>
+                  <span class="split-slash" aria-hidden="true">/</span>
+                  <div class="split-party-block">
+                    <span class="split-pct mono-num num-mono pct-claimant" id="hero-claimant-pct">25%</span>
+                    <span id="split-pct-clm" hidden aria-hidden="true">25%</span>
+                    <span class="split-role-tag">Claimant contributory</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="net-recovery-block">
+                <span class="net-recovery-label">Net recovery</span>
+                <strong class="net-recovery-value mono-num num-mono" id="hero-net-recovery-val">£10,687.50</strong>
+                <span id="quantum-estimate-val" hidden aria-hidden="true">£10,687.50</span>
+                <span id="quantum-gross-sub" class="net-recovery-sub mono-num num-mono">of £14,250.00 gross</span>
+              </div>
             </div>
-          </details>
-        </section>
+
+            <!-- Proportional visual bar -->
+            <div class="split-progress-bar" aria-hidden="true">
+              <div class="split-fill-defendant" id="hero-bar-defendant" style="width: 75%"></div>
+              <div class="split-fill-claimant" id="hero-bar-claimant" style="width: 25%"></div>
+            </div>
+
+            <!-- Consistent Party Naming Rows -->
+            <div class="party-summary-rows">
+              <div class="party-summary-row">
+                <span class="vehicle-dot dot-defendant" aria-hidden="true"></span>
+                <span class="party-full-name" id="hero-defendant-plate">Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant</span>
+              </div>
+              <div class="party-summary-row">
+                <span class="vehicle-dot dot-claimant" aria-hidden="true"></span>
+                <span class="party-full-name" id="hero-claimant-plate">Vehicle B: Silver VW Golf (GD64 LKU), Claimant</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- 2. Five Underline Tabs (.forensic-tabs-nav / #forensic-tab-bar) -->
+          <nav id="forensic-tab-bar" class="forensic-tabs-nav forensic-tab-bar" role="tablist" aria-label="Case dossier sections">
+            <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-tab="tab-summary">
+              Summary
+            </button>
+            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tab-vehicles">
+              Vehicles &amp; MOT
+            </button>
+            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tab-law">
+              Law
+            </button>
+            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tab-costs">
+              Costs
+            </button>
+            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-tab="tab-signoff">
+              Sign-off
+            </button>
+          </nav>
+
+          <!-- TAB 1: SUMMARY (#tab-summary & #tab-overview) -->
+          <section class="tab-panel active" id="tab-summary" role="tabpanel">
+            <div id="tab-overview">
+              <div class="dossier-row-block">
+                <div class="row-block-header">
+                  <h3>Collision summary</h3>
+                  <span class="status-badge badge-neutral" id="claim-id-badge">Claim #UK-2026-0819</span>
+                </div>
+                <p id="incident-summary-text" class="body-prose">
+                  At 14:22 BST on the A521 Huntley Road at its junction with Draycott Cross Road, Cheadle, Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant emerged southbound across Diagram 1003 Give Way markings at 18.6 mph without halting. Vehicle B: Silver VW Golf (GD64 LKU), Claimant approached eastbound on the A521 priority road at 41.2 mph in a 30 mph limit with an expired MOT and worn brake discs, braking at t=0.50s down to 33.4 mph before striking the offside B-pillar of Vehicle A at t=1.15s.
+                </p>
+              </div>
+
+              <!-- Point of Impact & Highway Code Rule 126 Stopping Distance Explanation -->
+              <div class="dossier-row-block">
+                <div class="row-block-header">
+                  <h3>Point of impact &amp; Rule 126 stopping distance</h3>
+                  <span class="status-badge badge-causal">Causal physics</span>
+                </div>
+                <p class="body-prose" id="summary-stopping-explanation">
+                  Impact occurred at <strong class="mono-num num-mono">t = 1.15s</strong> at junction coordinates <strong class="mono-num num-mono">(0.0m, 0.2m)</strong>, causing an <strong class="mono-num num-mono">86°</strong> nearside rollover of Vehicle A. On damp tarmac (<span class="mono-num num-mono">μ = 0.55</span>), Highway Code Rule 126 stopping distance at the lawful <strong class="mono-num num-mono">30 mph</strong> limit is <strong class="mono-num num-mono" id="summary-stop-30">25.6m</strong>. At Vehicle B's actual approach speed of <strong class="mono-num num-mono" id="summary-speed-actual">41.2 mph</strong> with worn brake discs, total stopping distance increased to <strong class="mono-num num-mono" id="summary-stop-actual">46.3m</strong> (<strong class="mono-num num-mono">+20.7m</strong> excess), establishing 25% contributory fault.
+                </p>
+
+                <div class="stopping-comparison-rows">
+                  <div class="stopping-row">
+                    <div class="stopping-row-meta">
+                      <span>Lawful 30 mph stopping distance (Rule 126)</span>
+                      <strong class="mono-num num-mono" id="summary-bar-30-val">25.6m</strong>
+                    </div>
+                    <div class="stopping-bar-track">
+                      <div class="stopping-bar-fill fill-safe" style="width: 52%"></div>
+                    </div>
+                  </div>
+                  <div class="stopping-row">
+                    <div class="stopping-row-meta">
+                      <span id="summary-bar-actual-label">Vehicle B actual approach (41.2 mph + brake wear)</span>
+                      <strong class="mono-num num-mono text-danger" id="summary-bar-actual-val">46.3m</strong>
+                    </div>
+                    <div class="stopping-bar-track">
+                      <div class="stopping-bar-fill fill-danger" id="summary-bar-actual-fill" style="width: 94%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Synchronized Ring CCTV Footage Player (#crash-video & #cctv-sync-video) -->
+              <div class="dossier-row-block">
+                <div class="row-block-header">
+                  <div class="header-with-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="m22 8-6 4 6 4V8Z" />
+                      <rect width="14" height="12" x="2" y="6" rx="2" ry="2" />
+                    </svg>
+                    <h3 id="cctv-panel-title">Evidence footage (Ring CCTV)</h3>
+                  </div>
+                  <label class="inline-toggle-label" for="chk-sync-video">
+                    <input type="checkbox" id="chk-sync-video" checked />
+                    <span>Sync with 3D timeline</span>
+                  </label>
+                </div>
+
+                <div class="video-container">
+                  <video
+                    id="crash-video"
+                    src="/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4"
+                    muted
+                    playsinline
+                    preload="metadata"
+                  ></video>
+                  <video id="cctv-sync-video" hidden aria-hidden="true"></video>
+                </div>
+
+                <div class="scene-filter-row">
+                  <label class="inline-toggle-label" for="chk-causal-filter">
+                    <input type="checkbox" id="chk-causal-filter" checked />
+                    <span>Hide non-causal background objects in 3D view</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="dossier-row-block no-border">
+                <h3>Primary &amp; contributory fault rationale</h3>
+                <p class="body-prose" id="primary-fault-rationale">
+                  Vehicle A crossed the TSRGD Diagram 1003 Give Way line from a minor road into the A521 priority corridor without halting, attracting 75% primary liability.
+                </p>
+                <p class="body-prose" id="contributory-negligence-rationale" style="margin-top: 8px;">
+                  Vehicle B approached at 41.2 mph in a 30 mph zone with an expired MOT and worn brake discs, attracting 25% contributory negligence.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 2: VEHICLES & MOT (#tab-vehicles & #tab-dvsa) -->
+          <section class="tab-panel" id="tab-vehicles" role="tabpanel" hidden>
+            <div id="tab-dvsa">
+              <div class="dossier-row-block">
+                <div class="row-block-header">
+                  <h3>UK DVSA MOT history &amp; causal defect audit</h3>
+                  <span class="status-badge badge-verified">GOV.UK DVSA verified</span>
+                </div>
+                <p class="body-prose">
+                  Only defects that physically contributed to braking distance, steering response, or visibility are weighted in liability. Non-causal advisories are excluded.
+                </p>
+              </div>
+              <div id="dvsa-cards-container" class="dvsa-vehicles-list">
+                <!-- Populated dynamically by main.js -->
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 3: LAW (#tab-law & #tab-corpus) -->
+          <section class="tab-panel" id="tab-law" role="tabpanel" hidden>
+            <div id="tab-corpus">
+              <div class="dossier-row-block">
+                <h3>Applicable UK statutes &amp; case law</h3>
+                <p class="body-prose">
+                  Statutory duties under the Road Traffic Act 1988, TSRGD 2016 traffic signs, and binding Court of Appeal precedents governing emerging and speeding motorists.
+                </p>
+              </div>
+
+              <!-- Accordion 1: Highway Code Rules -->
+              <details class="clean-accordion" open>
+                <summary class="clean-accordion-summary">
+                  <div class="accordion-title-group">
+                    <strong>Highway Code Rules 172 &amp; 126</strong>
+                    <span class="status-badge badge-causal">Statutory breach</span>
+                  </div>
+                  <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </summary>
+                <div class="clean-accordion-body" id="highway-code-list">
+                  <!-- Populated by main.js -->
+                </div>
+              </details>
+
+              <!-- Accordion 2: TSRGD 2016 Signs & Markings -->
+              <details class="clean-accordion" open>
+                <summary class="clean-accordion-summary">
+                  <div class="accordion-title-group">
+                    <strong>TSRGD 2016 road signs &amp; markings</strong>
+                    <span class="status-badge badge-neutral">Junction controls</span>
+                  </div>
+                  <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </summary>
+                <div class="clean-accordion-body" id="road-signs-legal-list">
+                  <!-- Populated by main.js -->
+                </div>
+              </details>
+
+              <!-- Accordion 3: English Tort Precedents -->
+              <details class="clean-accordion" open>
+                <summary class="clean-accordion-summary">
+                  <div class="accordion-title-group">
+                    <strong>English tort precedents</strong>
+                    <span class="status-badge badge-neutral">Binding authority</span>
+                  </div>
+                  <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </summary>
+                <div class="clean-accordion-body" id="caselaw-citations-list">
+                  <!-- Populated by main.js -->
+                </div>
+              </details>
+            </div>
+          </section>
+
+          <!-- TAB 4: COSTS (#tab-costs & #tab-subagents) -->
+          <section class="tab-panel" id="tab-costs" role="tabpanel" hidden>
+            <div id="tab-subagents">
+              <div class="dossier-row-block">
+                <div class="row-block-header">
+                  <h3>Thatcham / ABI quantum schedule</h3>
+                  <span class="status-badge badge-neutral">Subrogation schedule</span>
+                </div>
+                <div id="thatcham-schedule-container" class="thatcham-table-wrap">
+                  <!-- Real HTML <table> populated by main.js -->
+                </div>
+              </div>
+
+              <details class="clean-accordion" open>
+                <summary class="clean-accordion-summary">
+                  <div class="accordion-title-group">
+                    <strong>CPR Pre-Action Protocol Letter of Claim</strong>
+                    <span class="status-badge badge-verified">Ready for service</span>
+                  </div>
+                  <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </summary>
+                <div class="clean-accordion-body formatted-legal-doc" id="cpr-letter-content">
+                  <!-- Formatted HTML (<h3>, <p>, <ul>) with zero raw markdown populated by main.js -->
+                </div>
+              </details>
+
+              <details class="clean-accordion">
+                <summary class="clean-accordion-summary">
+                  <div class="accordion-title-group">
+                    <strong>RTA 1988 s.148 &amp; ABI policy indemnity note</strong>
+                    <span class="status-badge badge-neutral">Indemnity check</span>
+                  </div>
+                  <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </summary>
+                <div class="clean-accordion-body formatted-legal-doc" id="policy-audit-content">
+                  <!-- Formatted HTML populated by main.js -->
+                </div>
+              </details>
+            </div>
+          </section>
+
+          <!-- TAB 5: SIGN-OFF (#tab-signoff) -->
+          <section class="tab-panel" id="tab-signoff" role="tabpanel" hidden>
+            <div id="settlement-gate-section" class="settlement-gate-section">
+              <div class="dossier-row-block">
+                <div class="row-block-header">
+                  <h3>Solicitor liability sign-off</h3>
+                  <span class="status-badge badge-warning" id="signoff-status-pill">Awaiting approval</span>
+                </div>
+                <p class="body-prose">
+                  Adjust or confirm the liability split below to lock the subrogation quantum and issue the CPR Pre-Action Protocol decision.
+                </p>
+
+                <!-- Interactive Liability Split Slider -->
+                <div class="slider-control-block">
+                  <div class="slider-split-readout">
+                    <div>
+                      <span class="slider-party-label">Vehicle A (VL19 OKP), Defendant</span>
+                      <strong class="slider-pct-val mono-num num-mono pct-defendant" id="slider-def-val">75%</strong>
+                      <span id="slider-defendant-val" hidden aria-hidden="true">75%</span>
+                    </div>
+                    <div class="text-right">
+                      <span class="slider-party-label">Vehicle B (GD64 LKU), Claimant</span>
+                      <strong class="slider-pct-val mono-num num-mono pct-claimant" id="slider-clm-val">25%</strong>
+                      <span id="slider-claimant-val" hidden aria-hidden="true">25%</span>
+                    </div>
+                  </div>
+
+                  <input
+                    type="range"
+                    id="solicitor-liability-slider"
+                    class="liability-range-slider"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value="75"
+                    aria-label="Defendant liability percentage"
+                  />
+                  <input type="range" id="slider-defendant-split" min="0" max="100" step="5" value="75" hidden aria-hidden="true" />
+
+                  <div class="recalculated-recovery-row">
+                    <span>Recalculated net subrogation recovery</span>
+                    <strong class="mono-num num-mono recovery-highlight" id="calc-net-recovery">£10,687.50</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3-Item Solicitor Verification Checklist -->
+              <div class="dossier-row-block">
+                <h3>Pre-Action verification checklist</h3>
+                <div class="solicitor-checklist">
+                  <label class="checklist-row">
+                    <input type="checkbox" checked />
+                    <span>3D trajectory &amp; Rule 126 stopping distance verified against CCTV</span>
+                  </label>
+                  <label class="checklist-row">
+                    <input type="checkbox" checked />
+                    <span>UK DVSA MOT defects audited for causal relevance</span>
+                  </label>
+                  <label class="checklist-row">
+                    <input type="checkbox" checked />
+                    <span>Court of Appeal apportionment (Powell v Moody / Froom v Butcher) applied</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Adjuster / Solicitor Notes & Primary Approve CTA -->
+              <div class="dossier-row-block no-border">
+                <label class="field-label" for="solicitor-notes">Solicitor settlement notes</label>
+                <textarea
+                  id="solicitor-notes"
+                  class="solicitor-notes-input"
+                  rows="3"
+                >Confirmed 75% Defendant (VL19 OKP) / 25% Claimant (GD64 LKU) split pursuant to Highway Code Rules 172 &amp; 126, Powell v Moody [1966], and causal DVSA MOT brake disc wear.</textarea>
+                <textarea id="adjuster-settlement-notes" hidden aria-hidden="true"></textarea>
+
+                <button type="button" id="btn-approve-settlement" class="btn-primary btn-primary-cta full-width" style="margin-top: 16px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  <span>Approve split</span>
+                </button>
+
+                <!-- Confirmation Receipt Banner -->
+                <div id="settlement-receipt-banner" class="settlement-receipt-banner" hidden></div>
+                <div id="settlement-receipt-box" hidden aria-hidden="true"></div>
+              </div>
+            </div>
+          </section>
+        </div>
       </aside>
     </div>
-
-    <!-- BOTTOM SCRUBBER BAR (84px) -->
-    <footer class="bottom-scrubber-bar" aria-label="Forensic Timeline Scrubber">
-      <div class="scrubber-controls-left">
-        <button type="button" id="btn-play-pause" class="btn-play-toggle" aria-label="Play or Pause 3D Reconstruction">
-          <span id="play-icon">▶</span> <span id="play-label">Play</span>
-        </button>
-        <div class="speed-selector-group" role="group" aria-label="Playback Speed">
-          <button type="button" class="speed-btn" data-speed="0.25">0.25x</button>
-          <button type="button" class="speed-btn" data-speed="0.5">0.5x</button>
-          <button type="button" class="speed-btn active" data-speed="1.0">1.0x</button>
-        </div>
-        <div class="timecode-readout mono" id="timecode-display">
-          01.15s / 03.00s
-        </div>
-      </div>
-
-      <div class="scrubber-track-center">
-        <input
-          type="range"
-          id="timeline-slider"
-          min="0"
-          max="3.0"
-          step="0.01"
-          value="1.15"
-          aria-label="3D Reconstruction Timeline Scrubber (0.00s to 3.00s)"
-        />
-        <div class="timeline-markers" id="timeline-markers">
-          <button type="button" class="marker-pill info" data-time="0.00">
-            <span class="marker-dot"></span> t=0.00s Hazard Entry
-          </button>
-          <button type="button" class="marker-pill warning" data-time="0.45">
-            <span class="marker-dot"></span> t=0.45s Sightline Obstruction
-          </button>
-          <button type="button" class="marker-pill warning" data-time="0.65">
-            <span class="marker-dot"></span> t=0.65s Give Way Encroachment
-          </button>
-          <button type="button" class="marker-pill critical active" data-time="1.15">
-            <span class="marker-dot"></span> t=1.15s Point of Impact
-          </button>
-          <button type="button" class="marker-pill critical" data-time="1.65">
-            <span class="marker-dot"></span> t=1.65s Peugeot Side Rollover
-          </button>
-          <button type="button" class="marker-pill info" data-time="2.85">
-            <span class="marker-dot"></span> t=2.85s Final Rest
-          </button>
-        </div>
-      </div>
-    </footer>
   </main>
 
-  <!-- NATIVE MODAL DIALOG (Modern Web Guidance compliant: closedby="any", no role="dialog" or aria-modal) -->
+  <!-- ========================================================================
+       3. ARCHITECTURE VIEW (Developer & Model Telemetry — Isolated from Main UI)
+       ======================================================================== -->
+  <section id="architecture-view" class="architecture-view" hidden>
+    <div class="workspace-container">
+      <section class="workspace-hero">
+        <div class="hero-copy">
+          <p class="section-eyebrow">System architecture &amp; model telemetry</p>
+          <h1>Multi-agent reconstruction &amp; UK legal grounding pipeline</h1>
+          <p class="hero-lead">
+            Technical details of the Gemini 4 Argon agentic video pipeline, implicit 1M token legal corpus caching, live GOV.UK DVSA MOT lookup, and continuous rigid-body physics verification.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button type="button" id="btn-arch-back" class="btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            <span>Return to cases</span>
+          </button>
+        </div>
+      </section>
+
+      <div class="arch-cards-grid">
+        <div class="arch-card">
+          <div class="row-block-header">
+            <h3>Primary reasoning &amp; agentic video</h3>
+            <span class="status-badge badge-verified">gemini-4-argon</span>
+          </div>
+          <p class="body-prose">
+            Uses <code>client.interactions.create(model="gemini-4-argon", processing="agentic")</code> with <code>thinking_level="high"</code> to perform multi-pass temporal video scrubbing, isolating collision keyframes and stripping non-causal background clutter (~88% token savings).
+          </p>
+        </div>
+
+        <div class="arch-card">
+          <div class="row-block-header">
+            <h3>Implicit 1M token statutory cache</h3>
+            <span class="status-badge badge-verified">1M cache · 95% off</span>
+          </div>
+          <p class="body-prose">
+            Prefixes the UK Highway Code, Road Traffic Act 1988, TSRGD 2016 diagram schedules, and binding English tort precedents in the system instruction for automatic 1M token implicit caching across multi-turn interactions.
+          </p>
+        </div>
+
+        <div class="arch-card">
+          <div class="row-block-header">
+            <h3>Parallel specialist sub-agents</h3>
+            <span class="status-badge badge-neutral">gemini-3.8-flash</span>
+          </div>
+          <p class="body-prose">
+            Dispatches three parallel <code>gemini-3.8-flash</code> sub-agents via <code>previous_interaction_id</code> to generate the Thatcham / ABI Quantum schedule, CPR Pre-Action Protocol Letter of Claim, and RTA 1988 s.148 policy indemnity audit.
+          </p>
+        </div>
+
+        <div class="arch-card">
+          <div class="row-block-header">
+            <h3>Rigid-body OBB physics &amp; live DVSA API</h3>
+            <span class="status-badge badge-neutral">Antigravity · WebGPU</span>
+          </div>
+          <p class="body-prose">
+            Queries the live UK GOV.UK DVSA MOT History API via OAuth2 and enforces C1-continuous 2D Oriented Bounding Box (OBB) Separating Axis Theorem collision kinematics in Three.js / WebGPU.
+          </p>
+        </div>
+      </div>
+
+      <section class="arch-card" style="margin-top: 24px;">
+        <div class="row-block-header">
+          <h3>Active case agentic scrub &amp; physics verification log</h3>
+          <span class="status-badge badge-neutral" id="interaction-id-readout">int-argon-cheadle-a521-uk20260819</span>
+        </div>
+        <div id="agentic-steps-list" class="arch-log-list"></div>
+        <pre id="physics-audit-pre" class="arch-code-pre"></pre>
+      </section>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       4. UPLOAD MODAL (<dialog closedby="any">)
+       ======================================================================== -->
   <dialog id="upload-modal" closedby="any" aria-labelledby="upload-modal-title">
-    <div class="modal-inner modal-card">
+    <div class="modal-inner">
       <div class="modal-header">
-        <div class="modal-header-titles">
-          <span class="badge-tag cyan">GEMINI 4 ARGON • AGENTIC VIDEO &amp; DVSA PIPELINE</span>
-          <h2 id="upload-modal-title">New Crash Reconstruction</h2>
+        <div>
+          <p class="section-eyebrow">New claim intake</p>
+          <h2 id="upload-modal-title">Reconstruct collision from footage</h2>
         </div>
         <form method="dialog">
-          <button type="submit" value="cancel" class="btn-modal-close" aria-label="Close modal">✕</button>
+          <button type="submit" value="cancel" class="btn-ghost btn-modal-close" aria-label="Close modal">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </button>
         </form>
       </div>
 
       <p class="modal-description">
-        Drop dashcam or CCTV footage below and enter the UK vehicle registrations (or leave blank to let Gemini 4 Argon inspect the clip and detect the vehicles first).
+        Upload incident footage (CCTV or dashcam) and confirm UK registration numbers to check DVSA MOT records and generate a 3D liability reconstruction.
       </p>
 
       <form id="upload-claim-form" class="modal-form">
-        <!-- Modern Styled Upload Dropzone -->
         <div class="form-group">
-          <label class="form-section-label" for="input-video-files">1. Crash Video Footage (1–3 Clips)</label>
-          <label for="input-video-files" class="upload-dropzone" id="upload-dropzone-label">
-            <input
-              type="file"
-              id="input-video-files"
-              accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm"
-              multiple
-              class="sr-only"
-            />
-            <div class="dropzone-icon-wrap" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
+          <label class="field-label" for="input-video-files">Incident video footage (.mp4, .mov, .webm)</label>
+          <input
+            type="file"
+            id="input-video-files"
+            accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm"
+            multiple
+            autofocus
+          />
+          <div class="prescan-action-row">
+            <button type="button" id="btn-prescan-video" class="btn-secondary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
               </svg>
-            </div>
-            <div class="dropzone-copy">
-              <strong class="dropzone-primary-text">Drop crash footage (.mp4, .mov) or click to browse</strong>
-              <span class="dropzone-sub-text" id="upload-filename-display">Default sample ready: Cheadle A521 Ring CCTV clip (<code>clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4</code>)</span>
-            </div>
-          </label>
+              <span>1. Scan footage for registration plates</span>
+            </button>
+            <span class="prescan-hint">Detects involved vehicles and flags unreadable plates</span>
+          </div>
         </div>
 
-        <!-- Upfront Vehicle Registrations & Scene Context Section -->
-        <div id="agent-clarification-box" class="agent-clarification-box">
-          <div class="agent-callout-banner">
-            <div class="agent-callout-header">
-              <span class="badge-tag cyan">2. VEHICLE REGISTRATIONS &amp; SCENE CONTEXT (OPTIONAL — OR LET AGENT SCAN)</span>
-              <span class="badge-tag emerald" id="prescan-stripped-badge">3 non-causal stripped</span>
-            </div>
-            <p id="agent-clarification-message">
-              Enter UK VRM plates upfront to query live GOV.UK DVSA MOT records, or click Quick-Fill / leave blank to trigger Agentic ANPR inspection:
-            </p>
+        <!-- Clarification step when a plate is obscured by motion blur -->
+        <div id="agent-clarification-box" class="agent-clarification-box" hidden>
+          <div class="clarification-header">
+            <strong>Registration &amp; road context confirmation</strong>
+            <span id="prescan-stripped-badge" class="status-badge badge-neutral">3 non-causal objects hidden</span>
           </div>
+          <p id="agent-clarification-message" class="body-prose">
+            Two colliding vehicles were identified in the footage, but motion blur obscures the registration plates. Confirm the UK registration numbers below to look up their DVSA MOT history.
+          </p>
 
-          <div class="detected-vehicles-grid">
-            <div class="detected-vehicle-card">
-              <div class="detected-veh-top">
-                <span class="badge-tag cyan">VEHICLE 1 (MINOR RD)</span>
-                <span class="ocr-confidence-tag" id="ocr-status-a">ANPR Ready</span>
-              </div>
-              <p class="detected-veh-desc" id="detected-desc-a">
-                Blue Peugeot 2008 SUV (emerging from Give Way)
-              </p>
-              <div class="plate-input-row">
-                <input
-                  type="text"
-                  id="plate-1-input"
-                  placeholder="e.g. VL19 OKP"
-                  class="uk-plate-input mono-input"
-                  aria-label="Vehicle 1 UK Registration Plate"
-                />
-                <button type="button" class="btn-quick-chip" id="btn-fill-plate-1" data-target="plate-1-input" data-plate="VL19 OKP">
-                  Use VL19 OKP
-                </button>
-              </div>
-            </div>
-
-            <div class="detected-vehicle-card">
-              <div class="detected-veh-top">
-                <span class="badge-tag amber">VEHICLE 2 (MAIN RD)</span>
-                <span class="ocr-confidence-tag" id="ocr-status-b">ANPR Ready</span>
-              </div>
-              <p class="detected-veh-desc" id="detected-desc-b">
-                Silver/Grey VW Golf (approaching at ~41 mph)
-              </p>
-              <div class="plate-input-row">
-                <input
-                  type="text"
-                  id="plate-2-input"
-                  placeholder="e.g. GD64 LKU"
-                  class="uk-plate-input mono-input"
-                  aria-label="Vehicle 2 UK Registration Plate"
-                />
-                <button type="button" class="btn-quick-chip" id="btn-fill-plate-2" data-target="plate-2-input" data-plate="GD64 LKU">
-                  Use GD64 LKU
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="modal-context-grid">
+          <div class="plate-grid">
             <div class="form-group">
-              <label for="select-kinematic-context">Kinematic &amp; Road Surface Context</label>
-              <select id="select-kinematic-context" class="context-select">
-                <option value="both_moving_damp" selected>
-                  Damp tarmac (μ=0.55), both vehicles moving (Main Rd brake defects CAUSAL)
-                </option>
-                <option value="veh_a_stationary">
-                  Override: Vehicle 1 stationary when struck (Vehicle 1 brake defects NOT CAUSAL)
-                </option>
-                <option value="dry_tarmac">
-                  Override: Dry tarmac (μ=0.75), standard stopping distances
-                </option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="input-claim-notes">Incident Context / Solicitor Intake Notes (Optional)</label>
+              <label class="field-label" for="input-plate-1">
+                Vehicle A (Defendant) · <span id="detected-desc-a">Blue Peugeot 2008</span>
+              </label>
               <input
                 type="text"
-                id="input-claim-notes"
-                value="A521 / Draycott Cross Rd T-Junction collision, Cheadle, Staffs. Check UK DVSA MOT causality &amp; Highway Code Rules 170/172."
-                placeholder="Optional: junction location, weather, or disputed liability allegations..."
+                id="input-plate-1"
+                class="plate-input"
+                value="VL19 OKP"
+                placeholder="e.g. VL19 OKP"
+                required
               />
+              <span class="field-hint" id="ocr-status-a">Motion blur on front bumper — confirm registration</span>
+            </div>
+
+            <div class="form-group">
+              <label class="field-label" for="input-plate-2">
+                Vehicle B (Claimant) · <span id="detected-desc-b">Silver VW Golf</span>
+              </label>
+              <input
+                type="text"
+                id="input-plate-2"
+                class="plate-input"
+                value="GD64 LKU"
+                placeholder="e.g. GD64 LKU"
+                required
+              />
+              <span class="field-hint" id="ocr-status-b">Side profile only — confirm registration</span>
             </div>
           </div>
+
+          <div class="form-group">
+            <label class="field-label" for="select-kinematic-context">Road surface &amp; movement context</label>
+            <select id="select-kinematic-context" class="context-select">
+              <option value="both_moving_damp" selected>
+                Damp tarmac (μ = 0.55), both vehicles moving (brake defects causal)
+              </option>
+              <option value="veh_a_stationary">
+                Vehicle A stationary when struck (Vehicle A brake advisories not causal)
+              </option>
+              <option value="dry_tarmac">
+                Dry tarmac (μ = 0.75), standard stopping distances
+              </option>
+            </select>
+          </div>
         </div>
+
+        <details class="clean-accordion">
+          <summary class="clean-accordion-summary">
+            <span>Optional solicitor intake notes</span>
+            <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </summary>
+          <div class="clean-accordion-body">
+            <input
+              type="text"
+              id="input-claim-notes"
+              class="text-input"
+              value="A521 Huntley Road &amp; Draycott Cross Rd T-junction collision, Cheadle. Check DVSA MOT causality and Highway Code Rules 172 &amp; 126."
+            />
+          </div>
+        </details>
 
         <div id="modal-status-msg" class="modal-status-msg" hidden></div>
 
         <div class="modal-actions">
           <button type="button" id="btn-modal-cancel" class="btn-secondary">Cancel</button>
-          <button type="submit" id="btn-submit-analysis" class="btn-primary-cta">
-            Analyse Footage &amp; Build 3D Reconstruction →
+          <button type="submit" id="btn-submit-analysis" class="btn-primary btn-primary-cta">
+            <span>2. Run DVSA lookup &amp; 3D reconstruction</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14" />
+              <path d="m12 5 7 7-7 7" />
+            </svg>
           </button>
         </div>
       </form>

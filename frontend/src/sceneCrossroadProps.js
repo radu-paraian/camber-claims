@@ -161,8 +161,10 @@ export function createFourWayJunctionTexture(roadType) {
  * and bevelled granite kerbs (#525866), leaving all 4 road corridors open.
  */
 export function buildFourWayRoadEnvironment(sceneInstance, roadType) {
-  const group = sceneInstance.environmentGroup;
-  const roadTex = createFourWayJunctionTexture(roadType);
+  const group = sceneInstance?.environmentGroup || sceneInstance;
+  const roadTex = roadType?.isTexture
+    ? roadType
+    : createFourWayJunctionTexture(typeof roadType === 'string' ? roadType : 'crossroad');
 
   const roadMat = new THREE.MeshStandardMaterial({
     map: roadTex,
@@ -252,6 +254,7 @@ export function buildFourWayRoadEnvironment(sceneInstance, roadType) {
     nsKerb.receiveShadow = true;
     group.add(nsKerb);
   }
+  return roadMat;
 }
 
 function createCircularSignTexture(topText, isSpeed30 = true) {
@@ -319,7 +322,7 @@ function createGiveWayTriangleTexture() {
  * - Opposite-Left (NW corner): dense hedgerow + foliage trees restricting sightline + street lamps.
  */
 export function buildRingCctvJunctionProps(sceneInstance) {
-  const group = sceneInstance.causalPropsGroup;
+  const group = sceneInstance?.causalPropsGroup || sceneInstance;
   const postMat = new THREE.MeshStandardMaterial({
     color: 0x94a3b8,
     roughness: 0.45,
@@ -462,9 +465,12 @@ export function buildRingCctvJunctionProps(sceneInstance) {
   neKnockableGroup.add(neSpeedDisc);
 
   group.add(neKnockableGroup);
-  sceneInstance.knockableSignRef = neKnockableGroup;
-  if (Array.isArray(sceneInstance.knockableSignRefs)) {
-    sceneInstance.knockableSignRefs.push(neKnockableGroup);
+  neKnockableGroup.postPivot = neKnockableGroup;
+  if (sceneInstance) {
+    sceneInstance.knockableSignRef = neKnockableGroup;
+    if (Array.isArray(sceneInstance.knockableSignRefs)) {
+      sceneInstance.knockableSignRefs.push(neKnockableGroup);
+    }
   }
 
   // 4. OPPOSITE-RIGHT (NE CORNER) GRAVEL PULL-IN APRON, TRIMMED GREEN HEDGEROW, POST-AND-RAIL FENCE & FOR SALE BOARD
@@ -570,4 +576,9 @@ export function buildRingCctvJunctionProps(sceneInstance) {
     head.position.set(lx, 6.2, lz);
     group.add(head);
   });
+
+  return {
+    knockableSignRef: neKnockableGroup,
+    knockableSignRefs: [neKnockableGroup],
+  };
 }
