@@ -6,14 +6,14 @@
   <title>Camber Claims // 3D Forensic Crash Reconstruction &amp; UK Liability Engine</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
   <!-- TOP COMMAND HEADER (56px) -->
   <header class="top-command-header" role="banner">
     <div class="header-left">
-      <button type="button" id="btn-back-workspace" class="btn-ghost-nav" title="Return to Claims Workspace">
+      <button type="button" id="btn-back-workspace" class="btn-ghost-nav nav-back-btn" title="Return to Claims Workspace" hidden>
         <span class="nav-arrow">←</span> Claims Workspace
       </button>
       <div class="brand-lockup" id="brand-home-trigger">
@@ -222,60 +222,6 @@
 
       <!-- CENTER VIEWPORT (1fr, #three-canvas-container) -->
       <section class="cockpit-center-viewport" id="three-canvas-container" aria-label="Interactive 3D Forensic Crash Viewport">
-        <!-- Blender-Style Top-Right Viewport Gizmo & Camera Icon Cluster -->
-        <div class="camera-rig-bar blender-gizmo-bar" id="camera-rig-bar" role="toolbar" aria-label="3D Camera View Presets">
-          <button type="button" class="cam-btn cam-icon-btn active" data-cam="orbit" title="3D Orbit Camera (Free Perspective)" aria-label="3D Orbit Camera">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" />
-              <path d="M3 7l9 5 9-5M12 22V12" />
-            </svg>
-            <span class="gizmo-sub">3D</span>
-          </button>
-          <button type="button" class="cam-btn cam-icon-btn gizmo-z" data-cam="top" title="Top View (Z-Axis Overhead)" aria-label="Top View (Overhead)">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="12" cy="12" r="8" />
-              <circle cx="12" cy="12" r="2.5" fill="currentColor" />
-            </svg>
-            <span class="gizmo-sub">Z</span>
-          </button>
-          <button type="button" class="cam-btn cam-icon-btn gizmo-x" data-cam="side" title="Side View (X-Axis Elevation)" aria-label="Side View (X-Axis)">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <rect x="4" y="6" width="16" height="12" rx="2" />
-              <line x1="4" y1="12" x2="20" y2="12" />
-            </svg>
-            <span class="gizmo-sub">X</span>
-          </button>
-          <button type="button" class="cam-btn cam-icon-btn gizmo-y" data-cam="front" title="Front View (Y/Z Corridor Axis)" aria-label="Front View (Corridor)">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M4 18L10 6h4l6 12" />
-              <line x1="12" y1="9" x2="12" y2="17" stroke-dasharray="2 2" />
-            </svg>
-            <span class="gizmo-sub">Y</span>
-          </button>
-          <span class="gizmo-divider" aria-hidden="true"></span>
-          <button type="button" class="cam-btn cam-icon-btn cam-btn-pov-a" data-cam="pov_a" id="btn-cam-pov-a" title="Vehicle A Driver POV (Emerging Vehicle)" aria-label="Vehicle A Driver POV">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M5 16l2-6h10l2 6H5z" />
-              <rect x="3" y="16" width="18" height="4" rx="1" />
-            </svg>
-            <span class="gizmo-sub">A</span>
-          </button>
-          <button type="button" class="cam-btn cam-icon-btn cam-btn-pov-b" data-cam="pov_b" id="btn-cam-pov-b" title="Vehicle B Driver POV (Main Road Vehicle)" aria-label="Vehicle B Driver POV">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M5 16l2-6h10l2 6H5z" />
-              <rect x="3" y="16" width="18" height="4" rx="1" />
-            </svg>
-            <span class="gizmo-sub">B</span>
-          </button>
-          <button type="button" class="cam-btn cam-icon-btn cam-btn-cctv" data-cam="cctv_1" id="btn-cam-cctv" title="Ring CCTV / Dashcam Camera Angle" aria-label="Ring CCTV Camera POV">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M15 10l5-3v10l-5-3v-4z" />
-              <rect x="3" y="7" width="12" height="10" rx="2" />
-            </svg>
-            <span class="gizmo-sub">CAM</span>
-          </button>
-        </div>
-
         <!-- Floating Live HUD Overlay (Sleek & Compact) -->
         <div class="viewport-hud-overlay" id="viewport-hud-overlay">
           <div class="hud-telemetry-cluster">
@@ -402,17 +348,27 @@
           <div class="tab-section-block">
             <div class="block-header">
               <h3>Binding English Authorities (Click to Expand)</h3>
-              <span class="badge-tag cyan mono">1M Cache • 95% Off</span>
+              <span class="badge-tag cyan">1M Cache • 95% Off</span>
             </div>
             <div id="caselaw-citations-list" class="citations-stack">
               <!-- Populated by main.js as mutually exclusive <details name="caselaw-accordion"> -->
             </div>
           </div>
 
+          <details class="section-disclosure" name="reasoning-accordion" open>
+            <summary class="section-disclosure-summary">
+              <span>🚦 Road Signs &amp; Traffic Control Legal Analysis</span>
+              <span class="badge-tag emerald">TSRGD 2016</span>
+            </summary>
+            <div class="disclosure-content-pad">
+              <div id="road-signs-legal-list" class="citations-stack"></div>
+            </div>
+          </details>
+
           <details class="section-disclosure" name="reasoning-accordion">
             <summary class="section-disclosure-summary">
               <span>📏 Highway Code Stopping Distance Math</span>
-              <span class="badge-tag amber mono">Rule 126</span>
+              <span class="badge-tag amber">Rule 126</span>
             </summary>
             <div class="disclosure-content-pad">
               <p class="legal-prose" id="stopping-distance-prose"></p>
@@ -422,7 +378,7 @@
           <details class="section-disclosure" name="reasoning-accordion">
             <summary class="section-disclosure-summary">
               <span>⚖️ Full Forensic &amp; Legal Reasoning Chain</span>
-              <span class="badge-tag cyan mono">gemini-4-argon</span>
+              <span class="badge-tag cyan">gemini-4-argon</span>
             </summary>
             <div class="disclosure-content-pad">
               <p class="legal-prose" id="legal-reasoning-prose"></p>
@@ -567,8 +523,8 @@
         </button>
         <div class="speed-selector-group" role="group" aria-label="Playback Speed">
           <button type="button" class="speed-btn" data-speed="0.25">0.25x</button>
-          <button type="button" class="speed-btn active" data-speed="0.5">0.5x</button>
-          <button type="button" class="speed-btn" data-speed="1.0">1.0x</button>
+          <button type="button" class="speed-btn" data-speed="0.5">0.5x</button>
+          <button type="button" class="speed-btn active" data-speed="1.0">1.0x</button>
         </div>
         <div class="timecode-readout mono" id="timecode-display">
           01.15s / 03.00s
@@ -611,11 +567,11 @@
 
   <!-- NATIVE MODAL DIALOG (Modern Web Guidance compliant: closedby="any", no role="dialog" or aria-modal) -->
   <dialog id="upload-modal" closedby="any" aria-labelledby="upload-modal-title">
-    <div class="modal-inner">
+    <div class="modal-inner modal-card">
       <div class="modal-header">
-        <div>
-          <span class="badge-tag cyan mono">GEMINI 4 ARGON • AGENTIC VIDEO &amp; DVSA PIPELINE</span>
-          <h2 id="upload-modal-title">New Forensic Crash Reconstruction</h2>
+        <div class="modal-header-titles">
+          <span class="badge-tag cyan">GEMINI 4 ARGON • AGENTIC VIDEO &amp; DVSA PIPELINE</span>
+          <h2 id="upload-modal-title">New Crash Reconstruction</h2>
         </div>
         <form method="dialog">
           <button type="submit" value="cancel" class="btn-modal-close" aria-label="Close modal">✕</button>
@@ -623,44 +579,52 @@
       </div>
 
       <p class="modal-description">
-        Upload footage (or test with the Cheadle A521 Ring CCTV clip) and click <strong>1. Scan Video</strong>. If motion blur obscures a plate, the agent will ask you to confirm it before querying the UK DVSA MOT database.
+        Drop dashcam or CCTV footage below and enter the UK vehicle registrations (or leave blank to let Gemini 4 Argon inspect the clip and detect the vehicles first).
       </p>
 
       <form id="upload-claim-form" class="modal-form">
+        <!-- Modern Styled Upload Dropzone -->
         <div class="form-group">
-          <label for="input-video-files">Crash Video Footage (1–3 Clips)</label>
-          <input
-            type="file"
-            id="input-video-files"
-            accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm"
-            multiple
-            autofocus
-          />
-          <div class="prescan-action-row">
-            <span class="form-hint">Default: <code>clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4</code></span>
-            <button type="button" id="btn-prescan-video" class="btn-prescan-cta">
-              1. Scan Video &amp; Detect Vehicles
-            </button>
-          </div>
+          <label class="form-section-label" for="input-video-files">1. Crash Video Footage (1–3 Clips)</label>
+          <label for="input-video-files" class="upload-dropzone" id="upload-dropzone-label">
+            <input
+              type="file"
+              id="input-video-files"
+              accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm"
+              multiple
+              class="sr-only"
+            />
+            <div class="dropzone-icon-wrap" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            </div>
+            <div class="dropzone-copy">
+              <strong class="dropzone-primary-text">Drop crash footage (.mp4, .mov) or click to browse</strong>
+              <span class="dropzone-sub-text" id="upload-filename-display">Default sample ready: Cheadle A521 Ring CCTV clip (<code>clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4</code>)</span>
+            </div>
+          </label>
         </div>
 
-        <!-- Interactive Agent Clarification Step (Appears after Pre-Scan or when plates are blank) -->
-        <div id="agent-clarification-box" class="agent-clarification-box" hidden>
+        <!-- Upfront Vehicle Registrations & Scene Context Section -->
+        <div id="agent-clarification-box" class="agent-clarification-box">
           <div class="agent-callout-banner">
             <div class="agent-callout-header">
-              <span class="badge-tag amber mono">⚠ AGENT CLARIFICATION NEEDED</span>
-              <span class="badge-tag emerald mono" id="prescan-stripped-badge">3 non-causal stripped</span>
+              <span class="badge-tag cyan">2. VEHICLE REGISTRATIONS &amp; SCENE CONTEXT (OPTIONAL — OR LET AGENT SCAN)</span>
+              <span class="badge-tag emerald" id="prescan-stripped-badge">3 non-causal stripped</span>
             </div>
             <p id="agent-clarification-message">
-              2 collision vehicles tracked. Plates are motion-blurred on CCTV — please confirm UK VRM plates below:
+              Enter UK VRM plates upfront to query live GOV.UK DVSA MOT records, or click Quick-Fill / leave blank to trigger Agentic ANPR inspection:
             </p>
           </div>
 
           <div class="detected-vehicles-grid">
             <div class="detected-vehicle-card">
               <div class="detected-veh-top">
-                <span class="badge-tag cyan mono">VEHICLE A (MINOR RD)</span>
-                <span class="ocr-confidence-tag mono" id="ocr-status-a">OCR: 18%</span>
+                <span class="badge-tag cyan">VEHICLE 1 (MINOR RD)</span>
+                <span class="ocr-confidence-tag" id="ocr-status-a">ANPR Ready</span>
               </div>
               <p class="detected-veh-desc" id="detected-desc-a">
                 Blue Peugeot 2008 SUV (emerging from Give Way)
@@ -670,8 +634,8 @@
                   type="text"
                   id="plate-1-input"
                   placeholder="e.g. VL19 OKP"
-                  class="mono-input"
-                  aria-label="Detected Vehicle A Registration Plate"
+                  class="uk-plate-input mono-input"
+                  aria-label="Vehicle 1 UK Registration Plate"
                 />
                 <button type="button" class="btn-quick-chip" id="btn-fill-plate-1" data-target="plate-1-input" data-plate="VL19 OKP">
                   Use VL19 OKP
@@ -681,8 +645,8 @@
 
             <div class="detected-vehicle-card">
               <div class="detected-veh-top">
-                <span class="badge-tag amber mono">VEHICLE B (MAIN RD)</span>
-                <span class="ocr-confidence-tag mono" id="ocr-status-b">OCR: 12%</span>
+                <span class="badge-tag amber">VEHICLE 2 (MAIN RD)</span>
+                <span class="ocr-confidence-tag" id="ocr-status-b">ANPR Ready</span>
               </div>
               <p class="detected-veh-desc" id="detected-desc-b">
                 Silver/Grey VW Golf (approaching at ~41 mph)
@@ -692,8 +656,8 @@
                   type="text"
                   id="plate-2-input"
                   placeholder="e.g. GD64 LKU"
-                  class="mono-input"
-                  aria-label="Detected Vehicle B Registration Plate"
+                  class="uk-plate-input mono-input"
+                  aria-label="Vehicle 2 UK Registration Plate"
                 />
                 <button type="button" class="btn-quick-chip" id="btn-fill-plate-2" data-target="plate-2-input" data-plate="GD64 LKU">
                   Use GD64 LKU
@@ -702,39 +666,40 @@
             </div>
           </div>
 
-          <div class="form-group" style="margin-top: 8px; margin-bottom: 0;">
-            <label for="select-kinematic-context">Kinematic &amp; Road Context (Optional Override)</label>
-            <select id="select-kinematic-context" class="context-select">
-              <option value="both_moving_damp" selected>
-                Damp tarmac (μ=0.55), both vehicles moving (Main Rd brake defects CAUSAL)
-              </option>
-              <option value="veh_a_stationary">
-                Override: Vehicle A stationary when struck (Vehicle A brake defects NOT CAUSAL)
-              </option>
-              <option value="dry_tarmac">
-                Override: Dry tarmac (μ=0.75), standard stopping distances
-              </option>
-            </select>
+          <div class="modal-context-grid">
+            <div class="form-group">
+              <label for="select-kinematic-context">Kinematic &amp; Road Surface Context</label>
+              <select id="select-kinematic-context" class="context-select">
+                <option value="both_moving_damp" selected>
+                  Damp tarmac (μ=0.55), both vehicles moving (Main Rd brake defects CAUSAL)
+                </option>
+                <option value="veh_a_stationary">
+                  Override: Vehicle 1 stationary when struck (Vehicle 1 brake defects NOT CAUSAL)
+                </option>
+                <option value="dry_tarmac">
+                  Override: Dry tarmac (μ=0.75), standard stopping distances
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="input-claim-notes">Incident Context / Solicitor Intake Notes (Optional)</label>
+              <input
+                type="text"
+                id="input-claim-notes"
+                value="A521 / Draycott Cross Rd T-Junction collision, Cheadle, Staffs. Check UK DVSA MOT causality &amp; Highway Code Rules 170/172."
+                placeholder="Optional: junction location, weather, or disputed liability allegations..."
+              />
+            </div>
           </div>
         </div>
-
-        <details class="compact-disclosure" style="margin-top: 8px;">
-          <summary>Optional Solicitor Intake Notes</summary>
-          <div class="form-group" style="margin-top: 6px; margin-bottom: 0;">
-            <input
-              type="text"
-              id="input-claim-notes"
-              value="A521 / Draycott Cross Rd T-Junction collision, Cheadle, Staffs. Check UK DVSA MOT causality &amp; Highway Code Rules 170/172."
-            />
-          </div>
-        </details>
 
         <div id="modal-status-msg" class="modal-status-msg" hidden></div>
 
         <div class="modal-actions">
           <button type="button" id="btn-modal-cancel" class="btn-secondary">Cancel</button>
           <button type="submit" id="btn-submit-analysis" class="btn-primary-cta">
-            2. Run Live DVSA Lookup &amp; 3D Reconstruction →
+            Analyse Footage &amp; Build 3D Reconstruction →
           </button>
         </div>
       </form>

@@ -9,10 +9,61 @@ const CASES_STORE = {
   a521_hgv: structuredClone(a521HgvCaseData),
 };
 
+const CASE_VIDEO_MAP = {
+  'UK-2026-0891': {
+    url: '/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4',
+    previewTime: 1.15,
+    camLabel: 'RING CCTV · CHEADLE A521',
+    impactBadge: '86° ROLLOVER @ t=1.15s',
+  },
+  'UK-2026-0819': {
+    url: '/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4',
+    previewTime: 1.15,
+    camLabel: 'RING CCTV · CHEADLE A521',
+    impactBadge: '86° ROLLOVER @ t=1.15s',
+  },
+  cheadle_a521: {
+    url: '/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4',
+    previewTime: 1.15,
+    camLabel: 'RING CCTV · CHEADLE A521',
+    impactBadge: '86° ROLLOVER @ t=1.15s',
+  },
+  'UK-2026-0842': {
+    url: '/videos/clip1_0s_to_5.03s_suv_vs_van.mp4',
+    previewTime: 2.1,
+    camLabel: 'RING CCTV · DELPHOUSE RD',
+    impactBadge: 'CROSSROAD T-BONE @ t=1.20s',
+  },
+  delphouse_rollover: {
+    url: '/videos/clip1_0s_to_5.03s_suv_vs_van.mp4',
+    previewTime: 2.1,
+    camLabel: 'RING CCTV · DELPHOUSE RD',
+    impactBadge: 'CROSSROAD T-BONE @ t=1.20s',
+  },
+  'UK-2026-0915': {
+    url: '/videos/clip2_5.07s_to_10.90s_pickup_vs_lorry.mp4',
+    previewTime: 2.45,
+    camLabel: 'RING CCTV · A521 HGV JUNCTION',
+    impactBadge: 'HGV ENCROACHMENT @ t=1.40s',
+  },
+  'UK-2026-0904': {
+    url: '/videos/clip2_5.07s_to_10.90s_pickup_vs_lorry.mp4',
+    previewTime: 2.45,
+    camLabel: 'RING CCTV · A521 HGV JUNCTION',
+    impactBadge: 'HGV ENCROACHMENT @ t=1.40s',
+  },
+  a521_hgv: {
+    url: '/videos/clip2_5.07s_to_10.90s_pickup_vs_lorry.mp4',
+    previewTime: 2.45,
+    camLabel: 'RING CCTV · A521 HGV JUNCTION',
+    impactBadge: 'HGV ENCROACHMENT @ t=1.40s',
+  },
+};
+
 let activeCaseId = 'cheadle_a521';
 let scene3d = null;
 let isPlaying = false;
-let playbackSpeed = 0.5;
+let playbackSpeed = 1.0;
 let currentTime = 1.15;
 let maxDuration = 3.0;
 let lastFramePerf = 0;
@@ -40,6 +91,20 @@ function getActiveCase() {
   return CASES_STORE[activeCaseId] || CASES_STORE.cheadle_a521;
 }
 
+function formatMotBadgeText(v) {
+  if (!v) return 'MOT Valid';
+  const statusStr = String(v.mot_status || v.dvsa_mot_status || '');
+  const rawExpiry = String(v.mot_expiry_date || v.dvsa_mot_expiry || '')
+    .replace(/\s*\(EXPIRED\)/gi, '')
+    .trim();
+  const isMotExpired =
+    statusStr.toUpperCase().includes('EXPIRED') ||
+    String(v.mot_expiry_date || v.dvsa_mot_expiry || '').toUpperCase().includes('EXPIRED');
+  return isMotExpired
+    ? `MOT Expired${rawExpiry ? ' · ' + rawExpiry : ''}`
+    : `MOT Valid${rawExpiry && rawExpiry.toLowerCase() !== 'valid' ? ' · ' + rawExpiry : ''}`;
+}
+
 /* ============================================================================
    1. INITIALIZATION & MODERN WEB GUIDANCE DIALOG SETUP
    ============================================================================ */
@@ -60,6 +125,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Render initial pre-loaded state immediately
   renderWorkspaceCards();
   loadCaseIntoCockpit('cheadle_a521');
+
+  // Ensure back button visibility matches active initial view
+  const workspaceEl = document.getElementById('workspace-view');
+  if (workspaceEl && !workspaceEl.hidden) {
+    showView('workspace');
+  } else {
+    showView('cockpit');
+  }
 
   // Hydrate with live DVSA-enriched backend state if server is running
   try {
@@ -85,40 +158,59 @@ document.addEventListener('DOMContentLoaded', async () => {
 function showView(viewName) {
   const workspaceEl = document.getElementById('workspace-view');
   const cockpitEl = document.getElementById('cockpit-view');
+  const btnBackWorkspace = document.getElementById('btn-back-workspace');
+  const btnNavWorkspace = document.getElementById('btn-nav-workspace');
   if (!workspaceEl || !cockpitEl) return;
 
-  if (viewName === 'workspace') {
+  const isWorkspaceHome = viewName === 'workspace' || viewName === 'home';
+
+  if (isWorkspaceHome) {
     workspaceEl.hidden = false;
+    workspaceEl.classList.add('active-view');
     cockpitEl.hidden = true;
+    cockpitEl.classList.remove('active-view');
+    if (btnBackWorkspace) btnBackWorkspace.hidden = true;
+    if (btnNavWorkspace) btnNavWorkspace.hidden = true;
     setPlaybackState(false);
   } else {
     workspaceEl.hidden = true;
+    workspaceEl.classList.remove('active-view');
     cockpitEl.hidden = false;
+    cockpitEl.classList.add('active-view');
+    if (btnBackWorkspace) btnBackWorkspace.hidden = false;
+    if (btnNavWorkspace) btnNavWorkspace.hidden = false;
     if (scene3d) {
       setTimeout(() => scene3d._onResize(), 40);
     }
   }
 }
 
+const switchView = showView;
+
 function setupNavigationAndViewSwitching() {
   const btnBackWorkspace = document.getElementById('btn-back-workspace');
+  const btnNavWorkspace = document.getElementById('btn-nav-workspace');
   const brandTrigger = document.getElementById('brand-home-trigger');
 
   if (btnBackWorkspace) {
     btnBackWorkspace.addEventListener('click', () => {
-      const workspaceEl = document.getElementById('workspace-view');
-      showView(workspaceEl && workspaceEl.hidden ? 'workspace' : 'cockpit');
+      switchView('workspace');
+    });
+  }
+  if (btnNavWorkspace) {
+    btnNavWorkspace.addEventListener('click', () => {
+      switchView('workspace');
     });
   }
   if (brandTrigger) {
-    brandTrigger.addEventListener('click', () => showView('workspace'));
+    brandTrigger.addEventListener('click', () => switchView('workspace'));
   }
 
   document.querySelectorAll('.case-pill').forEach((pill) => {
     pill.addEventListener('click', () => {
       const caseId = pill.dataset.caseId;
       if (caseId && CASES_STORE[caseId]) {
-        showView('cockpit');
+        switchView('cockpit');
         loadCaseIntoCockpit(caseId);
       }
     });
@@ -134,71 +226,30 @@ const CASE_SHORT_TAGLINES = {
     'DAF 6x2 HGV encroaches 1.15m across wet S-bend hazard line into oncoming Vauxhall Astra.',
 };
 
-function renderCaseCardMedia(key, meta) {
-  if (key === 'cheadle_a521') {
-    return `
-      <div class="card-media-preview">
-        <video
-          class="card-preview-video"
-          src="${escapeHtml(meta.video_url || '/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4')}#t=0.95"
-          muted
-          loop
-          playsinline
-          preload="metadata"
-          width="480"
-          height="270"
-          aria-hidden="true"
-        ></video>
-        <div class="card-media-overlay">
-          <span class="badge-tag cyan mono">🎥 RING CCTV SNAPSHOT</span>
-          <span class="badge-tag crimson mono">86° ROLLOVER @ t=1.15s</span>
-        </div>
-      </div>
-    `;
-  }
-  if (key === 'delphouse_rollover') {
-    return `
-      <div class="card-media-preview schematic-preview">
-        <svg viewBox="0 0 400 225" width="400" height="225" aria-hidden="true" class="card-schematic-svg">
-          <rect width="400" height="225" fill="#181c19"/>
-          <rect x="0" y="84" width="400" height="58" fill="#141417"/>
-          <rect x="172" y="0" width="56" height="225" fill="#141417"/>
-          <line x1="0" y1="113" x2="400" y2="113" stroke="#71717a" stroke-width="2" stroke-dasharray="10 8"/>
-          <line x1="174" y1="82" x2="226" y2="82" stroke="#f4f4f5" stroke-width="3" stroke-dasharray="5 4"/>
-          <!-- Hedgerow obstruction -->
-          <rect x="92" y="34" width="68" height="38" rx="10" fill="#233026" stroke="#52525b" stroke-width="1.5"/>
-          <text x="126" y="57" fill="#d4d4d8" font-size="9" font-family="monospace" text-anchor="middle">HEDGEROW</text>
-          <!-- Trajectories -->
-          <path d="M 196 18 L 196 105" stroke="#e4e4e7" stroke-width="3" stroke-dasharray="4 3"/>
-          <path d="M 45 102 L 192 105" stroke="#a1a1aa" stroke-width="3"/>
-          <!-- Vehicles -->
-          <rect x="184" y="64" width="22" height="36" rx="4" fill="#a1a1aa" stroke="#fafafa" stroke-width="2"/>
-          <rect x="142" y="92" width="38" height="20" rx="4" fill="#dc2626" stroke="#f4f4f5" stroke-width="2"/>
-          <circle cx="192" cy="104" r="11" fill="rgba(239,68,68,0.35)" stroke="#ef4444" stroke-width="2"/>
-        </svg>
-        <div class="card-media-overlay">
-          <span class="badge-tag cyan mono">📐 3D RECONSTRUCTION</span>
-          <span class="badge-tag emerald mono">RURAL CROSSROAD T-BONE</span>
-        </div>
-      </div>
-    `;
-  }
+function renderCaseCardMedia(key, meta, report) {
+  const videoMeta =
+    CASE_VIDEO_MAP[key] ||
+    CASE_VIDEO_MAP[report?.claim_id] ||
+    CASE_VIDEO_MAP.cheadle_a521;
+  const videoUrl = report?.video_url || meta?.video_url || videoMeta.url;
+
   return `
-    <div class="card-media-preview schematic-preview">
-      <svg viewBox="0 0 400 225" width="400" height="225" aria-hidden="true" class="card-schematic-svg">
-        <rect width="400" height="225" fill="#18181b"/>
-        <path d="M 0 145 C 130 145, 250 75, 400 75" stroke="#111113" stroke-width="64" fill="none"/>
-        <path d="M 0 145 C 130 145, 250 75, 400 75" stroke="#e4e4e7" stroke-width="2" stroke-dasharray="10 7" fill="none"/>
-        <!-- HGV encroaching across centerline -->
-        <path d="M 350 66 C 260 68, 215 104, 185 118" stroke="#f43f5e" stroke-width="3" stroke-dasharray="5 3" fill="none"/>
-        <rect x="195" y="88" width="58" height="22" rx="3" transform="rotate(-18 224 99)" fill="#f4f4f5" stroke="#f43f5e" stroke-width="2"/>
-        <!-- Oncoming Astra -->
-        <rect x="142" y="114" width="36" height="18" rx="4" transform="rotate(-14 160 123)" fill="#52525b" stroke="#e4e4e7" stroke-width="2"/>
-        <circle cx="186" cy="113" r="11" fill="rgba(244,63,94,0.35)" stroke="#f43f5e" stroke-width="2"/>
-      </svg>
+    <div class="card-media-preview case-card-thumbnail">
+      <video
+        class="case-thumb-media card-preview-video"
+        src="${escapeHtml(videoUrl)}"
+        data-preview-time="${escapeHtml(videoMeta.previewTime)}"
+        muted
+        loop
+        playsinline
+        preload="auto"
+        width="480"
+        height="270"
+        aria-hidden="true"
+      ></video>
       <div class="card-media-overlay">
-        <span class="badge-tag cyan mono">📐 3D RECONSTRUCTION</span>
-        <span class="badge-tag crimson mono">HGV LANE ENCROACHMENT</span>
+        <span class="badge-tag cyan mono thumb-badge-cam">🎥 ${escapeHtml(videoMeta.camLabel)}</span>
+        <span class="badge-tag crimson mono thumb-badge-time">${escapeHtml(videoMeta.impactBadge)}</span>
       </div>
     </div>
   `;
@@ -223,7 +274,7 @@ function renderWorkspaceCards() {
 
       return `
         <article class="workspace-case-card ${key === activeCaseId ? 'active-card' : ''}" data-case-id="${escapeHtml(key)}">
-          ${renderCaseCardMedia(key, meta)}
+          ${renderCaseCardMedia(key, meta, r)}
 
           <div class="card-header-group">
             <div class="card-top-badges">
@@ -238,14 +289,14 @@ function renderWorkspaceCards() {
             <div class="vrm-mini-row">
               <span class="uk-vrm-plate">${escapeHtml(vehA.registration_plate)}</span>
               <span class="badge-tag ${motAExpired ? 'crimson' : 'emerald'} mono">
-                MOT: ${escapeHtml(vehA.dvsa_mot_status)}
+                ${escapeHtml(formatMotBadgeText(vehA))}
               </span>
               <span class="mono-muted">${escapeHtml(r.defendant_PreImpact_Speed_mph)} mph</span>
             </div>
             <div class="vrm-mini-row">
               <span class="uk-vrm-plate">${escapeHtml(vehB.registration_plate)}</span>
               <span class="badge-tag ${motBExpired ? 'crimson' : 'emerald'} mono">
-                MOT: ${escapeHtml(vehB.dvsa_mot_status)}
+                ${escapeHtml(formatMotBadgeText(vehB))}
               </span>
               <span class="mono-muted">${escapeHtml(r.claimant_PreImpact_Speed_mph)} mph</span>
             </div>
@@ -277,15 +328,33 @@ function renderWorkspaceCards() {
     })
     .join('');
 
-  // Auto-preview video on card hover
-  grid.querySelectorAll('.workspace-case-card').forEach((card) => {
-    const vid = card.querySelector('video');
-    if (vid) {
+  // Seek each card video to its collision frame and auto-preview on card hover
+  grid.querySelectorAll('video.case-thumb-media').forEach((v) => {
+    const seekTime = parseFloat(v.dataset.previewTime || '1.15');
+    v.addEventListener(
+      'loadeddata',
+      () => {
+        try {
+          v.currentTime = seekTime;
+        } catch (_e) {
+          // Ignore if seek not ready
+        }
+      },
+      { once: true }
+    );
+
+    const card = v.closest('.workspace-case-card');
+    if (card) {
       card.addEventListener('mouseenter', () => {
-        vid.play().catch(() => {});
+        v.play().catch(() => {});
       });
       card.addEventListener('mouseleave', () => {
-        vid.pause();
+        v.pause();
+        try {
+          v.currentTime = seekTime;
+        } catch (_e) {
+          // Ignore
+        }
       });
     }
   });
@@ -293,7 +362,7 @@ function renderWorkspaceCards() {
   grid.querySelectorAll('.open-case-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       const targetId = btn.dataset.caseId;
-      showView('cockpit');
+      switchView('cockpit');
       loadCaseIntoCockpit(targetId);
     });
   });
@@ -314,16 +383,26 @@ function loadCaseIntoCockpit(caseId) {
     pill.classList.toggle('active', pill.dataset.caseId === caseId);
   });
 
-  // Update Reference Video
+  // Update Reference Video for the active case
   const videoEl = document.getElementById('crash-video');
   const videoBadge = document.getElementById('video-source-badge');
   const cam0 = report.detected_cameras?.[0];
-  if (videoBadge && cam0) {
-    videoBadge.textContent = cam0.camera_label;
+  const videoMeta =
+    CASE_VIDEO_MAP[caseId] ||
+    CASE_VIDEO_MAP[report.claim_id] ||
+    CASE_VIDEO_MAP.cheadle_a521;
+  const targetVideoUrl =
+    report.video_url ||
+    meta.video_url ||
+    videoMeta?.url ||
+    '/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4';
+
+  if (videoBadge) {
+    videoBadge.textContent = cam0?.camera_label || videoMeta?.camLabel || 'Ring CCTV Footage';
   }
-  if (videoEl && meta.video_url) {
-    if (videoEl.getAttribute('src') !== meta.video_url) {
-      videoEl.setAttribute('src', meta.video_url);
+  if (videoEl && targetVideoUrl) {
+    if (videoEl.getAttribute('src') !== targetVideoUrl) {
+      videoEl.setAttribute('src', targetVideoUrl);
       videoEl.load();
     }
   }
@@ -354,10 +433,10 @@ function loadCaseIntoCockpit(caseId) {
       .join('');
   }
 
-  // Render DVSA Telemetry Cards with explicit [CAUSAL] vs [NOT CAUSAL] badges
+  // Render DVSA Telemetry Cards with clean vertical layout and MOT badge
   renderDvsaTelemetryCards(report.vehicles || []);
 
-  // Update Camera POV Button Tooltips for current vehicles (preserving Blender SVG icons)
+  // Update Camera POV Button Tooltips for current vehicles (if camera buttons exist)
   const vehA = report.vehicles?.[0];
   const vehB = report.vehicles?.[1];
   const btnPovA = document.getElementById('btn-cam-pov-a');
@@ -381,7 +460,10 @@ function loadCaseIntoCockpit(caseId) {
 
   // Update Right Pane Liability Hero Card
   setTxt('cockpit-claim-title', `Claim #${report.claim_id} — ${meta.title || ''}`);
-  setTxt('quantum-estimate-val', `£${Number(report.quantum_damage_estimate_gbp || 18450).toLocaleString('en-GB')}`);
+  setTxt(
+    'quantum-estimate-val',
+    `£${Number(report.quantum_damage_estimate_gbp || 18450).toLocaleString('en-GB')}`
+  );
   setTxt('hero-claimant-pct', `${report.recommended_claimant_liability_pct}%`);
   setTxt('hero-defendant-pct', `${report.recommended_defendant_liability_pct}%`);
   if (vehB) setTxt('hero-claimant-label', `Claimant (${vehB.registration_plate})`);
@@ -489,7 +571,7 @@ function getEffectiveDefectClassifications(vehicle) {
         !lower.includes('corroded');
       return {
         defect_text: adv,
-        test_date: vehicle.dvsa_mot_expiry || '2026',
+        test_date: String(vehicle.dvsa_mot_expiry || '2026').replace(/\s*\(EXPIRED\)/gi, '').trim(),
         defect_category: 'DVSA MOT Advisory',
         causal_status: isCausal ? 'CAUSAL' : 'NOT CAUSAL',
         forensic_explanation: isCausal
@@ -505,23 +587,36 @@ function renderDvsaTelemetryCards(vehicles) {
 
   container.innerHTML = vehicles
     .map((v) => {
-      const isExpired = String(v.dvsa_mot_status || '').toUpperCase().includes('EXPIRED');
+      const isMotExpired =
+        String(v.mot_status || v.dvsa_mot_status || '')
+          .toUpperCase()
+          .includes('EXPIRED') ||
+        String(v.mot_expiry_date || v.dvsa_mot_expiry || '')
+          .toUpperCase()
+          .includes('EXPIRED');
+      const motBadgeText = formatMotBadgeText(v);
       const classifications = getEffectiveDefectClassifications(v);
 
       const defectsHtml = classifications
         .map((d) => {
           const isCausal = String(d.causal_status).toUpperCase() === 'CAUSAL';
+          const cleanTestDate = String(d.test_date || 'MOT History')
+            .replace(/\s*\(EXPIRED\)/gi, '')
+            .trim();
           return `
             <details class="dvsa-defect-item defect-disclosure ${isCausal ? 'defect-causal is-causal' : 'defect-non-causal is-not-causal'}">
-              <summary class="defect-summary-row">
-                <span class="badge-tag ${isCausal ? 'crimson' : 'emerald'} mono">
-                  [${isCausal ? 'CAUSAL / CONTRIBUTORY' : 'NOT CAUSAL'}]
-                </span>
-                <span class="defect-title">${escapeHtml(d.defect_text)}</span>
+              <summary class="defect-summary-row" style="display: flex; flex-direction: column; align-items: stretch; gap: 6px; width: 100%;">
+                <div class="defect-header-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span class="defect-causality-pill badge-tag ${isCausal ? 'pill-causal crimson' : 'pill-non-causal emerald'} mono">
+                    ${isCausal ? 'Causal / Contributory' : 'Non-Causal Advisory'}
+                  </span>
+                  <span class="defect-expand-hint mono-muted" style="font-size: 0.72rem; opacity: 0.75;">Details ▾</span>
+                </div>
+                <span class="defect-text-preview defect-title" style="display: block; width: 100%;">${escapeHtml(d.defect_text)}</span>
               </summary>
-              <div class="defect-disclosure-body">
-                <div class="mono-muted">${escapeHtml(d.test_date || '')} • ${escapeHtml(d.defect_category || 'MOT Record')}</div>
-                <div class="defect-explanation">${escapeHtml(d.forensic_explanation)}</div>
+              <div class="defect-detail-body defect-disclosure-body">
+                <div class="defect-meta-line mono-muted">${escapeHtml(cleanTestDate)} · ${escapeHtml(d.defect_category || 'MOT Advisory')}</div>
+                <p class="defect-forensic-note defect-explanation">${escapeHtml(d.forensic_explanation || d.causality_reason || '')}</p>
               </div>
             </details>
           `;
@@ -529,11 +624,11 @@ function renderDvsaTelemetryCards(vehicles) {
         .join('');
 
       return `
-        <div class="dvsa-vehicle-card ${isExpired ? 'mot-expired-border expired-mot' : ''}">
+        <div class="dvsa-vehicle-card ${isMotExpired ? 'mot-expired-border expired-mot' : ''}">
           <div class="dvsa-card-top">
             <span class="uk-vrm-plate">${escapeHtml(v.registration_plate)}</span>
-            <span class="badge-tag ${isExpired ? 'crimson' : 'emerald'} mono">
-              MOT: ${escapeHtml(v.dvsa_mot_status)} (${escapeHtml(v.dvsa_mot_expiry)})
+            <span class="badge-tag ${isMotExpired ? 'crimson' : 'emerald'} mono">
+              ${escapeHtml(motBadgeText)}
             </span>
           </div>
           <div class="dvsa-make-model">
@@ -583,56 +678,69 @@ function renderForensicDossierTabs(bundle) {
   const report = bundle.report || {};
   const subagents = bundle.subagents || {};
 
-  // Tab 1: Case Law Citations + Agent Road Sign & Traffic Control Legal Analysis (Compact Collapsible Accordions)
+  // Tab 1: Case Law Citations + Agent Road Sign & Traffic Control Legal Analysis
   const citationsList = document.getElementById('caselaw-citations-list');
-  if (citationsList) {
-    const citationHtml = Array.isArray(report.case_law_citations)
-      ? report.case_law_citations
+  const roadSignsLegalList = document.getElementById('road-signs-legal-list');
+
+  const citationHtml = Array.isArray(report.case_law_citations)
+    ? report.case_law_citations
+        .map(
+          (c, idx) => `
+        <details class="citation-card citation-disclosure" name="caselaw-citation-item" ${idx === 0 ? 'open' : ''}>
+          <summary class="citation-header">
+            <strong>${escapeHtml(c.case_name)}</strong>
+            <span class="badge-tag cyan mono">${escapeHtml(c.citation_year)}</span>
+          </summary>
+          <div class="citation-body">
+            <p class="citation-principle">${escapeHtml(c.legal_principle)}</p>
+            <p class="citation-application">${escapeHtml(c.application_to_crash)}</p>
+            <div class="citation-policy-ref mono-muted">${escapeHtml(c.policy_section_ref)}</div>
+          </div>
+        </details>
+      `
+        )
+        .join('')
+    : '';
+
+  const signElements = Array.isArray(report.scene_environment_elements)
+    ? report.scene_environment_elements.filter(
+        (el) =>
+          el.is_causal !== false &&
+          (el.tsrgd_diagram ||
+            el.statutory_duty ||
+            el.driver_compliance ||
+            el.legal_liability_impact ||
+            String(el.element_type || '').includes('sign'))
+      )
+    : [];
+
+  const signAnalysisHtml =
+    signElements.length > 0
+      ? signElements
           .map(
-            (c, idx) => `
-          <details class="citation-card citation-disclosure" name="caselaw-citation-item" ${idx === 0 ? 'open' : ''}>
-            <summary class="citation-header">
-              <strong>${escapeHtml(c.case_name)}</strong>
-              <span class="badge-tag cyan mono">${escapeHtml(c.citation_year)}</span>
-            </summary>
-            <div class="citation-body">
-              <p class="citation-principle">${escapeHtml(c.legal_principle)}</p>
-              <p class="citation-application">${escapeHtml(c.application_to_crash)}</p>
-              <div class="citation-policy-ref mono-muted">${escapeHtml(c.policy_section_ref)}</div>
-            </div>
-          </details>
-        `
+            (el, idx) => `
+        <details class="citation-card citation-disclosure" ${idx === 0 ? 'open' : ''}>
+          <summary class="citation-header">
+            <strong>${escapeHtml(el.label || el.element_type)}</strong>
+            <span class="badge-tag amber mono">${escapeHtml(el.tsrgd_diagram || 'TSRGD 2016')}</span>
+          </summary>
+          <div class="citation-body">
+            ${el.statutory_duty ? `<p class="citation-principle"><strong>Statutory Duty:</strong> ${escapeHtml(el.statutory_duty)}</p>` : ''}
+            ${el.driver_compliance ? `<p class="citation-application"><strong>Observed Compliance:</strong> ${escapeHtml(el.driver_compliance)}</p>` : ''}
+            <p class="citation-application">${escapeHtml(el.legal_liability_impact || el.causal_relevance || '')}</p>
+          </div>
+        </details>
+      `
           )
           .join('')
       : '';
 
-    const signElements = Array.isArray(report.scene_environment_elements)
-      ? report.scene_environment_elements.filter(
-          (el) => el.is_causal !== false && (el.tsrgd_diagram || el.statutory_duty || String(el.element_type || '').includes('sign'))
-        )
-      : [];
-
-    const signAnalysisHtml =
-      signElements.length > 0
-        ? signElements
-            .map(
-              (el) => `
-          <details class="citation-card citation-disclosure">
-            <summary class="citation-header">
-              <strong>Road Sign / Marking: ${escapeHtml(el.label || el.element_type)}</strong>
-              <span class="badge-tag amber mono">${escapeHtml(el.tsrgd_diagram || 'TSRGD 2016')}</span>
-            </summary>
-            <div class="citation-body">
-              ${el.statutory_duty ? `<p class="citation-principle"><strong>Statutory Duty:</strong> ${escapeHtml(el.statutory_duty)}</p>` : ''}
-              ${el.driver_compliance ? `<p class="citation-application"><strong>Observed Compliance:</strong> ${escapeHtml(el.driver_compliance)}</p>` : ''}
-              <p class="citation-application">${escapeHtml(el.legal_liability_impact || el.causal_relevance)}</p>
-            </div>
-          </details>
-        `
-            )
-            .join('')
-        : '';
-
+  if (roadSignsLegalList) {
+    roadSignsLegalList.innerHTML = signAnalysisHtml;
+    if (citationsList) {
+      citationsList.innerHTML = citationHtml;
+    }
+  } else if (citationsList) {
     citationsList.innerHTML = citationHtml + signAnalysisHtml;
   }
 
@@ -651,15 +759,18 @@ function renderForensicDossierTabs(bundle) {
           .map((d) => {
             const isCausal = String(d.causal_status).toUpperCase() === 'CAUSAL';
             return `
-              <details class="dvsa-defect-item defect-disclosure ${isCausal ? 'is-causal' : 'is-not-causal'}">
-                <summary class="defect-summary-row">
-                  <span class="badge-tag ${isCausal ? 'crimson' : 'emerald'} mono">
-                    ${isCausal ? 'CAUSAL' : 'NOT CAUSAL'}
-                  </span>
-                  <strong class="defect-title">${escapeHtml(d.defect_text)}</strong>
+              <details class="dvsa-defect-item defect-disclosure ${isCausal ? 'defect-causal is-causal' : 'defect-non-causal is-not-causal'}">
+                <summary class="defect-summary-row" style="display: flex; flex-direction: column; align-items: stretch; gap: 6px; width: 100%;">
+                  <div class="defect-header-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span class="defect-causality-pill badge-tag ${isCausal ? 'pill-causal crimson' : 'pill-non-causal emerald'} mono">
+                      ${isCausal ? 'Causal / Contributory' : 'Non-Causal Advisory'}
+                    </span>
+                    <span class="defect-expand-hint mono-muted" style="font-size: 0.72rem; opacity: 0.75;">Details ▾</span>
+                  </div>
+                  <strong class="defect-text-preview defect-title" style="display: block; width: 100%;">${escapeHtml(d.defect_text)}</strong>
                 </summary>
-                <div class="defect-disclosure-body">
-                  <p class="defect-explanation-text">${escapeHtml(d.forensic_explanation)}</p>
+                <div class="defect-detail-body defect-disclosure-body">
+                  <p class="defect-forensic-note defect-explanation-text">${escapeHtml(d.forensic_explanation)}</p>
                 </div>
               </details>
             `;
@@ -667,7 +778,7 @@ function renderForensicDossierTabs(bundle) {
           .join('');
         return `
           <div class="audit-vehicle-block">
-            <h4 class="audit-veh-heading">${escapeHtml(v.registration_plate)} — ${escapeHtml(v.dvsa_make)} ${escapeHtml(v.dvsa_model)}</h4>
+            <h4 class="audit-veh-heading">${escapeHtml(v.registration_plate)} — ${escapeHtml(v.dvsa_make)} ${escapeHtml(v.dvsa_model)} (${escapeHtml(formatMotBadgeText(v))})</h4>
             ${items}
           </div>
         `;
@@ -736,6 +847,8 @@ function renderForensicDossierTabs(bundle) {
    ============================================================================ */
 function setupCameraRigButtons() {
   const buttons = document.querySelectorAll('.cam-btn');
+  if (!buttons || buttons.length === 0) return;
+
   buttons.forEach((btn) => {
     const mode = btn.dataset.cam;
     if (mode) btn.setAttribute('data-cam-mode', mode);
@@ -788,7 +901,15 @@ function setupTimelineScrubber() {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.speed-btn').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
-      playbackSpeed = parseFloat(btn.dataset.speed || '0.5');
+      playbackSpeed = parseFloat(btn.dataset.speed || '1.0');
+      const videoEl = document.getElementById('crash-video');
+      if (videoEl) {
+        try {
+          videoEl.playbackRate = playbackSpeed;
+        } catch (_e) {
+          // ignore
+        }
+      }
     });
   });
 }
@@ -827,6 +948,22 @@ function setPlaybackState(playing) {
   const playLabel = document.getElementById('play-label');
   if (playIcon) playIcon.textContent = isPlaying ? '⏸' : '▶';
   if (playLabel) playLabel.textContent = isPlaying ? 'Pause' : 'Play';
+
+  const chkSync = document.getElementById('chk-sync-video');
+  const videoEl = document.getElementById('crash-video');
+  if (videoEl) {
+    try {
+      videoEl.playbackRate = playbackSpeed;
+      if (isPlaying && (!chkSync || chkSync.checked)) {
+        videoEl.currentTime = currentTime;
+        videoEl.play().catch(() => {});
+      } else {
+        videoEl.pause();
+      }
+    } catch (_e) {
+      // Ignore if video metadata not yet loaded
+    }
+  }
 
   if (isPlaying) {
     lastFramePerf = performance.now();
@@ -919,7 +1056,9 @@ function updateHudOverlay(t, snapshot) {
     setTxt('hud-speed-b', `${kfB.speed_mph.toFixed(1)} mph`);
     setTxt(
       'hud-brake-b',
-      kfB.braking_active ? 'EMERGENCY BRAKING ACTIVE (μ=0.55)' : `${report.location_and_time_context?.speed_limit_mph || 30} mph Zone`
+      kfB.braking_active
+        ? 'EMERGENCY BRAKING ACTIVE (μ=0.55)'
+        : `${report.location_and_time_context?.speed_limit_mph || 30} mph Zone`
     );
   }
 
@@ -1014,7 +1153,9 @@ function setupSolicitorSettlementGate() {
     btnApprove.addEventListener('click', async () => {
       const bundle = getActiveCase();
       const report = bundle.report || {};
-      const defendantPct = Number(slider?.value ?? report.recommended_defendant_liability_pct ?? 75);
+      const defendantPct = Number(
+        slider?.value ?? report.recommended_defendant_liability_pct ?? 75
+      );
       const claimantPct = 100 - defendantPct;
       const notes = document.getElementById('solicitor-notes')?.value || '';
 
@@ -1066,20 +1207,33 @@ function setupSolicitorSettlementGate() {
 }
 
 /* ============================================================================
-   6. UPLOAD MODAL (<dialog closedby="any">) & INTERACTIVE CLARIFICATION LOOP
+   6. UNIFIED 1-BUTTON UPLOAD MODAL (<dialog closedby="any">) & CLARIFICATION
    ============================================================================ */
 function setupUploadModalAndClarificationFlow() {
   const dialog = document.getElementById('upload-modal');
   const btnOpenHeader = document.getElementById('btn-open-upload-modal');
   const btnOpenHero = document.getElementById('btn-hero-upload');
   const btnCancel = document.getElementById('btn-modal-cancel');
-  const btnPrescan = document.getElementById('btn-prescan-video');
-  const form = document.getElementById('upload-claim-form');
-  const clarificationBox = document.getElementById('agent-clarification-box');
+  const btnPrescan =
+    document.getElementById('btn-prescan-video') || document.getElementById('btn-scan-video');
+  const form =
+    document.getElementById('upload-claim-form') || document.getElementById('upload-form');
+  const fileInput =
+    document.getElementById('input-video-files') || document.getElementById('upload-video-input');
+  const filenameDisplay = document.getElementById('upload-filename-display');
+  const clarificationBox =
+    document.getElementById('agent-clarification-box') ||
+    document.getElementById('upload-stage-stepper');
   const statusMsg = document.getElementById('modal-status-msg');
   const contextSelect = document.getElementById('select-kinematic-context');
+  const submitBtn =
+    document.getElementById('btn-submit-analysis') || document.getElementById('btn-submit-upload');
 
   if (!dialog) return;
+
+  let hasCompletedPreScan = false;
+  const defaultSubmitLabel =
+    submitBtn?.textContent?.trim() || 'Scan Video & Build 3D Reconstruction →';
 
   // MANDATORY Modern Web Guidance Fallback for browsers without native `closedBy` support
   if (!('closedBy' in HTMLDialogElement.prototype)) {
@@ -1097,13 +1251,29 @@ function setupUploadModalAndClarificationFlow() {
   }
 
   const openModal = () => {
+    hasCompletedPreScan = false;
     if (statusMsg) statusMsg.hidden = true;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = defaultSubmitLabel;
+    }
     dialog.showModal();
   };
 
   if (btnOpenHeader) btnOpenHeader.addEventListener('click', openModal);
   if (btnOpenHero) btnOpenHero.addEventListener('click', openModal);
   if (btnCancel) btnCancel.addEventListener('click', () => dialog.close());
+
+  if (fileInput && filenameDisplay) {
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files && fileInput.files.length > 0) {
+        const names = Array.from(fileInput.files)
+          .map((f) => f.name)
+          .join(', ');
+        filenameDisplay.textContent = `Selected: ${names}`;
+      }
+    });
+  }
 
   // Quick-fill plate chips inside the Agent Clarification Box
   document.querySelectorAll('.btn-quick-chip').forEach((chip) => {
@@ -1128,14 +1298,18 @@ function setupUploadModalAndClarificationFlow() {
     });
   }
 
-  // Step 1: Agentic Video Pre-Scan ("1. Analyse Video & Detect Vehicles")
+  // Stage 1: Agentic Video Pre-Scan & Causal Object Filtering
   const runAgentPreScan = async () => {
     if (statusMsg) {
       statusMsg.hidden = false;
       statusMsg.textContent =
-        'Running Gemini 4 Argon (processing="agentic") Video Inspection & Causal Object Filtering…';
+        'Stage 1/2: Scanning video footage & detecting vehicles via Gemini 4 Argon (processing="agentic")…';
     }
-    const fileInput = document.getElementById('input-video-files');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Scanning Video & Detecting Vehicles…';
+    }
+
     const fd = new FormData();
     if (fileInput?.files?.length) {
       Array.from(fileInput.files).forEach((f) => fd.append('videos', f));
@@ -1151,37 +1325,59 @@ function setupUploadModalAndClarificationFlow() {
       // Offline fallback uses pre-populated Cheadle A521 detection copy
     }
 
+    hasCompletedPreScan = true;
     if (clarificationBox) clarificationBox.hidden = false;
     if (statusMsg) statusMsg.hidden = true;
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Confirm Plates & Build 3D Reconstruction →';
+    }
   };
 
+  // Optional legacy scan button guard (no error if removed from index.html)
   if (btnPrescan) {
     btnPrescan.addEventListener('click', runAgentPreScan);
   }
 
-  // Step 2: Form Submit -> If plates are blank, trigger Agent Clarification Loop first!
+  // Unified 1-Button Submit Handler:
+  // Automatically runs Stage 1 (pre-scan + clarification) if plates are empty, then Stage 2 (DVSA + 3D reconstruction)
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const p1 = document.getElementById('plate-1-input')?.value?.trim() || '';
-      const p2 = document.getElementById('plate-2-input')?.value?.trim() || '';
+      const p1El =
+        document.getElementById('plate-1-input') || document.getElementById('input-plate-v1');
+      const p2El =
+        document.getElementById('plate-2-input') || document.getElementById('input-plate-v2');
+      let p1 = p1El?.value?.trim() || '';
+      let p2 = p2El?.value?.trim() || '';
 
-      if (!p1 || !p2) {
+      if ((!p1 || !p2) && !hasCompletedPreScan) {
         await runAgentPreScan();
-        const p1El = document.getElementById('plate-1-input');
-        const p2El = document.getElementById('plate-2-input');
         if (!p1 && p1El) p1El.focus();
         else if (!p2 && p2El) p2El.focus();
         return;
       }
 
+      // If pre-scan already ran and user clicks the single button again without typing, default to detected Cheadle plates
+      if (!p1) {
+        p1 = 'VL19 OKP';
+        if (p1El) p1El.value = p1;
+      }
+      if (!p2) {
+        p2 = 'GD64 LKU';
+        if (p2El) p2El.value = p2;
+      }
+
       if (statusMsg) {
         statusMsg.hidden = false;
-        statusMsg.textContent = `Querying UK DVSA MOT API (${p1} & ${p2}) & running Gemini 4 Argon 3D reconstruction…`;
+        statusMsg.textContent = `Stage 2/2: Querying UK DVSA MOT API (${p1} & ${p2}) & building 3D kinematic trajectories…`;
+      }
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Building 3D Reconstruction & Legal Dossier…';
       }
 
       const fd = new FormData();
-      const fileInput = document.getElementById('input-video-files');
       if (fileInput?.files?.length) {
         Array.from(fileInput.files).forEach((f) => fd.append('videos', f));
       }
@@ -1197,13 +1393,21 @@ function setupUploadModalAndClarificationFlow() {
             populateClarificationCard(payload);
             if (clarificationBox) clarificationBox.hidden = false;
             if (statusMsg) statusMsg.hidden = true;
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Confirm Plates & Build 3D Reconstruction →';
+            }
             return;
           }
           if (payload.report) {
             CASES_STORE.cheadle_a521 = payload;
             renderWorkspaceCards();
             loadCaseIntoCockpit('cheadle_a521');
-            showView('cockpit');
+            switchView('cockpit');
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = defaultSubmitLabel;
+            }
             dialog.close();
             return;
           }
@@ -1213,7 +1417,11 @@ function setupUploadModalAndClarificationFlow() {
       }
 
       loadCaseIntoCockpit('cheadle_a521');
-      showView('cockpit');
+      switchView('cockpit');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = defaultSubmitLabel;
+      }
       dialog.close();
     });
   }
