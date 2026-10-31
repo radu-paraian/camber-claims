@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
 """Headless Playwright verification suite for Camber Claims."""
 import sys
-import time
+from pathlib import Path
+from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from fastapi.testclient import TestClient
+from backend.main import app
 
 BASE_URL = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000"
 
@@ -10,6 +18,7 @@ BASE_URL = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000"
 def run_verification():
     console_errors = []
     page_errors = []
+    asgi_client = TestClient(app)
 
     with sync_playwright() as p:
         browser = None
@@ -28,6 +37,35 @@ def run_verification():
             sys.exit(1)
 
         context = browser.new_context(viewport={"width": 1600, "height": 960})
+
+        def _asgi_bridge(route, request):
+            parsed = urlparse(request.url)
+            if parsed.hostname not in ("127.0.0.1", "localhost", "camber.local"):
+                route.fulfill(status=200, content_type="text/css", body="")
+                return
+            path_qs = parsed.path or "/"
+            if parsed.query:
+                path_qs += f"?{parsed.query}"
+            method = request.method.upper()
+            headers = {
+                k: v
+                for k, v in request.headers.items()
+                if k.lower() not in ("host", "content-length")
+            }
+            body = request.post_data_buffer
+            resp = asgi_client.request(method, path_qs, headers=headers, content=body)
+            resp_headers = {
+                k: v
+                for k, v in resp.headers.items()
+                if k.lower() not in ("content-encoding", "transfer-encoding", "content-length")
+            }
+            route.fulfill(
+                status=resp.status_code,
+                headers=resp_headers,
+                body=resp.content,
+            )
+
+        context.route("**/*", _asgi_bridge)
         page = context.new_page()
 
         page.on(
@@ -85,25 +123,27 @@ def run_verification():
         print(f"  ✓ Cycled through {cam_count} camera rig perspectives (3D Orbit, Top, Side, Front, POVs).")
 
         # Verify UK VRM plates & DVSA data
-        print("[5/7] Verifying UK DVSA MOT data (VL19 OKP & GD64 LKU) and Causal Relevance Filter...")
+        print("[5/8] Verifying UK DVSA MOT data (VL19 OKP & GD64 LKU), CAUSAL vs NOT CAUSAL tags, and Causal Relevance Filter...")
         visible_text = page.locator("body").inner_text()
         assert "VL19 OKP" in visible_text, "Expected VL19 OKP plate in UI"
         assert "GD64 LKU" in visible_text, "Expected GD64 LKU plate in UI"
         assert "EXPIRED" in visible_text.upper(), "Expected EXPIRED MOT warning for GD64 LKU"
+        assert "NOT CAUSAL" in visible_text.upper(), "Expected NOT CAUSAL defect classification badge in DVSA panel"
+        assert "CAUSAL" in visible_text.upper(), "Expected CAUSAL defect classification badge in DVSA panel"
 
         # Check timeline scrubber
-        print("[6/7] Scrubbing 3D timeline through t=1.15s (Impact) and t=2.00s (Peugeot Rollover)...")
+        print("[6/8] Scrubbing 3D timeline through t=1.15s (Impact) and t=2.00s (Peugeot Rollover)...")
         slider = page.locator("#timeline-slider")
         assert slider.count() == 1, "Missing #timeline-slider"
         slider.fill("1.15")
         slider.dispatch_event("input")
         page.wait_for_timeout(200)
-        slider.fill("2.00")
+        slider.fill("2")
         slider.dispatch_event("input")
         page.wait_for_timeout(200)
 
         # Check right pane tabs and Human-in-the-Loop Settlement Gate
-        print("[7/7] Testing 4 Forensic Legal Tabs & Solicitor Settlement Approval Gate...")
+        print("[7/8] Testing 4 Forensic Legal Tabs & Solicitor Settlement Approval Gate...")
         tabs = page.locator("[data-tab]")
         for i in range(tabs.count()):
             tabs.nth(i).click()
@@ -118,6 +158,27 @@ def run_verification():
                 "Expected SHA-256 settlement receipt after clicking approve"
             )
             print("  ✓ Solicitor Human-in-the-Loop settlement approval & SHA-256 audit receipt verified.")
+
+        # Test Interactive Agent Video Pre-Scan & Clarification Loop
+        print("[8/8] Testing Gemini 4 Argon Agent Video Pre-Scan & Blurry Plate Clarification Loop...")
+        upload_btn = page.locator("#btn-open-upload-modal")
+        upload_btn.click()
+        page.wait_for_timeout(300)
+        prescan_btn = page.locator("#btn-prescan-video")
+        assert prescan_btn.is_visible(), "Expected #btn-prescan-video inside upload dialog"
+        prescan_btn.click()
+        page.wait_for_timeout(1500)
+        clarification_box = page.locator("#agent-clarification-box")
+        assert clarification_box.is_visible(), "Expected #agent-clarification-box to appear when plates are missing/blurry"
+        fill_p1 = page.locator("#btn-fill-plate-1")
+        fill_p2 = page.locator("#btn-fill-plate-2")
+        assert fill_p1.is_visible() and fill_p2.is_visible(), "Expected quick-fill plate buttons inside clarification card"
+        fill_p1.click()
+        fill_p2.click()
+        page.wait_for_timeout(200)
+        assert page.locator("#plate-1-input").input_value() == "VL19 OKP"
+        assert page.locator("#plate-2-input").input_value() == "GD64 LKU"
+        print("  ✓ Interactive Agent Clarification Needed card & blurry plate confirmation verified.")
 
         browser.close()
 
