@@ -1,14 +1,20 @@
 {
   "case_id": "a521_hgv",
+  "duration_seconds": 5.8,
+  "is_public_demo": false,
+  "local_only": true,
   "case_metadata": {
     "id": "a521_hgv",
     "claim_id": "UK-2026-0904",
     "title": "Case 3: A521 Huntley Brook HGV Lane Encroachment",
     "subtitle": "KX71 HGV (DAF XF 480 Articulated HGV) vs LV20 RTY (Vauxhall Astra — Wet Bend)",
     "video_url": "/videos/clip2_5.07s_to_10.90s_pickup_vs_lorry.mp4",
+    "duration_seconds": 5.8,
     "badge": "HGV WET CORRIDOR 80/20",
     "plate_1": "KX71 HGV",
-    "plate_2": "LV20 RTY"
+    "plate_2": "LV20 RTY",
+    "is_public_demo": false,
+    "local_only": true
   },
   "interaction_id": "int-argon-hgv-uk20260904",
   "agentic_video_scrub_steps": [
@@ -31,6 +37,10 @@
   "physics_audit_log": "ANTIGRAVITY SANDBOX KINEMATIC VERIFICATION (`antigravity-preview-09-2026` | `gemini-4-argon`):\n1. ARTICULATED HGV WET-BEND BRAKING & SWEPT PATH ENCROACHMENT (μ = 0.50 WET TARMAC):\n   - KX71 HGV (38,000 kg gross combination weight) entered the A521 Huntley Brook bend at 38.5 mph (17.21 m/s).\n   - Incorporating 0.45s pneumatic air-brake build-up lag (exacerbated by DVSA second-axle actuator seepage 1.2.2) plus 0.67s driver reaction time, HGV stopping distance on wet asphalt (μ_hgv = 0.42) was 55.2m, sweeping the offside trailer corner 1.15m across the Diagram 1004.1 centre hazard line.\n   - LV20 RTY (Vauxhall Astra) approached in the opposing lane at 34.0 mph (30 mph limit) and delayed evasive nearside steering by 0.4s, resulting in an 80% Defendant (KX71 HGV) / 20% Claimant (LV20 RTY) split under Laurie v Raglan Building Co Ltd [1942] and Baker v Willoughby [1970].",
   "report": {
     "claim_id": "UK-2026-0904",
+    "duration_seconds": 5.8,
+    "video_url": "/videos/clip2_5.07s_to_10.90s_pickup_vs_lorry.mp4",
+    "is_public_demo": false,
+    "local_only": true,
     "incident_summary": "At 16:05 BST during steady rain on the A521 Huntley Brook S-bend corridor (30 mph urban transition zone), a 2021 White DAF XF 480 6x2 Articulated HGV (KX71 HGV, Vehicle A) descended Westbound at 38.5 mph, encroaching 1.15m across the central Diagram 1004.1 hazard warning line into the Eastbound lane due to excessive wet-bend entry speed and pneumatic air-brake actuator lag (DVSA advisory 1.2.2). An oncoming 2020 Blue Vauxhall Astra (LV20 RTY, Vehicle B) travelling Eastbound at 34.0 mph braked at t=0.60s but failed to steer toward the available 1.2m nearside tarmac margin before glancing offside-to-offside impact occurred at (x=-0.8m, z=0.5m) at t=1.35s.",
     "location_and_time_context": {
       "inferred_uk_location": "A521 Huntley Brook S-Bend Corridor, Cheadle Approaches, Staffordshire",
@@ -134,7 +144,9 @@
           {"timestamp_sec": 1.65, "x_meters": 0.15, "z_meters": -0.65, "heading_deg": 268.0, "speed_mph": 20.4, "braking_active": true, "roll_deg": 2.0},
           {"timestamp_sec": 2.05, "x_meters": -2.85, "z_meters": -0.8, "heading_deg": 270.0, "speed_mph": 9.6, "braking_active": true, "roll_deg": 0.0},
           {"timestamp_sec": 2.5, "x_meters": -4.25, "z_meters": -0.85, "heading_deg": 270.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 3.0, "x_meters": -4.25, "z_meters": -0.85, "heading_deg": 270.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
+          {"timestamp_sec": 3.0, "x_meters": -4.25, "z_meters": -0.85, "heading_deg": 270.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 4.4, "x_meters": -4.25, "z_meters": -0.85, "heading_deg": 270.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 5.8, "x_meters": -4.25, "z_meters": -0.85, "heading_deg": 270.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
         ]
       },
       {
@@ -170,7 +182,9 @@
           {"timestamp_sec": 1.65, "x_meters": -0.35, "z_meters": 2.95, "heading_deg": 112.0, "speed_mph": 9.8, "braking_active": true, "roll_deg": 6.0},
           {"timestamp_sec": 2.05, "x_meters": 0.95, "z_meters": 3.3, "heading_deg": 122.0, "speed_mph": 2.4, "braking_active": true, "roll_deg": 0.0},
           {"timestamp_sec": 2.5, "x_meters": 1.35, "z_meters": 3.4, "heading_deg": 124.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 3.0, "x_meters": 1.35, "z_meters": 3.4, "heading_deg": 124.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
+          {"timestamp_sec": 3.0, "x_meters": 1.35, "z_meters": 3.4, "heading_deg": 124.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 4.4, "x_meters": 1.35, "z_meters": 3.4, "heading_deg": 124.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 5.8, "x_meters": 1.35, "z_meters": 3.4, "heading_deg": 124.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
         ]
       }
     ],

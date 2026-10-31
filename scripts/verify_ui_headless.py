@@ -87,22 +87,32 @@ def run_verification():
         print("  ✓ Clean persona & scope check passed (no forbidden names, tokens, or cut features).")
 
         # Check upload modal <dialog closedby="any">
-        print("[2/7] Checking native <dialog closedby='any'> upload modal...")
+        print("[2/7] Checking native <dialog closedby='any'> upload modal & decluttered workspace cards...")
         dialog_el = page.locator("dialog#upload-modal")
         assert dialog_el.count() == 1, "Expected <dialog id='upload-modal'>"
         closedby_attr = dialog_el.get_attribute("closedby")
         assert closedby_attr == "any", f"Expected closedby='any', got {closedby_attr}"
 
+        # Verify Workspace Home View first and capture screenshot
+        back_btn = page.locator("#btn-back-workspace")
+        if back_btn.is_visible():
+            back_btn.click()
+            page.wait_for_timeout(400)
+        assert page.locator(".card-media-preview").count() == 3, "Expected 3 visual media previews on workspace cards"
+        assert page.locator("details.card-synopsis-details").count() == 3, "Expected 3 collapsible synopsis disclosures on workspace cards"
+        page.screenshot(path="/tmp/camber_workspace_decluttered.png")
+
         # Ensure cockpit view is reachable
         print("[3/7] Opening Cheadle A521 3D Forensic Cockpit...")
         cockpit = page.locator("#cockpit-view")
         if not cockpit.is_visible():
-            open_btn = page.locator("[data-case-id='cheadle_a521'], .open-case-btn").first
+            open_btn = page.locator("[data-case-id='cheadle_a521'], .open-case-btn, .card-cta-btn").first
             if open_btn.count() > 0:
                 open_btn.click()
                 page.wait_for_timeout(600)
 
         assert cockpit.is_visible(), "Cockpit view (#cockpit-view) should be visible"
+        page.screenshot(path="/tmp/camber_cockpit_apple_maps_3d.png")
 
         # Check 3D WebGL canvas
         print("[4/7] Verifying Three.js 3D WebGL canvas & camera rig...")

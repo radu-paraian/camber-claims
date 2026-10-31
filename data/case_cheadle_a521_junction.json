@@ -1,14 +1,20 @@
 {
   "case_id": "cheadle_a521",
+  "duration_seconds": 4.5,
+  "is_public_demo": true,
+  "local_only": false,
   "case_metadata": {
     "id": "cheadle_a521",
     "claim_id": "UK-2026-0819",
     "title": "Case 1: Cheadle A521 / Draycott Cross Rd Junction",
     "subtitle": "VL19 OKP (Blue Peugeot 2008 Rollover) vs GD64 LKU (VW Golf — Expired MOT)",
     "video_url": "/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4",
+    "duration_seconds": 4.5,
     "badge": "LIVE DVSA + RING CCTV",
     "plate_1": "VL19 OKP",
-    "plate_2": "GD64 LKU"
+    "plate_2": "GD64 LKU",
+    "is_public_demo": true,
+    "local_only": false
   },
   "interaction_id": "int-argon-cheadle-a521-uk20260819",
   "agentic_video_scrub_steps": [
@@ -31,6 +37,10 @@
   "physics_audit_log": "ANTIGRAVITY SANDBOX KINEMATIC & ROLLOVER VERIFICATION (`antigravity-preview-09-2026` | `gemini-4-argon`):\n1. STOPPING DISTANCE AT 30.0 MPH vs 41.2 MPH (DAMP TARMAC μ = 0.55):\n   - Compliant 30.0 mph (13.41 m/s): Thinking distance (t_r = 0.67s) = 8.98m; Wet braking distance = v² / (2·g·μ) = 16.66m; Total forensic stopping distance = 25.64m.\n   - Actual GD64 LKU Speed 41.2 mph (18.42 m/s) with DVSA worn front/rear brake discs (μ_eff = 0.51): Thinking distance = 12.34m; Wet braking distance = 33.91m; Total = 46.25m (+80.4% stopping envelope extension).\n2. KINETIC ENERGY & ROLLOVER TORQUE VERIFICATION:\n   - Pre-impact braking from t=0.50s to t=1.15s scrubbed GD64 LKU speed from 41.2 mph to 33.4 mph (14.93 m/s).\n   - Lateral impact impulse delivered into VL19 OKP offside B-pillar at (0.0m, 0.2m): E_k = 0.5 × 1,385 kg × (14.93 m/s)² = 154.4 kJ.\n   - Because the Peugeot 2008 SUV center of gravity (h_cg = 0.64m) sits above the VW Golf front bumper impact plane (h_imp = 0.46m), the overturning moment rotated roll_deg from 0.0° (t=1.00s) -> 28.0° (t=1.15s) -> 72.0° (t=1.50s) -> 86.0° nearside rest (t=2.00s..3.00s).",
   "report": {
     "claim_id": "UK-2026-0819",
+    "duration_seconds": 4.5,
+    "video_url": "/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4",
+    "is_public_demo": true,
+    "local_only": false,
     "incident_summary": "At approximately 14:22 BST on damp tarmacadam at the Cheadle A521 / Draycott Cross Road urban T-junction (30 mph limit), a 2019 Blue Peugeot 2008 SUV (VL19 OKP, Vehicle A) emerged Southbound from Draycott Cross Road across Diagram 1003 Give Way markings at 18.6 mph without halting. Concurrently, a 2015 Silver/Grey Volkswagen Golf (GD64 LKU, Vehicle B) approached Eastbound along the A521 priority corridor at 41.2 mph (37.3% above the 30 mph statutory limit) while operating with an EXPIRED UK DVSA MOT Certificate (expired 2 May 2026 at 93,028 miles) and unrectified DVSA advisories for worn/pitted front and offside-rear brake discs. Despite emergency braking onset at t=0.50s, GD64 LKU could only scrub speed to 33.4 mph before striking the offside B-pillar of VL19 OKP at (x=0.0m, z=0.2m) at t=1.15s, deflecting the Peugeot 2008 East-Southeast and rolling it onto its nearside (roll_deg = 86.0°).",
     "location_and_time_context": {
       "inferred_uk_location": "Cheadle, Staffordshire Moorlands (A521 / Draycott Cross Rd Junction)",
@@ -153,7 +163,9 @@
           {"timestamp_sec": 1.65, "x_meters": 2.98, "z_meters": 1.55, "heading_deg": 114.0, "speed_mph": 5.8, "braking_active": true, "roll_deg": 86.0},
           {"timestamp_sec": 2.1, "x_meters": 3.78, "z_meters": 1.85, "heading_deg": 106.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 86.0},
           {"timestamp_sec": 2.5, "x_meters": 3.78, "z_meters": 1.85, "heading_deg": 106.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 86.0},
-          {"timestamp_sec": 3.0, "x_meters": 3.78, "z_meters": 1.85, "heading_deg": 106.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 86.0}
+          {"timestamp_sec": 3.0, "x_meters": 3.78, "z_meters": 1.85, "heading_deg": 106.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 86.0},
+          {"timestamp_sec": 3.8, "x_meters": 3.78, "z_meters": 1.85, "heading_deg": 106.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 86.0},
+          {"timestamp_sec": 4.5, "x_meters": 3.78, "z_meters": 1.85, "heading_deg": 106.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 86.0}
         ]
       },
       {
@@ -214,7 +226,9 @@
           {"timestamp_sec": 1.65, "x_meters": -0.95, "z_meters": 2.15, "heading_deg": 116.0, "speed_mph": 4.6, "braking_active": true, "roll_deg": 0.0},
           {"timestamp_sec": 2.1, "x_meters": -0.5, "z_meters": 2.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 0.0},
           {"timestamp_sec": 2.5, "x_meters": -0.5, "z_meters": 2.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 3.0, "x_meters": -0.5, "z_meters": 2.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 0.0}
+          {"timestamp_sec": 3.0, "x_meters": -0.5, "z_meters": 2.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 3.8, "x_meters": -0.5, "z_meters": 2.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 4.5, "x_meters": -0.5, "z_meters": 2.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
         ]
       }
     ],

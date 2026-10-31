@@ -164,6 +164,25 @@ class ForensicLegalReport(BaseModel):
     case_law_citations: List[CaseLawCitation]
     quantum_damage_estimate_gbp: int
     legal_reasoning_chain: str
+    duration_seconds: float = Field(
+        default=4.5,
+        description="Exact observed video clip duration in seconds; 3D scene keyframes are strictly bounded to [0.0, duration_seconds]"
+    )
+    video_url: Optional[str] = Field(
+        default=None,
+        description="URL of the crash video clip synchronized with the 3D scene timeline"
+    )
+    is_public_demo: bool = Field(
+        default=False,
+        description="True if this case is the public demo example shown on public deployments"
+    )
+    local_only: bool = Field(
+        default=False,
+        description="True if this case is restricted to local development only and hidden on public Vercel deployments"
+    )
+
+
+ForensicReconstructionReport = ForensicLegalReport
 
 
 class DetectedVehiclePreview(BaseModel):

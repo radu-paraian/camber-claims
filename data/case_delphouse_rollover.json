@@ -1,14 +1,20 @@
 {
   "case_id": "delphouse_rollover",
+  "duration_seconds": 5.0,
+  "is_public_demo": false,
+  "local_only": true,
   "case_metadata": {
     "id": "delphouse_rollover",
     "claim_id": "UK-2026-0842",
     "title": "Case 2: Delphouse Rd / Cheadle Rural Crossroad T-Bone",
     "subtitle": "BX21 TKP (Range Rover Evoque) vs MK18 PZR (Ford Focus ST-Line — Multi-Cam)",
     "video_url": "/videos/clip1_0s_to_5.03s_suv_vs_van.mp4",
+    "duration_seconds": 5.0,
     "badge": "MULTI-CAM RURAL 65/35",
     "plate_1": "BX21 TKP",
-    "plate_2": "MK18 PZR"
+    "plate_2": "MK18 PZR",
+    "is_public_demo": false,
+    "local_only": true
   },
   "interaction_id": "int-argon-delphouse-uk20260842",
   "agentic_video_scrub_steps": [
@@ -31,6 +37,10 @@
   "physics_audit_log": "ANTIGRAVITY SANDBOX KINEMATIC VERIFICATION (`antigravity-preview-09-2026` | `gemini-4-argon`):\n1. RURAL CROSSROAD SIGHTLINE TRIANGLE & STOPPING ENVELOPE (μ = 0.58 DAMP COUNTRY LANE):\n   - High hawthorn hedgerows restricted diagonal crossroad visibility splay to 21.5m.\n   - BX21 TKP (2,090 kg Range Rover Evoque) approached the Diagram 1003 Give Way line at 28.4 mph (12.70 m/s) and braked late at t=0.75s; thin front brake pads (DVSA 1.1.13(a)(ii)) and 2.0mm N/S front tyre tread prevented stopping short of the line, entering the junction box at 21.8 mph.\n   - MK18 PZR (1,395 kg Ford Focus) approached the signed crossroad hazard at 46.0 mph (20.56 m/s) instead of moderating speed to ~35 mph under Highway Code Rule 146, resulting in a 65% Defendant / 35% Claimant liability apportionment.",
   "report": {
     "claim_id": "UK-2026-0842",
+    "duration_seconds": 5.0,
+    "video_url": "/videos/clip1_0s_to_5.03s_suv_vs_van.mp4",
+    "is_public_demo": false,
+    "local_only": true,
     "incident_summary": "At 11:08 BST at the rural Delphouse Road crossroad outside Cheadle (Staffordshire Moorlands), a 2021 Silver Land Rover Range Rover Evoque (BX21 TKP, Vehicle A) approached Southbound on the minor Delphouse Road arm at 28.4 mph, failed to yield at the Diagram 1003 Give Way line despite high hawthorn hedgerows obscuring lateral sightlines to 21.5m, and overshot into the intersection at 21.8 mph despite late braking at t=0.75s. Simultaneously, a 2018 Red Ford Focus ST-Line (MK18 PZR, Vehicle B) approached Eastbound along the priority rural carriageway at 46.0 mph without moderating speed in response to an advance Diagram 504.1 Crossroads Warning Sign. BX21 TKP struck the nearside flank of MK18 PZR at (x=0.4m, z=0.1m) at t=1.25s, spinning MK18 PZR 64° clockwise and tipping BX21 TKP to a 34.0° peak roll angle onto the verge.",
     "location_and_time_context": {
       "inferred_uk_location": "Delphouse Road / Cheadle Rural Crossroad, Staffordshire Moorlands",
@@ -146,7 +156,9 @@
           {"timestamp_sec": 1.55, "x_meters": 2.05, "z_meters": -2.05, "heading_deg": 142.0, "speed_mph": 12.4, "braking_active": true, "roll_deg": 34.0},
           {"timestamp_sec": 1.95, "x_meters": 3.35, "z_meters": -1.25, "heading_deg": 134.0, "speed_mph": 4.2, "braking_active": true, "roll_deg": 18.0},
           {"timestamp_sec": 2.5, "x_meters": 3.85, "z_meters": -1.05, "heading_deg": 132.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 8.0},
-          {"timestamp_sec": 3.0, "x_meters": 3.85, "z_meters": -1.05, "heading_deg": 132.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 8.0}
+          {"timestamp_sec": 3.0, "x_meters": 3.85, "z_meters": -1.05, "heading_deg": 132.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 8.0},
+          {"timestamp_sec": 4.0, "x_meters": 3.85, "z_meters": -1.05, "heading_deg": 132.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 8.0},
+          {"timestamp_sec": 5.0, "x_meters": 3.85, "z_meters": -1.05, "heading_deg": 132.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 8.0}
         ]
       },
       {
@@ -190,7 +202,9 @@
           {"timestamp_sec": 1.55, "x_meters": 4.05, "z_meters": 2.45, "heading_deg": 122.0, "speed_mph": 18.5, "braking_active": true, "roll_deg": 0.0},
           {"timestamp_sec": 1.95, "x_meters": 6.15, "z_meters": 3.3, "heading_deg": 146.0, "speed_mph": 5.8, "braking_active": true, "roll_deg": 0.0},
           {"timestamp_sec": 2.5, "x_meters": 6.85, "z_meters": 3.6, "heading_deg": 152.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 3.0, "x_meters": 6.85, "z_meters": 3.6, "heading_deg": 152.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
+          {"timestamp_sec": 3.0, "x_meters": 6.85, "z_meters": 3.6, "heading_deg": 152.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 4.0, "x_meters": 6.85, "z_meters": 3.6, "heading_deg": 152.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 5.0, "x_meters": 6.85, "z_meters": 3.6, "heading_deg": 152.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
         ]
       }
     ],

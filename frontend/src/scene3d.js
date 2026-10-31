@@ -2,28 +2,30 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import {
   resolveVehiclePairPhysics,
+  buildContinuousPhysicsTrajectory,
   WebGPUPhysicsAccelerator,
   getVehicleRigidSpec,
+  computeCrashDestructionState,
 } from './physicsEngine.js';
 
 export class ForensicScene3D {
   constructor(container) {
     this.container = container;
     this.scene = new THREE.Scene();
-    // Clean dark carbon-graphite sky & fog palette (#141518)
-    this.scene.background = new THREE.Color(0x141518);
-    this.scene.fog = new THREE.FogExp2(0x141518, 0.0045);
+    // Clean Apple Maps 3D Dark/Dusk slate-indigo sky & fog palette (#2d3548)
+    this.scene.background = new THREE.Color(0x2d3548);
+    this.scene.fog = new THREE.FogExp2(0x2d3548, 0.0038);
 
     const width = container.clientWidth || 900;
     const height = container.clientHeight || 600;
     const aspect = width / Math.max(height, 1);
 
-    // 1. Perspective Camera (3D Orbit, Vehicle POVs, Ring CCTV POV)
+    // 1. Perspective Camera (3D Orbit View)
     this.perspCamera = new THREE.PerspectiveCamera(46, aspect, 0.2, 350);
     this.perspCamera.position.set(18, 16, 22);
     this.perspCamera.lookAt(0, 0, 0);
 
-    // 2. Orthographic Camera (Top Overhead, Side X-Axis, Front Z-Axis)
+    // 2. Orthographic Camera (retained for API compatibility)
     this.orthoHalfSize = 22;
     this.orthoCamera = new THREE.OrthographicCamera(
       -this.orthoHalfSize * aspect,
@@ -47,7 +49,7 @@ export class ForensicScene3D {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.06;
+    this.renderer.toneMappingExposure = 1.08;
 
     container.querySelectorAll('canvas').forEach((c) => c.remove());
     container.prepend(this.renderer.domElement);
@@ -56,9 +58,9 @@ export class ForensicScene3D {
     this.controls = new OrbitControls(this.perspCamera, this.renderer.domElement);
     this.controls.enableDamping = false;
     this.controls.screenSpacePanning = true;
-    this.controls.rotateSpeed = 1.05;
-    this.controls.zoomSpeed = 1.25;
-    this.controls.panSpeed = 1.15;
+    this.controls.rotateSpeed = 1.0;
+    this.controls.zoomSpeed = 1.2;
+    this.controls.panSpeed = 1.0;
     this.controls.maxPolarAngle = Math.PI / 2 - 0.03;
     this.controls.minDistance = 4;
     this.controls.maxDistance = 105;
@@ -84,7 +86,6 @@ export class ForensicScene3D {
     this.scene.add(this.nonCausalClutterGroup);
     this.scene.add(this.trajectoriesGroup);
     this.scene.add(this.vehiclesGroup);
-    this.scene.add(this.camerasGroup);
     this.scene.add(this.effectsGroup);
 
     this.vehicleMeshes = new Map();
@@ -93,6 +94,11 @@ export class ForensicScene3D {
     this.causalFilterActive = true;
     this.groundMaterial = null;
     this.lastPhysicsTelemetry = null;
+    this.knockableSignRef = null;
+    this.debrisGroup = null;
+    this.debrisMeshes = [];
+    this.dustPlumeGroup = null;
+    this.dustMeshes = [];
 
     // WebGPU Compute Physics Accelerator + Rigid-Body OBB-SAT Engine
     this.webgpuPhysics = new WebGPUPhysicsAccelerator();
@@ -113,12 +119,15 @@ export class ForensicScene3D {
   }
 
   _setupLighting() {
-    // Clean neutral studio-grade lighting for Black / Grey / White / Muted Natural palette
-    const hemiLight = new THREE.HemisphereLight(0xd4d4d8, 0x18181b, 1.15);
+    // Apple Maps 3D Dusk/Dark Mode even atmospheric lighting
+    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x334155, 1.5);
     hemiLight.position.set(0, 50, 0);
     this.scene.add(hemiLight);
 
-    const dirLight = new THREE.DirectionalLight(0xfafafa, 1.35);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    this.scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xfffbeb, 1.3);
     dirLight.position.set(24, 42, 20);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
@@ -132,10 +141,6 @@ export class ForensicScene3D {
     dirLight.shadow.camera.bottom = -d;
     dirLight.shadow.bias = -0.0004;
     this.scene.add(dirLight);
-
-    const fillLight = new THREE.DirectionalLight(0xa1a1aa, 0.42);
-    fillLight.position.set(-26, 22, -16);
-    this.scene.add(fillLight);
   }
 
   _drawRoadArrow(ctx, x, y, angleRad, scale = 1.0) {
@@ -144,63 +149,23 @@ export class ForensicScene3D {
     ctx.rotate(angleRad);
     ctx.scale(scale, scale);
 
-    ctx.fillStyle = 'rgba(244, 244, 245, 0.90)';
-    ctx.fillRect(-26, -3.2, 34, 6.4);
+    ctx.fillStyle = 'rgba(226, 232, 240, 0.85)';
+    ctx.fillRect(-24, -2.8, 32, 5.6);
     ctx.beginPath();
-    ctx.moveTo(24, 0);
-    ctx.lineTo(4, -11);
-    ctx.lineTo(4, 11);
+    ctx.moveTo(22, 0);
+    ctx.lineTo(4, -9.5);
+    ctx.lineTo(4, 9.5);
     ctx.closePath();
     ctx.fill();
 
     ctx.restore();
   }
 
-  _drawRoadLabel(ctx, text, x, y, angleRad = 0) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angleRad);
-    ctx.font = '700 22px -apple-system, BlinkMacSystemFont, "Inter", "Space Grotesk", sans-serif';
-    ctx.fillStyle = 'rgba(244, 244, 245, 0.86)';
-    ctx.strokeStyle = 'rgba(24, 24, 27, 0.88)';
-    ctx.lineWidth = 5;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    if ('letterSpacing' in ctx) {
-      ctx.letterSpacing = '3px';
-    }
-    ctx.strokeText(text, 0, 0);
-    ctx.fillText(text, 0, 0);
-    ctx.restore();
-  }
-
-  _createProceduralJunctionTexture(report = null) {
+  _createProceduralJunctionTexture(_report = null) {
     const canvas = document.createElement('canvas');
     canvas.width = 2048;
     canvas.height = 2048;
     const ctx = canvas.getContext('2d');
-
-    const impactT = report?.impact_timestamp_sec ?? 1.15;
-    const speedLimit = report?.location_and_time_context?.speed_limit_mph ?? 30;
-    const actualSpeed =
-      report?.claimant_PreImpact_Speed_mph ||
-      report?.defendant_PreImpact_Speed_mph ||
-      41.2;
-    const locStr = (
-      report?.location_and_time_context?.inferred_uk_location || ''
-    ).toUpperCase();
-    const isDelphouse = locStr.includes('DELPHOUSE');
-    const isHuntley = locStr.includes('HUNTLEY');
-    const mainRoadLabel = isDelphouse
-      ? 'PRIORITY RURAL RD'
-      : isHuntley
-        ? 'A521 HUNTLEY BROOK'
-        : 'A521 MAIN RD';
-    const minorRoadLabel = isDelphouse
-      ? 'DELPHOUSE RD'
-      : isHuntley
-        ? 'FARM ACCESS'
-        : 'DRAYCOTT CROSS RD';
 
     // Coordinate mapping: 80m x 80m world area mapped to 2048x2048px
     // (0,0) world = (1024, 1024) canvas; 1m = 25.6px
@@ -208,30 +173,30 @@ export class ForensicScene3D {
     const cx = 1024;
     const cy = 1024;
 
-    // 1. Muted dark olive-charcoal grass verges (#222e26)
-    ctx.fillStyle = '#222e26';
+    // 1. Apple Maps 3D smooth matte slate-grey urban base (#475267)
+    ctx.fillStyle = '#475267';
     ctx.fillRect(0, 0, 2048, 2048);
 
-    // 2. Neutral dark stone sidewalks / footways (#27272a)
+    // 2. Crisp raised pavement / footway zones (#56637a)
     const mainHalfW = 4.2 * m2px;
     const minorHalfW = 3.4 * m2px;
     const paveW = 2.2 * m2px;
 
-    ctx.fillStyle = '#27272a';
+    ctx.fillStyle = '#56637a';
     // Main road sidewalks (West-East)
     ctx.fillRect(0, cy - mainHalfW - paveW, 2048, (mainHalfW + paveW) * 2);
     // Minor road sidewalks (North arm, z < 0)
     ctx.fillRect(cx - minorHalfW - paveW, 0, (minorHalfW + paveW) * 2, cy);
 
-    // 3. Clean Matte Asphalt Roadways (#18181b)
-    ctx.fillStyle = '#18181b';
+    // 3. Clean Dark Slate Road Surface (#252b3b)
+    ctx.fillStyle = '#252b3b';
     // Main Road (West-East)
     ctx.fillRect(0, cy - mainHalfW, 2048, mainHalfW * 2);
     // Minor Road (North arm)
     ctx.fillRect(cx - minorHalfW, 0, minorHalfW * 2, cy + 8);
 
     // Filleted junction bellmouth corners
-    ctx.fillStyle = '#18181b';
+    ctx.fillStyle = '#252b3b';
     ctx.beginPath();
     ctx.moveTo(cx - minorHalfW - 22, cy - mainHalfW);
     ctx.quadraticCurveTo(cx - minorHalfW, cy - mainHalfW, cx - minorHalfW, cy - mainHalfW - 22);
@@ -246,9 +211,9 @@ export class ForensicScene3D {
     ctx.closePath();
     ctx.fill();
 
-    // 4. Clean Neutral Kerb Lines (#3f3f46)
-    ctx.strokeStyle = '#3f3f46';
-    ctx.lineWidth = 4.5;
+    // 4. Clean Subtle Kerb Edge Lines (#64748b)
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 4.0;
     ctx.beginPath();
     // South kerb continuous
     ctx.moveTo(0, cy + mainHalfW);
@@ -263,12 +228,12 @@ export class ForensicScene3D {
     ctx.lineTo(cx + minorHalfW, 0);
     ctx.stroke();
 
-    // 5. Crisp White UK Road Markings (#f4f4f5)
-    ctx.strokeStyle = '#f4f4f5';
-    ctx.fillStyle = '#f4f4f5';
+    // 5. Clean Thin White Lane Markings (#e2e8f0)
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.fillStyle = '#e2e8f0';
 
     // Main Road Centre Dashed Line (West and East of junction)
-    ctx.lineWidth = 3.5;
+    ctx.lineWidth = 3.2;
     ctx.setLineDash([3.6 * m2px, 2.2 * m2px]);
     ctx.beginPath();
     ctx.moveTo(0, cy);
@@ -286,7 +251,7 @@ export class ForensicScene3D {
 
     // UK Diagram 1003 Double Dashed GIVE WAY Line across minor road mouth (z = -4.2m)
     ctx.setLineDash([0.65 * m2px, 0.42 * m2px]);
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 4.5;
     const giveWayY1 = cy - mainHalfW - 0.14 * m2px;
     const giveWayY2 = cy - mainHalfW - 0.46 * m2px;
     ctx.beginPath();
@@ -302,7 +267,7 @@ export class ForensicScene3D {
     const triTopY = cy - 9.1 * m2px;
     const triApexY = cy - 6.1 * m2px;
     const triHalfW = 0.82 * m2px;
-    ctx.lineWidth = 4.5;
+    ctx.lineWidth = 4.0;
     ctx.beginPath();
     ctx.moveTo(triX - triHalfW, triTopY);
     ctx.lineTo(triX + triHalfW, triTopY);
@@ -310,67 +275,19 @@ export class ForensicScene3D {
     ctx.closePath();
     ctx.stroke();
 
-    // 6. Directional Lane Arrows
-    [-31, -23, -11, 10, 21, 32].forEach((xm) => {
-      this._drawRoadArrow(ctx, cx + xm * m2px, cy + 2.1 * m2px, 0, 0.95);
+    // 6. Subtle Directional Lane Arrows
+    [-31, -21, -11, 10, 21, 32].forEach((xm) => {
+      this._drawRoadArrow(ctx, cx + xm * m2px, cy + 2.1 * m2px, 0, 0.9);
     });
     [-28, -16, 8, 18, 29].forEach((xm) => {
-      this._drawRoadArrow(ctx, cx + xm * m2px, cy - 2.1 * m2px, Math.PI, 0.95);
+      this._drawRoadArrow(ctx, cx + xm * m2px, cy - 2.1 * m2px, Math.PI, 0.9);
     });
-    [-29, -20, -12.5].forEach((zm) => {
-      this._drawRoadArrow(ctx, cx - 1.7 * m2px, cy + zm * m2px, Math.PI / 2, 0.92);
+    [-28, -18, -12].forEach((zm) => {
+      this._drawRoadArrow(ctx, cx - 1.7 * m2px, cy + zm * m2px, Math.PI / 2, 0.88);
     });
     [-26, -16, -8.5].forEach((zm) => {
-      this._drawRoadArrow(ctx, cx + 1.7 * m2px, cy + zm * m2px, -Math.PI / 2, 0.92);
+      this._drawRoadArrow(ctx, cx + 1.7 * m2px, cy + zm * m2px, -Math.PI / 2, 0.88);
     });
-
-    // 7. Painted Road Name Labels (Dynamic per Case / Agent Report)
-    this._drawRoadLabel(ctx, mainRoadLabel, cx - 26.5 * m2px, cy - 2.1 * m2px, 0);
-    this._drawRoadLabel(ctx, mainRoadLabel, cx + 23.5 * m2px, cy + 2.1 * m2px, 0);
-    this._drawRoadLabel(ctx, minorRoadLabel, cx + 1.7 * m2px, cy - 21.5 * m2px, Math.PI / 2);
-
-    // 8. Highway Code Stopping Distance Comparison Strips on Main Corridor
-    const startX = cx - 18.2 * m2px;
-    const safeStopM = speedLimit >= 50 ? 21.0 : 14.0;
-    const actualStopM = Math.max(22.0, Number((actualSpeed * 0.64).toFixed(1)));
-    const legalLen = safeStopM * m2px;
-    const actualLen = Math.min(30.0, actualStopM) * m2px;
-
-    // Safe Stopping Strip
-    ctx.fillStyle = 'rgba(16, 185, 129, 0.22)';
-    ctx.strokeStyle = 'rgba(52, 211, 153, 0.82)';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.roundRect(startX, cy + 0.45 * m2px, legalLen, 0.88 * m2px, 6);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = '#d1fae5';
-    ctx.font = '700 17px "JetBrains Mono", monospace';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(
-      `${speedLimit} MPH SAFE ENVELOPE: ${safeStopM.toFixed(1)}m`,
-      startX + 10,
-      cy + 0.89 * m2px
-    );
-
-    // Actual Approach / Impact Strip
-    ctx.fillStyle = 'rgba(239, 68, 68, 0.22)';
-    ctx.strokeStyle = 'rgba(248, 113, 113, 0.82)';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.roundRect(startX, cy + 1.52 * m2px, actualLen, 0.92 * m2px, 6);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = '#fee2e2';
-    ctx.font = '700 17px "JetBrains Mono", monospace';
-    ctx.fillText(
-      `${Number(actualSpeed).toFixed(1)} MPH ACTUAL (CONTACT t=${impactT.toFixed(2)}s)`,
-      startX + 10,
-      cy + 1.98 * m2px
-    );
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.anisotropy = 8;
@@ -381,45 +298,45 @@ export class ForensicScene3D {
   _buildProceduralRoadEnvironment() {
     this.environmentGroup.clear();
 
-    // 1. Main 80m x 80m Junction Surface
+    // 1. Main 80m x 80m Junction Surface (Apple Maps clean dark slate road + urban block)
     const roadTex = this._createProceduralJunctionTexture(this.reportData);
     const groundGeo = new THREE.PlaneGeometry(80, 80);
     this.groundMaterial = new THREE.MeshStandardMaterial({
       map: roadTex,
-      roughness: 0.82,
-      metalness: 0.03,
+      roughness: 0.85,
+      metalness: 0.02,
     });
     const groundMesh = new THREE.Mesh(groundGeo, this.groundMaterial);
     groundMesh.rotation.x = -Math.PI / 2;
     groundMesh.receiveShadow = true;
     this.environmentGroup.add(groundMesh);
 
-    // 2. Outer Dark Horizon Skirt (#141518 / #1a1d1a)
+    // 2. Outer Smooth Matte Slate-Grey Urban Block Skirt (#475267)
     const skirtGeo = new THREE.PlaneGeometry(260, 260);
     const skirtMat = new THREE.MeshStandardMaterial({
-      color: 0x181c19,
-      roughness: 0.95,
-      metalness: 0.01,
+      color: 0x475267,
+      roughness: 0.92,
+      metalness: 0.02,
     });
     const skirtMesh = new THREE.Mesh(skirtGeo, skirtMat);
     skirtMesh.rotation.x = -Math.PI / 2;
     skirtMesh.position.y = -0.04;
     this.environmentGroup.add(skirtMesh);
 
-    // 3. Raised 3D Kerb & Footway Aprons (#27272a) with Muted Olive Verges (#222e26)
+    // 3. Crisp Raised Pavements (#56637a) with Soft Muted Sage-Green Grass Verges (#345947)
     const paveMat = new THREE.MeshStandardMaterial({
-      color: 0x27272a,
-      roughness: 0.86,
-      metalness: 0.03,
+      color: 0x56637a,
+      roughness: 0.88,
+      metalness: 0.02,
     });
     const kerbMat = new THREE.MeshStandardMaterial({
-      color: 0x3f3f46,
-      roughness: 0.8,
-      metalness: 0.04,
+      color: 0x64748b,
+      roughness: 0.82,
+      metalness: 0.03,
     });
     const vergeMat = new THREE.MeshStandardMaterial({
-      color: 0x222e26,
-      roughness: 0.92,
+      color: 0x345947,
+      roughness: 0.9,
       metalness: 0.02,
     });
 
@@ -528,124 +445,105 @@ export class ForensicScene3D {
   }
 
   _buildNWResidentialHouse(x, z) {
-    // Single clean UK residential house with pitched/hipped roof set back on NW corner (x = -13, z = -13)
+    // Apple Maps 3D monolithic matte slate-blue-grey architectural massing on NW corner (x = -13, z = -13)
     const houseGroup = new THREE.Group();
-    houseGroup.position.set(x, 0.12, z);
+    houseGroup.position.set(x, 0.14, z);
 
     const wallMat = new THREE.MeshStandardMaterial({
-      color: 0x34363d,
-      roughness: 0.85,
-      metalness: 0.04,
+      color: 0x515e78,
+      roughness: 0.90,
+      metalness: 0.02,
     });
     const plinthMat = new THREE.MeshStandardMaterial({
-      color: 0x24262b,
+      color: 0x475267,
+      roughness: 0.92,
+      metalness: 0.02,
+    });
+    const roofMat = new THREE.MeshStandardMaterial({
+      color: 0x5d6b86,
       roughness: 0.88,
       metalness: 0.03,
     });
-    const roofMat = new THREE.MeshStandardMaterial({
-      color: 0x202227,
-      roughness: 0.78,
-      metalness: 0.06,
-    });
-    const windowMat = new THREE.MeshStandardMaterial({
-      color: 0x141619,
-      roughness: 0.25,
-      metalness: 0.5,
-    });
-    const frameMat = new THREE.MeshStandardMaterial({
-      color: 0xd4d4d8,
-      roughness: 0.6,
-      metalness: 0.1,
-    });
 
     const w = 9.2;
-    const h = 5.4;
+    const h = 5.6;
     const d = 7.4;
 
     // Ground plinth course
-    const plinth = new THREE.Mesh(new THREE.BoxGeometry(w + 0.12, 0.45, d + 0.12), plinthMat);
-    plinth.position.y = 0.225;
+    const plinth = new THREE.Mesh(new THREE.BoxGeometry(w + 0.16, 0.36, d + 0.16), plinthMat);
+    plinth.position.y = 0.18;
     plinth.castShadow = true;
     plinth.receiveShadow = true;
     houseGroup.add(plinth);
 
-    // Main two-storey residential body
+    // Main monolithic architectural mass
     const walls = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
     walls.position.y = h / 2;
     walls.castShadow = true;
     walls.receiveShadow = true;
     houseGroup.add(walls);
 
-    // Extruded pitched gable/hipped roof profile
-    const roofOverhangW = w + 0.55;
-    const roofOverhangD = d + 0.55;
-    const ridgeH = 2.35;
-    const roofShape = new THREE.Shape();
-    roofShape.moveTo(-roofOverhangD / 2, 0);
-    roofShape.lineTo(0, ridgeH);
-    roofShape.lineTo(roofOverhangD / 2, 0);
-    roofShape.closePath();
+    // Secondary stepped architectural wing on West side for Apple Maps 3D massing depth
+    const wingW = 3.8;
+    const wingH = 4.2;
+    const wingD = 5.4;
+    const wing = new THREE.Mesh(new THREE.BoxGeometry(wingW, wingH, wingD), wallMat);
+    wing.position.set(-w / 2 - wingW / 2 + 0.2, wingH / 2, -0.5);
+    wing.castShadow = true;
+    wing.receiveShadow = true;
+    houseGroup.add(wing);
 
-    const roofGeo = new THREE.ExtrudeGeometry(roofShape, {
-      depth: roofOverhangW,
-      bevelEnabled: true,
-      bevelThickness: 0.06,
-      bevelSize: 0.04,
-      bevelSegments: 3,
-    });
-    roofGeo.translate(0, 0, -roofOverhangW / 2);
-    roofGeo.rotateY(Math.PI / 2);
+    const wingRoof = new THREE.Mesh(
+      new THREE.BoxGeometry(wingW + 0.18, 0.18, wingD + 0.18),
+      roofMat
+    );
+    wingRoof.position.set(-w / 2 - wingW / 2 + 0.2, wingH + 0.09, -0.5);
+    wingRoof.castShadow = true;
+    wingRoof.receiveShadow = true;
+    houseGroup.add(wingRoof);
 
-    const roofMesh = new THREE.Mesh(roofGeo, roofMat);
-    roofMesh.position.y = h - 0.02;
-    roofMesh.castShadow = true;
-    roofMesh.receiveShadow = true;
-    houseGroup.add(roofMesh);
+    // Flat roof deck with subtle raised parapet edge (#5d6b86)
+    const roofDeck = new THREE.Mesh(new THREE.BoxGeometry(w - 0.24, 0.14, d - 0.24), plinthMat);
+    roofDeck.position.y = h + 0.04;
+    roofDeck.receiveShadow = true;
+    houseGroup.add(roofDeck);
 
-    // Chimney stack on roof ridge
-    const chimney = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.4, 0.85), wallMat);
-    chimney.position.set(-2.4, h + ridgeH - 0.35, -0.4);
-    chimney.castShadow = true;
-    houseGroup.add(chimney);
+    const parapetThick = 0.24;
+    const parapetH = 0.28;
+    const northParapet = new THREE.Mesh(
+      new THREE.BoxGeometry(w + 0.16, parapetH, parapetThick),
+      roofMat
+    );
+    northParapet.position.set(0, h + parapetH / 2, -d / 2);
+    const southParapet = northParapet.clone();
+    southParapet.position.set(0, h + parapetH / 2, d / 2);
 
-    // Subtle residential casement windows on South & East elevations
-    const winPositions = [
-      [-2.4, 1.6, d / 2 + 0.02, 0],
-      [2.4, 1.6, d / 2 + 0.02, 0],
-      [-2.4, 3.8, d / 2 + 0.02, 0],
-      [2.4, 3.8, d / 2 + 0.02, 0],
-      [w / 2 + 0.02, 1.6, -1.5, Math.PI / 2],
-      [w / 2 + 0.02, 3.8, -1.5, Math.PI / 2],
-      [w / 2 + 0.02, 1.6, 1.6, Math.PI / 2],
-      [w / 2 + 0.02, 3.8, 1.6, Math.PI / 2],
-    ];
-    winPositions.forEach(([wx, wy, wz, rotY]) => {
-      const winFrame = new THREE.Mesh(new THREE.BoxGeometry(1.35, 1.18, 0.05), frameMat);
-      winFrame.position.set(wx, wy, wz);
-      winFrame.rotation.y = rotY;
-      const winGlass = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.02, 0.07), windowMat);
-      winGlass.position.set(wx, wy, wz);
-      winGlass.rotation.y = rotY;
-      houseGroup.add(winFrame, winGlass);
-    });
+    const eastParapet = new THREE.Mesh(
+      new THREE.BoxGeometry(parapetThick, parapetH, d + 0.16),
+      roofMat
+    );
+    eastParapet.position.set(w / 2, h + parapetH / 2, 0);
+    const westParapet = eastParapet.clone();
+    westParapet.position.set(-w / 2, h + parapetH / 2, 0);
+
+    houseGroup.add(northParapet, southParapet, eastParapet, westParapet);
 
     return houseGroup;
   }
 
   _buildSouthGardenBoundaryWall() {
-    // Realistic low garden boundary wall (height ~ 0.95m with stone coping cap) on the southern Ring CCTV corner
-    // (x from -16 to -2, z = 5.2, plus short return and piers) just like in the real Ring footage
+    // Clean Apple Maps 3D low garden boundary wall (height ~ 0.95m with coping cap) on the southern corner
     const wallGroup = new THREE.Group();
 
     const masonryMat = new THREE.MeshStandardMaterial({
-      color: 0x383a40,
-      roughness: 0.88,
-      metalness: 0.03,
+      color: 0x515e78,
+      roughness: 0.90,
+      metalness: 0.02,
     });
     const copingMat = new THREE.MeshStandardMaterial({
-      color: 0x52555e,
-      roughness: 0.76,
-      metalness: 0.05,
+      color: 0x5d6b86,
+      roughness: 0.86,
+      metalness: 0.03,
     });
 
     const wallLength = 14.0; // x from -16 to -2 (center at x = -9.0)
@@ -661,7 +559,7 @@ export class ForensicScene3D {
     mainWall.receiveShadow = true;
     wallGroup.add(mainWall);
 
-    // Rounded/bevelled stone coping cap along the top of the wall (~0.95m total height)
+    // Coping cap along the top of the wall (~0.95m total height)
     const copingCap = new THREE.Mesh(
       new THREE.BoxGeometry(wallLength + 0.12, 0.08, wallThick + 0.08),
       copingMat
@@ -700,6 +598,7 @@ export class ForensicScene3D {
 
   _buildCausalJunctionProps(report = null) {
     this.causalPropsGroup.clear();
+    this.knockableSignRef = null;
 
     const postMat = new THREE.MeshStandardMaterial({
       color: 0xa1a1aa,
@@ -711,10 +610,14 @@ export class ForensicScene3D {
     const addTrafficSignPost = (x, z, signType, pillText, pillAccent, boardRotY = 0) => {
       const signGroup = new THREE.Group();
       signGroup.position.set(x, 0, z);
+
+      // Pivot group at the base of the sign post so post-impact strikes bend the pole from ground level
+      const postPivot = new THREE.Group();
       const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 2.45, 12), postMat);
       post.position.y = 1.225;
       post.castShadow = true;
-      signGroup.add(post);
+      postPivot.add(post);
+      signGroup.add(postPivot);
 
       const board = new THREE.Mesh(
         new THREE.PlaneGeometry(0.85, 0.85),
@@ -726,12 +629,23 @@ export class ForensicScene3D {
       );
       board.position.set(0, 2.28, 0.06);
       board.rotation.y = boardRotY;
+      board.userData.baseRotY = boardRotY;
       signGroup.add(board);
 
       const pill = this._createLabelSprite(pillText, pillAccent, 'rgba(18, 18, 21, 0.92)');
       pill.position.set(0, 3.18, 0);
       pill.scale.set(4.2, 0.84, 1);
       signGroup.add(pill);
+
+      if (!this.knockableSignRef) {
+        this.knockableSignRef = {
+          signGroup,
+          postPivot,
+          board,
+          pill,
+          baseRotY: boardRotY,
+        };
+      }
 
       this.causalPropsGroup.add(signGroup);
     };
@@ -785,23 +699,23 @@ export class ForensicScene3D {
       addTrafficSignPost(-14.0, 4.8, 'speed_30', '30 mph Limit (Diagram 670)', '#f59e0b', Math.PI / 2);
     }
 
-    // 3. Single Residential Building with Pitched Roof set back on NW Corner (x = -13, z = -13)
+    // 3. Monolithic Residential Building Massing set back on NW Corner (x = -13, z = -13)
     const nwHouse = this._buildNWResidentialHouse(-13.0, -13.0);
     this.causalPropsGroup.add(nwHouse);
 
-    // 4. Low Southern Garden Boundary Wall with Stone Coping Cap (x: -16 to -2, z = 5.2)
+    // 4. Low Southern Garden Boundary Wall with Coping Cap (x: -16 to -2, z = 5.2)
     const southWall = this._buildSouthGardenBoundaryWall();
     this.causalPropsGroup.add(southWall);
 
-    // 5. NW Corner Smooth Rounded Hedgerow & Trees (Sightline Blocker between Minor Arm & Priority Corridor)
+    // 5. NW Corner Smooth Rounded Hedgerow & Trees (Sightline Blocker — no orange wireframe clutter)
     const hedgeGroup = new THREE.Group();
     const hedgeMat = new THREE.MeshStandardMaterial({
-      color: 0x26382c,
+      color: 0x2c4c3c,
       roughness: 0.9,
       metalness: 0.02,
     });
     const canopyMat = new THREE.MeshStandardMaterial({
-      color: 0x2d4234,
+      color: 0x345947,
       roughness: 0.88,
       metalness: 0.02,
     });
@@ -848,13 +762,6 @@ export class ForensicScene3D {
     treeCrown1.castShadow = true;
     hedgeGroup.add(treeCrown1);
 
-    const hedgeWire = new THREE.LineSegments(
-      new THREE.EdgesGeometry(new THREE.BoxGeometry(6.9, 2.15, 1.38)),
-      new THREE.LineBasicMaterial({ color: 0xf97316, transparent: true, opacity: 0.45 })
-    );
-    hedgeWire.position.set(-7.6, 1.08, -5.1);
-    hedgeGroup.add(hedgeWire);
-
     this.causalPropsGroup.add(hedgeGroup);
   }
 
@@ -877,7 +784,7 @@ export class ForensicScene3D {
       {
         pos: [19.2, 1.15, -2.0],
         size: [5.4, 2.2, 2.1],
-        label: 'Stripped #2 • Distant Background Van',
+        label: 'Stripped #3 • Distant Background Van',
       },
       {
         pos: [-12.5, 0.6, 6.5],
@@ -915,22 +822,6 @@ export class ForensicScene3D {
   _buildImpactAndSightlineEffects() {
     this.effectsGroup.clear();
 
-    // Sightline Laser Ray between Vehicle A and Vehicle B
-    const lineGeo = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(-1.8, 1.2, -10),
-      new THREE.Vector3(-16.0, 1.1, 1.6),
-    ]);
-    this.sightlineMat = new THREE.LineDashedMaterial({
-      color: 0xef4444,
-      dashSize: 0.6,
-      gapSize: 0.35,
-      transparent: true,
-      opacity: 0.85,
-    });
-    this.sightlineRay = new THREE.Line(lineGeo, this.sightlineMat);
-    this.sightlineRay.computeLineDistances();
-    this.effectsGroup.add(this.sightlineRay);
-
     // Expanding Impact Shockwave Ring at (0.0, 0.2)
     const ringGeo = new THREE.RingGeometry(0.4, 0.75, 48);
     this.impactRingMat = new THREE.MeshBasicMaterial({
@@ -955,6 +846,76 @@ export class ForensicScene3D {
     this.impactBeacon = new THREE.Mesh(beaconGeo, this.impactBeaconMat);
     this.impactBeacon.position.set(0.0, 2.25, 0.2);
     this.effectsGroup.add(this.impactBeacon);
+
+    // 28 Ballistic Crash Debris Shards (shattered glass, dark bumper trim, painted body splinters)
+    this.debrisGroup = new THREE.Group();
+    this.debrisGroup.visible = false;
+    this.debrisMeshes = [];
+
+    const glassShardMat = new THREE.MeshStandardMaterial({
+      color: 0xe2e8f0,
+      roughness: 0.15,
+      metalness: 0.85,
+      transparent: true,
+      opacity: 0.88,
+    });
+    const trimShardMat = new THREE.MeshStandardMaterial({
+      color: 0x18181b,
+      roughness: 0.75,
+      metalness: 0.2,
+    });
+    this.debrisMatBodyA = new THREE.MeshStandardMaterial({
+      color: 0x2563eb,
+      roughness: 0.32,
+      metalness: 0.5,
+    });
+    this.debrisMatBodyB = new THREE.MeshStandardMaterial({
+      color: 0xea580c,
+      roughness: 0.32,
+      metalness: 0.5,
+    });
+
+    const shardGeos = [
+      new THREE.DodecahedronGeometry(0.11, 0),
+      new THREE.BoxGeometry(0.24, 0.05, 0.16),
+      new THREE.TetrahedronGeometry(0.13, 0),
+    ];
+
+    for (let i = 0; i < 28; i++) {
+      const mat =
+        i % 4 === 0
+          ? glassShardMat
+          : i % 4 === 1
+            ? trimShardMat
+            : i % 4 === 2
+              ? this.debrisMatBodyA
+              : this.debrisMatBodyB;
+      const mesh = new THREE.Mesh(shardGeos[i % shardGeos.length], mat);
+      mesh.castShadow = true;
+      this.debrisGroup.add(mesh);
+      this.debrisMeshes.push(mesh);
+    }
+    this.effectsGroup.add(this.debrisGroup);
+
+    // 12 Billowing Verge Dust / Smoke Plume Spheres
+    this.dustPlumeGroup = new THREE.Group();
+    this.dustPlumeGroup.visible = false;
+    this.dustPuffMeshes = [];
+    const puffGeo = new THREE.SphereGeometry(0.45, 14, 12);
+    for (let i = 0; i < 12; i++) {
+      const puffMat = new THREE.MeshStandardMaterial({
+        color: i % 2 === 0 ? 0x94a3b8 : 0x64748b,
+        roughness: 0.96,
+        metalness: 0.0,
+        transparent: true,
+        opacity: 0.0,
+        depthWrite: false,
+      });
+      const puffMesh = new THREE.Mesh(puffGeo, puffMat);
+      this.dustPlumeGroup.add(puffMesh);
+      this.dustPuffMeshes.push(puffMesh);
+    }
+    this.effectsGroup.add(this.dustPlumeGroup);
   }
 
   _createLabelSprite(
@@ -1505,43 +1466,40 @@ export class ForensicScene3D {
     this.impactRingMesh.position.set(ix, 0.06, iz);
     this.impactBeacon.position.set(ix, 2.25, iz);
 
-    // Build vehicles & trajectory ribbons
+    // Build vehicles & trajectory ribbons strictly within observed video window [0, duration_seconds]
+    const maxVideoDuration = Number(report.duration_seconds) || 4.5;
+    this.continuousTrajectory = buildContinuousPhysicsTrajectory(report);
+
     report.vehicles.forEach((vehicle) => {
       const vObj = this._buildVehicleMesh(vehicle);
       this.vehiclesGroup.add(vObj.rootGroup);
       this.vehicleMeshes.set(vehicle.vehicle_id, vObj);
 
-      // Trajectory ribbon on roadway
+      // Trajectory ribbon on roadway (bounded strictly to observed video keyframes)
       if (Array.isArray(vehicle.keyframes) && vehicle.keyframes.length >= 2) {
-        const pts = vehicle.keyframes.map(
-          (kf) => new THREE.Vector3(kf.x_meters, 0.08, kf.z_meters)
+        const boundedKfs = vehicle.keyframes.filter(
+          (kf) => kf.timestamp_sec >= 0 && kf.timestamp_sec <= maxVideoDuration + 0.05
+        );
+        const pts = (boundedKfs.length >= 2 ? boundedKfs : vehicle.keyframes).map(
+          (kf) => new THREE.Vector3(kf.x_meters, 0.06, kf.z_meters)
         );
         const curve = new THREE.CatmullRomCurve3(pts);
-        const tubeGeo = new THREE.TubeGeometry(curve, 48, 0.12, 8, false);
+        const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.09, 8, false);
         const tubeMat = new THREE.MeshBasicMaterial({
           color: new THREE.Color(vehicle.color_hex || '#38bdf8'),
           transparent: true,
-          opacity: 0.62,
+          opacity: 0.55,
         });
         this.trajectoriesGroup.add(new THREE.Mesh(tubeGeo, tubeMat));
       }
     });
 
-    // Build 3D Camera Frustum Wireframes
-    if (Array.isArray(report.detected_cameras)) {
-      report.detected_cameras.forEach((cam) => {
-        const camGrp = new THREE.Group();
-        camGrp.position.set(cam.mount_position_x, cam.mount_position_y, cam.mount_position_z);
-        const coneGeo = new THREE.ConeGeometry(1.1, 2.4, 4, 1, true);
-        coneGeo.rotateX(Math.PI / 2);
-        const edges = new THREE.LineSegments(
-          new THREE.EdgesGeometry(coneGeo),
-          new THREE.LineBasicMaterial({ color: 0xe4e4e7, transparent: true, opacity: 0.72 })
-        );
-        camGrp.lookAt(cam.look_at_x, 0.8, cam.look_at_z);
-        camGrp.add(edges);
-        this.camerasGroup.add(camGrp);
-      });
+    // Color debris shards to match the two vehicles in this case
+    if (this.debrisMatBodyA && report.vehicles[0]?.color_hex) {
+      this.debrisMatBodyA.color.set(report.vehicles[0].color_hex);
+    }
+    if (this.debrisMatBodyB && report.vehicles[1]?.color_hex) {
+      this.debrisMatBodyB.color.set(report.vehicles[1].color_hex);
     }
 
     this.updateAtTime(this.currentTime);
@@ -1600,12 +1558,23 @@ export class ForensicScene3D {
       );
     });
 
-    // 2. Enforce Solid Rigid-Body OBB Physics (Separating Axis Theorem + Impulse-Momentum)
-    // Guarantees zero interpenetration (penetration_m === 0) before, at, and after impact
+    // 2. Enforce C1-Continuous Solid Rigid-Body OBB Physics (zero teleportation, zero interpenetration)
     const impactT = this.reportData.impact_timestamp_sec ?? 1.15;
     const vAObj = this.vehicleMeshes.get('vehicle_a');
     const vBObj = this.vehicleMeshes.get('vehicle_b');
-    if (vAObj && vBObj && telemetrySnapshot.vehicle_a && telemetrySnapshot.vehicle_b) {
+    if (this.continuousTrajectory?.sampleAtTime && vAObj && vBObj) {
+      const sampled = this.continuousTrajectory.sampleAtTime(timestampSec);
+      if (sampled?.stateA && sampled?.stateB) {
+        telemetrySnapshot.vehicle_a = sampled.stateA;
+        telemetrySnapshot.vehicle_b = sampled.stateB;
+        this.lastPhysicsTelemetry = {
+          ...sampled.physicsTelemetry,
+          webgpu_backend: this.webgpuPhysics?.backendLabel || 'WebGPU / Continuous OBB Integrator',
+          webgpu_supported: Boolean(this.webgpuPhysics?.supported),
+        };
+        telemetrySnapshot._physics = this.lastPhysicsTelemetry;
+      }
+    } else if (vAObj && vBObj && telemetrySnapshot.vehicle_a && telemetrySnapshot.vehicle_b) {
       const resolved = resolveVehiclePairPhysics(
         telemetrySnapshot.vehicle_a,
         vAObj.vehicleData,
@@ -1624,7 +1593,12 @@ export class ForensicScene3D {
       telemetrySnapshot._physics = this.lastPhysicsTelemetry;
     }
 
-    // 3. Apply resolved solid-body states to 3D vehicle meshes
+    // 3. Compute post-impact crash destruction state (crumple, debris shards, dust plume, knocked road sign)
+    const ix = this.reportData.impact_x_meters ?? 0.0;
+    const iz = this.reportData.impact_z_meters ?? 0.2;
+    const destruction = computeCrashDestructionState(timestampSec, impactT, ix, iz);
+
+    // 4. Apply resolved solid-body states & post-impact crumple to 3D vehicle meshes
     this.vehicleMeshes.forEach((vObj, vehicleId) => {
       const kf = telemetrySnapshot[vehicleId];
       if (!kf) return;
@@ -1638,16 +1612,37 @@ export class ForensicScene3D {
       vObj.bodyTiltGroup.rotation.z = rollRad;
       vObj.bodyTiltGroup.position.y = Math.abs(Math.sin(rollRad)) * 0.42;
 
-      // Nose dive pitch when braking actively
-      vObj.bodyTiltGroup.rotation.x = kf.braking_active ? -0.045 : 0.0;
+      // Realistic post-impact front-end crumple compression & pitch
+      const crumpleFactor = destruction?.active
+        ? vehicleId === 'vehicle_a'
+          ? destruction.crumpleA || 0
+          : destruction.crumpleB || 0
+        : 0;
+      vObj.bodyTiltGroup.scale.set(
+        1.0 + crumpleFactor * 0.035,
+        1.0 + crumpleFactor * 0.025,
+        1.0 - crumpleFactor * 0.085
+      );
+
+      // Nose dive pitch when braking actively + impact jolt
+      const joltPitch = destruction?.active ? Math.sin(destruction.dt * 18) * Math.exp(-destruction.dt * 4.5) * 0.055 : 0;
+      vObj.bodyTiltGroup.rotation.x = (kf.braking_active ? -0.038 : 0.0) + joltPitch;
 
       // Emissive crimson brake lights
       vObj.brakeLightMat.emissiveIntensity = kf.braking_active ? 3.5 : 0.2;
 
+      // Spin wheels proportional to distance traveled
+      if (Array.isArray(vObj.wheels)) {
+        const wheelSpin = timestampSec * (kf.speed_mph * 0.44704) * 2.8;
+        vObj.wheels.forEach((w) => {
+          w.rotation.x = -wheelSpin;
+        });
+      }
+
       // Velocity arrow length proportional to speed_mph
-      const speedLen = Math.max(0.4, (kf.speed_mph / 45) * 4.8);
-      vObj.velocityArrow.setLength(speedLen, 0.65, 0.4);
-      vObj.velocityArrow.visible = kf.speed_mph > 0.5;
+      const speedLen = Math.max(0.4, (kf.speed_mph / 45) * 4.2);
+      vObj.velocityArrow.setLength(speedLen, 0.55, 0.35);
+      vObj.velocityArrow.visible = kf.speed_mph > 0.8;
 
       // Update floating monochrome pill readout
       if (vObj.labelSprite?.userData?.updateLabel) {
@@ -1656,10 +1651,10 @@ export class ForensicScene3D {
           Math.abs(kf.roll_deg || 0) > 15
             ? `ROLL ${Math.round(kf.roll_deg)}°`
             : Math.abs(timestampSec - impactT) <= 0.08
-              ? 'IMPACT CONTACT'
+              ? 'IMPACT'
               : kf.braking_active
                 ? 'BRAKING'
-                : 'CRUISE';
+                : 'MOVING';
         vObj.labelSprite.userData.updateLabel(
           `${plate} • ${kf.speed_mph.toFixed(1)} mph (${suffix})`
         );
@@ -1668,24 +1663,54 @@ export class ForensicScene3D {
       positions[vehicleId] = new THREE.Vector3(kf.x_meters, 1.1, kf.z_meters);
     });
 
-    // Update Sightline Laser Ray between Vehicle A and Vehicle B
-    if (positions.vehicle_a && positions.vehicle_b) {
-      const posAttr = this.sightlineRay.geometry.attributes.position;
-      posAttr.setXYZ(0, positions.vehicle_a.x, 1.15, positions.vehicle_a.z);
-      posAttr.setXYZ(1, positions.vehicle_b.x, 1.05, positions.vehicle_b.z);
-      posAttr.needsUpdate = true;
-      this.sightlineRay.computeLineDistances();
-      this.sightlineMat.color.setHex(timestampSec < 0.68 ? 0xef4444 : 0xf59e0b);
+    // 5. Animate Ballistic Crash Debris Shards, Verge Dust Plume & Knocked Road Sign
+    if (this.debrisGroup && Array.isArray(this.debrisMeshes)) {
+      if (destruction?.active && Array.isArray(destruction.shards)) {
+        this.debrisGroup.visible = true;
+        this.debrisMeshes.forEach((mesh, idx) => {
+          const s = destruction.shards[idx];
+          if (!s) return;
+          mesh.position.set(s.x, s.y, s.z);
+          mesh.rotation.set(s.rx, s.ry, s.rz);
+          mesh.scale.setScalar(s.scale || 1.0);
+        });
+      } else {
+        this.debrisGroup.visible = false;
+      }
     }
 
-    // Impact Shockwave Ring & Beacon animation around impact_timestamp_sec
+    if (this.dustPlumeGroup && Array.isArray(this.dustPuffMeshes)) {
+      if (destruction?.active && Array.isArray(destruction.dustPuffs)) {
+        this.dustPlumeGroup.visible = true;
+        this.dustPuffMeshes.forEach((puff, idx) => {
+          const d = destruction.dustPuffs[idx];
+          if (!d) return;
+          puff.position.set(d.x, d.y, d.z);
+          puff.scale.setScalar(d.scale || 1.0);
+          puff.material.opacity = d.opacity || 0.0;
+        });
+      } else {
+        this.dustPlumeGroup.visible = false;
+      }
+    }
+
+    if (this.knockableSignRef?.postPivot) {
+      if (destruction?.active && destruction.signKnockdown) {
+        this.knockableSignRef.postPivot.rotation.x = destruction.signKnockdown.tiltRadX || 0;
+        this.knockableSignRef.postPivot.rotation.z = destruction.signKnockdown.tiltRadZ || 0;
+      } else {
+        this.knockableSignRef.postPivot.rotation.set(0, 0, 0);
+      }
+    }
+
+    // 6. Subtle Impact Shockwave Ring & Beacon animation around impact_timestamp_sec
     const dtImpact = timestampSec - impactT;
-    if (dtImpact >= -0.05 && dtImpact <= 1.2) {
-      const norm = Math.max(0, dtImpact / 1.2);
-      const scale = 1.0 + norm * 7.5;
+    if (dtImpact >= -0.04 && dtImpact <= 0.95) {
+      const norm = Math.max(0, dtImpact / 0.95);
+      const scale = 1.0 + norm * 5.5;
       this.impactRingMesh.scale.set(scale, scale, 1);
-      this.impactRingMat.opacity = Math.max(0, 0.85 * (1 - norm));
-      this.impactBeaconMat.opacity = Math.max(0, 0.65 * (1 - norm));
+      this.impactRingMat.opacity = Math.max(0, 0.72 * (1 - norm));
+      this.impactBeaconMat.opacity = Math.max(0, 0.45 * (1 - norm));
     } else {
       this.impactRingMat.opacity = 0;
       this.impactBeaconMat.opacity = 0;

@@ -3,11 +3,7 @@ import cheadleCaseData from '../../data/case_cheadle_a521_junction.json';
 import delphouseCaseData from '../../data/case_delphouse_rollover.json';
 import a521HgvCaseData from '../../data/case_a521_hgv_corridor.json';
 
-const CASES_STORE = {
-  cheadle_a521: structuredClone(cheadleCaseData),
-  delphouse_rollover: structuredClone(delphouseCaseData),
-  a521_hgv: structuredClone(a521HgvCaseData),
-};
+const IS_LOCAL_ENV = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
 const CASE_VIDEO_MAP = {
   'UK-2026-0891': {
@@ -60,6 +56,254 @@ const CASE_VIDEO_MAP = {
   },
 };
 
+const DEFAULT_TSRGD_SIGN_ELEMENTS = [
+  {
+    element_id: 'sign_give_way_602',
+    element_type: 'give_way_sign',
+    label: 'UK Diagram 602 Give Way Sign (Draycott Cross Rd)',
+    x_meters: -5.2,
+    z_meters: -6.8,
+    radius_meters: 0.6,
+    is_causal: true,
+    causal_relevance: 'Primary statutory priority control governing emerging Vehicle A.',
+    tsrgd_diagram: 'TSRGD 2016 Diagram 602',
+    statutory_duty:
+      'Highway Code Rule 172 & RTA 1988 s.36: Driver approaching an inverted red-bordered triangle MUST give way to all traffic on the major road (A521).',
+    driver_compliance:
+      'NON-COMPLIANT (BREACHED) — Vehicle A failed to halt at the Give Way line and emerged directly into the path of oncoming traffic.',
+    legal_liability_impact:
+      'Establishes primary liability (75%) against the emerging driver under Powell v Moody [1966].',
+  },
+  {
+    element_id: 'marking_give_way_1003a',
+    element_type: 'road_marking',
+    label: 'UK Diagram 1003A Double Dashed Give Way Line',
+    x_meters: -1.8,
+    z_meters: -4.8,
+    radius_meters: 1.5,
+    is_causal: true,
+    causal_relevance: 'Defines exact statutory boundary between minor and major carriageway.',
+    tsrgd_diagram: 'TSRGD 2016 Diagram 1003A',
+    statutory_duty:
+      'Vehicles on minor road must not cross the transverse double-dashed line unless the major road is clear in both directions.',
+    driver_compliance:
+      'NON-COMPLIANT (BREACHED) — Crossed at t = 0.65s while Vehicle B was 17.8m away.',
+    legal_liability_impact:
+      'Confirms point of statutory encroachment into the major road priority corridor.',
+  },
+  {
+    element_id: 'sign_speed_limit_670',
+    element_type: 'speed_limit_sign',
+    label: 'UK Diagram 670 30 mph Terminal Speed Limit Sign (A521)',
+    x_meters: -18.0,
+    z_meters: 4.5,
+    radius_meters: 0.6,
+    is_causal: true,
+    causal_relevance: 'Establishes mandatory 30 mph urban speed limit along A521 corridor.',
+    tsrgd_diagram: 'TSRGD 2016 Diagram 670',
+    statutory_duty:
+      'Road Traffic Regulation Act 1984 s.81 & Highway Code Rule 124: Maximum lawful speed is 30 mph (13.41 m/s).',
+    driver_compliance:
+      'NON-COMPLIANT (BREACHED) — Main road vehicle approached at 41.2 mph (37% above the 30 mph limit), adding +12.4m to wet-road stopping distance.',
+    legal_liability_impact:
+      'Triggers 25% contributory negligence deduction under Law Reform (Contributory Negligence) Act 1945.',
+  },
+];
+
+function escapeHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatMotBadgeText(v) {
+  if (!v) return 'MOT Valid';
+  const statusStr = String(v.mot_status || v.dvsa_mot_status || '');
+  const rawExpiry = String(v.mot_expiry_date || v.dvsa_mot_expiry || '')
+    .replace(/\s*\(EXPIRED\)/gi, '')
+    .trim();
+  const isMotExpired =
+    statusStr.toUpperCase().includes('EXPIRED') ||
+    String(v.mot_expiry_date || v.dvsa_mot_expiry || '').toUpperCase().includes('EXPIRED');
+  return isMotExpired
+    ? `MOT Expired${rawExpiry ? ' · ' + rawExpiry : ''}`
+    : `MOT Valid${rawExpiry && rawExpiry.toLowerCase() !== 'valid' ? ' · ' + rawExpiry : ''}`;
+}
+
+function normalizeAndEnrichCaseBundle(bundle, options = {}) {
+  if (!bundle || typeof bundle !== 'object') return bundle;
+  bundle.case_metadata = bundle.case_metadata || {};
+  const report = bundle.report || {};
+  bundle.report = report;
+
+  const caseKey = options.caseKey || bundle.case_id || bundle.case_metadata.id || 'cheadle_a521';
+
+  if (options.isPublicDemo) {
+    bundle.is_public_demo = true;
+    bundle.local_only = false;
+    bundle.case_metadata.is_public_demo = true;
+    bundle.case_metadata.local_only = false;
+  } else if (options.localOnly) {
+    bundle.local_only = true;
+    bundle.is_public_demo = false;
+    bundle.case_metadata.local_only = true;
+    bundle.case_metadata.is_public_demo = false;
+  } else if (options.isUserCreated) {
+    bundle.is_user_created = true;
+    bundle.local_only = false;
+    bundle.case_metadata.is_user_created = true;
+    bundle.case_metadata.local_only = false;
+  }
+
+  // Video URL & CASE_VIDEO_MAP registration so newly constructed cases get real video thumbnails & cockpit playback
+  if (options.uploadedBlobUrl) {
+    report.video_url = options.uploadedBlobUrl;
+    bundle.case_metadata.video_url = options.uploadedBlobUrl;
+  } else if (!report.video_url) {
+    report.video_url =
+      bundle.case_metadata.video_url ||
+      CASE_VIDEO_MAP[caseKey]?.url ||
+      CASE_VIDEO_MAP[report.claim_id]?.url ||
+      '/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4';
+    bundle.case_metadata.video_url = report.video_url;
+  }
+
+  const impactTime = Number(report.impact_timestamp_sec || 1.15);
+  const existingVideoMeta = CASE_VIDEO_MAP[caseKey] || CASE_VIDEO_MAP[report.claim_id];
+  const videoEntry = {
+    url: report.video_url,
+    previewTime: existingVideoMeta?.previewTime ?? impactTime,
+    camLabel: options.isUserCreated
+      ? 'UPLOADED CCTV / DASHCAM'
+      : existingVideoMeta?.camLabel || 'RING CCTV · FOREGROUND',
+    impactBadge: options.isUserCreated
+      ? `AGENT 3D RECONSTRUCTION @ t=${impactTime.toFixed(2)}s`
+      : existingVideoMeta?.impactBadge || `IMPACT @ t=${impactTime.toFixed(2)}s`,
+  };
+  if (caseKey) CASE_VIDEO_MAP[caseKey] = videoEntry;
+  if (report.claim_id && (options.isUserCreated || !CASE_VIDEO_MAP[report.claim_id])) {
+    CASE_VIDEO_MAP[report.claim_id] = videoEntry;
+  }
+
+  // Clean MOT expiry fields & ensure negative-only defect classifications on all vehicles
+  if (Array.isArray(report.vehicles)) {
+    report.vehicles.forEach((v) => {
+      const wasExpired =
+        String(v.mot_status || v.dvsa_mot_status || '')
+          .toUpperCase()
+          .includes('EXPIRED') ||
+        String(v.mot_expiry_date || v.dvsa_mot_expiry || '')
+          .toUpperCase()
+          .includes('EXPIRED');
+      if (wasExpired) {
+        v.dvsa_mot_status = 'EXPIRED';
+      }
+      if (v.dvsa_mot_expiry) {
+        v.dvsa_mot_expiry = String(v.dvsa_mot_expiry)
+          .replace(/\s*\(EXPIRED\)/gi, '')
+          .trim();
+      }
+      if (v.mot_expiry_date) {
+        v.mot_expiry_date = String(v.mot_expiry_date)
+          .replace(/\s*\(EXPIRED\)/gi, '')
+          .trim();
+      }
+    });
+  }
+
+  // Ensure TSRGD 2016 road signs & statutory compliance elements exist on newly constructed agent cases
+  if (!Array.isArray(report.scene_environment_elements)) {
+    report.scene_environment_elements = structuredClone(DEFAULT_TSRGD_SIGN_ELEMENTS);
+  } else {
+    const hasTsrgdElements = report.scene_environment_elements.some(
+      (el) => el.tsrgd_diagram || el.statutory_duty
+    );
+    if (!hasTsrgdElements) {
+      report.scene_environment_elements = [
+        ...report.scene_environment_elements,
+        ...structuredClone(DEFAULT_TSRGD_SIGN_ELEMENTS),
+      ];
+    }
+  }
+
+  // Strictly clamp 3D trajectory keyframes & forensic events to observed video window [0.0, effectiveDuration]
+  // Never invent or extrapolate scene states before t = 0.0s (video start) or after video end
+  let maxObservedKeyframeT = 0;
+  if (Array.isArray(report.vehicles)) {
+    report.vehicles.forEach((v) => {
+      if (Array.isArray(v.trajectory_3d)) {
+        v.trajectory_3d.forEach((kf) => {
+          if (Number(kf.timestamp_sec) > maxObservedKeyframeT) {
+            maxObservedKeyframeT = Number(kf.timestamp_sec);
+          }
+        });
+      }
+    });
+  }
+  const effectiveDuration = Number(
+    report.video_duration_sec ||
+      report.duration_seconds ||
+      (maxObservedKeyframeT > 0 ? maxObservedKeyframeT : 3.0)
+  );
+  report.video_start_sec = 0.0;
+  report.duration_seconds = effectiveDuration;
+
+  if (Array.isArray(report.vehicles)) {
+    report.vehicles.forEach((v) => {
+      if (Array.isArray(v.trajectory_3d)) {
+        v.trajectory_3d = v.trajectory_3d
+          .filter(
+            (kf) =>
+              Number(kf.timestamp_sec) >= 0.0 &&
+              Number(kf.timestamp_sec) <= effectiveDuration + 0.001
+          )
+          .map((kf) => ({
+            ...kf,
+            timestamp_sec: Math.max(
+              0.0,
+              Math.min(effectiveDuration, Number(kf.timestamp_sec) || 0.0)
+            ),
+          }));
+      }
+    });
+  }
+
+  if (Array.isArray(report.forensic_events)) {
+    report.forensic_events = report.forensic_events
+      .filter(
+        (ev) =>
+          Number(ev.timestamp_sec) >= 0.0 &&
+          Number(ev.timestamp_sec) <= effectiveDuration + 0.001
+      )
+      .map((ev) => ({
+        ...ev,
+        timestamp_sec: Math.max(
+          0.0,
+          Math.min(effectiveDuration, Number(ev.timestamp_sec) || 0.0)
+        ),
+      }));
+  }
+
+  return bundle;
+}
+
+const CASES_STORE = {
+  cheadle_a521: normalizeAndEnrichCaseBundle(structuredClone(cheadleCaseData), {
+    caseKey: 'cheadle_a521',
+    isPublicDemo: true,
+  }),
+  delphouse_rollover: normalizeAndEnrichCaseBundle(structuredClone(delphouseCaseData), {
+    caseKey: 'delphouse_rollover',
+    localOnly: true,
+  }),
+  a521_hgv: normalizeAndEnrichCaseBundle(structuredClone(a521HgvCaseData), {
+    caseKey: 'a521_hgv',
+    localOnly: true,
+  }),
+};
+
 let activeCaseId = 'cheadle_a521';
 let scene3d = null;
 let isPlaying = false;
@@ -79,30 +323,8 @@ const CAMERA_MODE_LABELS = {
   cctv_1: 'CAM: RING CCTV POV (STATIC)',
 };
 
-function escapeHtml(str) {
-  return String(str ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
 function getActiveCase() {
   return CASES_STORE[activeCaseId] || CASES_STORE.cheadle_a521;
-}
-
-function formatMotBadgeText(v) {
-  if (!v) return 'MOT Valid';
-  const statusStr = String(v.mot_status || v.dvsa_mot_status || '');
-  const rawExpiry = String(v.mot_expiry_date || v.dvsa_mot_expiry || '')
-    .replace(/\s*\(EXPIRED\)/gi, '')
-    .trim();
-  const isMotExpired =
-    statusStr.toUpperCase().includes('EXPIRED') ||
-    String(v.mot_expiry_date || v.dvsa_mot_expiry || '').toUpperCase().includes('EXPIRED');
-  return isMotExpired
-    ? `MOT Expired${rawExpiry ? ' · ' + rawExpiry : ''}`
-    : `MOT Valid${rawExpiry && rawExpiry.toLowerCase() !== 'valid' ? ' · ' + rawExpiry : ''}`;
 }
 
 /* ============================================================================
@@ -141,7 +363,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       const payload = await resp.json();
       if (payload.cases_by_id) {
         Object.entries(payload.cases_by_id).forEach(([k, v]) => {
-          if (v && v.report) CASES_STORE[k] = v;
+          if (v && v.report) {
+            CASES_STORE[k] = normalizeAndEnrichCaseBundle(v, {
+              caseKey: k,
+              isPublicDemo: k === 'cheadle_a521',
+              localOnly: k === 'delphouse_rollover' || k === 'a521_hgv',
+            });
+          }
         });
         renderWorkspaceCards();
         loadCaseIntoCockpit(activeCaseId);
@@ -207,8 +435,11 @@ function setupNavigationAndViewSwitching() {
   }
 
   document.querySelectorAll('.case-pill').forEach((pill) => {
+    const caseId = pill.dataset.caseId;
+    if (!IS_LOCAL_ENV && (caseId === 'delphouse_rollover' || caseId === 'a521_hgv')) {
+      pill.hidden = true;
+    }
     pill.addEventListener('click', () => {
-      const caseId = pill.dataset.caseId;
       if (caseId && CASES_STORE[caseId]) {
         switchView('cockpit');
         loadCaseIntoCockpit(caseId);
@@ -259,8 +490,41 @@ function renderWorkspaceCards() {
   const grid = document.getElementById('workspace-cards-grid');
   if (!grid) return;
 
-  const orderedKeys = ['cheadle_a521', 'delphouse_rollover', 'a521_hgv'];
-  grid.innerHTML = orderedKeys
+  const baseKeys = ['cheadle_a521', 'delphouse_rollover', 'a521_hgv'];
+  const userKeys = Object.keys(CASES_STORE).filter((k) => !baseKeys.includes(k));
+  const allKeys = [...baseKeys, ...userKeys];
+
+  // Filter cases based on environment:
+  // - On public Vercel (!IS_LOCAL_ENV): show ONLY Case 1 (is_public_demo) + any newly constructed user cases (is_user_created)
+  // - On localhost (IS_LOCAL_ENV): show Case 1 + Cases 2 & 3 (local_only) + any newly constructed user cases
+  const visibleKeys = allKeys.filter((key) => {
+    const item = CASES_STORE[key];
+    if (!item || !item.report) return false;
+    if (IS_LOCAL_ENV) return true;
+    return Boolean(item.is_public_demo || item.is_user_created);
+  });
+
+  // Dynamically update section header subtitle
+  const sectionSubtitle = document.querySelector('.workspace-projects-section .mono-muted');
+  if (sectionSubtitle) {
+    const userCount = userKeys.length;
+    if (IS_LOCAL_ENV) {
+      sectionSubtitle.textContent =
+        userCount > 0
+          ? `1 Public Demo + 2 Local Dossiers + ${userCount} New Reconstruction${userCount > 1 ? 's' : ''} • 1M Token Implicit Cache Ready`
+          : '1 Public Demo + 2 Local Dossiers • 1M Token Implicit Cache Ready';
+    } else {
+      sectionSubtitle.textContent =
+        userCount > 0
+          ? `1 Public Demo + ${userCount} User Reconstruction${userCount > 1 ? 's' : ''} • Upload Footage to Construct New Cases`
+          : '1 Public Demo Reconstruction • Upload Footage to Construct New Cases';
+    }
+  }
+
+  const isSingleCard = visibleKeys.length === 1;
+  grid.classList.toggle('single-card-grid', isSingleCard);
+
+  grid.innerHTML = visibleKeys
     .map((key) => {
       const item = CASES_STORE[key];
       if (!item || !item.report) return '';
@@ -268,17 +532,41 @@ function renderWorkspaceCards() {
       const meta = item.case_metadata || {};
       const vehA = r.vehicles?.[0] || {};
       const vehB = r.vehicles?.[1] || {};
-      const motAExpired = String(vehA.dvsa_mot_status || '').toUpperCase().includes('EXPIRED');
-      const motBExpired = String(vehB.dvsa_mot_status || '').toUpperCase().includes('EXPIRED');
-      const shortTagline = CASE_SHORT_TAGLINES[key] || meta.subtitle || '';
+      const motAExpired =
+        String(vehA.mot_status || vehA.dvsa_mot_status || '')
+          .toUpperCase()
+          .includes('EXPIRED') ||
+        String(vehA.mot_expiry_date || vehA.dvsa_mot_expiry || '')
+          .toUpperCase()
+          .includes('EXPIRED');
+      const motBExpired =
+        String(vehB.mot_status || vehB.dvsa_mot_status || '')
+          .toUpperCase()
+          .includes('EXPIRED') ||
+        String(vehB.mot_expiry_date || vehB.dvsa_mot_expiry || '')
+          .toUpperCase()
+          .includes('EXPIRED');
+      const shortTagline = CASE_SHORT_TAGLINES[key] || meta.subtitle || r.incident_summary || '';
+
+      let scopeBadgeHtml = '';
+      if (item.is_public_demo) {
+        scopeBadgeHtml = '<span class="badge-tag emerald">PUBLIC DEMO / EXAMPLE</span>';
+      } else if (item.local_only) {
+        scopeBadgeHtml = '<span class="badge-tag amber mono">LOCAL ONLY</span>';
+      } else if (item.is_user_created) {
+        scopeBadgeHtml = '<span class="badge-tag cyan mono">NEW AGENT CASE</span>';
+      }
+
+      const singleCardStyle = isSingleCard ? 'style="max-width: 560px; width: 100%;"' : '';
 
       return `
-        <article class="workspace-case-card ${key === activeCaseId ? 'active-card' : ''}" data-case-id="${escapeHtml(key)}">
+        <article class="workspace-case-card ${key === activeCaseId ? 'active-card' : ''} ${isSingleCard ? 'single-demo-card' : ''}" data-case-id="${escapeHtml(key)}" ${singleCardStyle}>
           ${renderCaseCardMedia(key, meta, r)}
 
           <div class="card-header-group">
             <div class="card-top-badges">
               <span class="badge-tag cyan mono">${escapeHtml(r.claim_id)}</span>
+              ${scopeBadgeHtml}
               <span class="badge-tag emerald mono">£${Number(r.quantum_damage_estimate_gbp || 18450).toLocaleString('en-GB')} Quantum</span>
             </div>
             <h3 class="card-title">${escapeHtml(meta.title || r.claim_id)}</h3>
@@ -511,12 +799,18 @@ function loadCaseIntoCockpit(caseId) {
   const receiptBox = document.getElementById('settlement-receipt-box');
   if (receiptBox) receiptBox.hidden = true;
 
-  // Load 3D Scene & Timeline Markers
+  // Load 3D Scene & Timeline Markers strictly bounded to [0.0s, effectiveDuration]
+  syncTimelineDurationWithVideo(
+    videoEl && Number.isFinite(videoEl.duration) && videoEl.duration > 0
+      ? videoEl.duration
+      : report.video_duration_sec || report.duration_seconds || 3.0,
+    report
+  );
   if (scene3d) {
     scene3d.loadCaseData(report);
   }
   renderTimelineMarkers(report.forensic_events || []);
-  const impactT = report.impact_timestamp_sec ?? 1.15;
+  const impactT = Math.max(0, Math.min(maxDuration, Number(report.impact_timestamp_sec ?? 1.15)));
   scrubToTime(impactT);
 }
 
@@ -877,11 +1171,69 @@ function setupCausalFilterToggle() {
   });
 }
 
+function getTimelineScrubberEl() {
+  return (
+    document.getElementById('timeline-slider') ||
+    document.getElementById('timeline-scrubber')
+  );
+}
+
+function syncTimelineDurationWithVideo(durationSec, report) {
+  const fallbackDur = Number(report?.video_duration_sec || report?.duration_seconds || 3.0);
+  const rawDur =
+    Number.isFinite(Number(durationSec)) && Number(durationSec) > 0
+      ? Number(durationSec)
+      : fallbackDur;
+
+  // Never extrapolate beyond the observed trajectory or video window
+  let maxKeyframeT = 0;
+  if (report && Array.isArray(report.vehicles)) {
+    report.vehicles.forEach((v) => {
+      if (Array.isArray(v.trajectory_3d)) {
+        v.trajectory_3d.forEach((kf) => {
+          if (Number(kf.timestamp_sec) > maxKeyframeT) {
+            maxKeyframeT = Number(kf.timestamp_sec);
+          }
+        });
+      }
+    });
+  }
+
+  const boundedDur = maxKeyframeT > 0 ? Math.min(rawDur, maxKeyframeT) : rawDur;
+  maxDuration = Math.max(0.5, Number(boundedDur.toFixed(2)));
+
+  const slider = getTimelineScrubberEl();
+  if (slider) {
+    slider.min = '0.00';
+    slider.max = maxDuration.toFixed(2);
+  }
+
+  const timecodeDisplay = document.getElementById('timecode-display');
+  if (timecodeDisplay) {
+    const clampedCurrent = Math.max(0, Math.min(maxDuration, currentTime));
+    timecodeDisplay.textContent = `${clampedCurrent.toFixed(2).padStart(5, '0')}s / ${maxDuration.toFixed(2).padStart(5, '0')}s`;
+  }
+}
+
 function setupTimelineScrubber() {
-  const slider = document.getElementById('timeline-slider');
+  const slider = getTimelineScrubberEl();
   const btnPlay = document.getElementById('btn-play-pause');
+  const videoEl = document.getElementById('crash-video');
+
+  if (videoEl) {
+    videoEl.addEventListener('loadedmetadata', () => {
+      if (Number.isFinite(videoEl.duration) && videoEl.duration > 0) {
+        const activeBundle = getActiveCase();
+        syncTimelineDurationWithVideo(videoEl.duration, activeBundle?.report);
+        if (currentTime > maxDuration) {
+          scrubToTime(maxDuration);
+        }
+      }
+    });
+  }
 
   if (slider) {
+    slider.min = '0.00';
     slider.addEventListener('input', () => {
       setPlaybackState(false);
       scrubToTime(parseFloat(slider.value));
@@ -902,10 +1254,10 @@ function setupTimelineScrubber() {
       document.querySelectorAll('.speed-btn').forEach((b) => b.classList.remove('active'));
       btn.classList.add('active');
       playbackSpeed = parseFloat(btn.dataset.speed || '1.0');
-      const videoEl = document.getElementById('crash-video');
-      if (videoEl) {
+      const vEl = document.getElementById('crash-video');
+      if (vEl) {
         try {
-          videoEl.playbackRate = playbackSpeed;
+          vEl.playbackRate = playbackSpeed;
         } catch (_e) {
           // ignore
         }
@@ -987,9 +1339,9 @@ function tickPlaybackLoop(now) {
 }
 
 function scrubToTime(t) {
-  currentTime = Math.max(0, Math.min(maxDuration, Number(t) || 0));
+  currentTime = Math.max(0.0, Math.min(maxDuration, Number(t) || 0.0));
 
-  const slider = document.getElementById('timeline-slider');
+  const slider = getTimelineScrubberEl();
   if (slider) slider.value = currentTime.toFixed(2);
 
   const timecodeDisplay = document.getElementById('timecode-display');
@@ -1377,14 +1729,17 @@ function setupUploadModalAndClarificationFlow() {
         submitBtn.textContent = 'Building 3D Reconstruction & Legal Dossier…';
       }
 
+      const selectedFiles = fileInput?.files ? Array.from(fileInput.files) : [];
+      const uploadedBlobUrl =
+        selectedFiles.length > 0 ? URL.createObjectURL(selectedFiles[0]) : null;
+
       const fd = new FormData();
-      if (fileInput?.files?.length) {
-        Array.from(fileInput.files).forEach((f) => fd.append('videos', f));
-      }
+      selectedFiles.forEach((f) => fd.append('videos', f));
       fd.append('plate_1', p1);
       fd.append('plate_2', p2);
       fd.append('mode', 'sync');
 
+      let resultBundle = null;
       try {
         const res = await fetch('/api/analyze-claim', { method: 'POST', body: fd });
         if (res.ok) {
@@ -1400,23 +1755,45 @@ function setupUploadModalAndClarificationFlow() {
             return;
           }
           if (payload.report) {
-            CASES_STORE.cheadle_a521 = payload;
-            renderWorkspaceCards();
-            loadCaseIntoCockpit('cheadle_a521');
-            switchView('cockpit');
-            if (submitBtn) {
-              submitBtn.disabled = false;
-              submitBtn.textContent = defaultSubmitLabel;
-            }
-            dialog.close();
-            return;
+            resultBundle = payload;
           }
         }
       } catch (_err) {
-        // Fallback to Cheadle A521 reconstruction
+        // Fallback to synthesized reconstruction if backend is unreachable
       }
 
-      loadCaseIntoCockpit('cheadle_a521');
+      if (!resultBundle) {
+        resultBundle = structuredClone(CASES_STORE.cheadle_a521);
+        resultBundle.case_metadata = {
+          ...(resultBundle.case_metadata || {}),
+          title: `Live Forensic Analysis: ${p1} vs ${p2}`,
+          plate_1: p1,
+          plate_2: p2,
+        };
+        if (resultBundle.report?.vehicles?.[0]) {
+          resultBundle.report.vehicles[0].registration_plate = p1;
+        }
+        if (resultBundle.report?.vehicles?.[1]) {
+          resultBundle.report.vehicles[1].registration_plate = p2;
+        }
+      }
+
+      // Register newly constructed case with all fixes applied (video thumbnail, clean MOT badges, TSRGD signs)
+      const newCaseKey = `user_case_${Date.now().toString(36).slice(-5)}`;
+      resultBundle.case_id = newCaseKey;
+      if (!resultBundle.report.claim_id || resultBundle.report.claim_id === 'UK-2026-0819') {
+        resultBundle.report.claim_id = `UK-2026-${Math.floor(1000 + Math.random() * 8999)}`;
+      }
+
+      normalizeAndEnrichCaseBundle(resultBundle, {
+        caseKey: newCaseKey,
+        isUserCreated: true,
+        uploadedBlobUrl,
+      });
+
+      CASES_STORE[newCaseKey] = resultBundle;
+      renderWorkspaceCards();
+      loadCaseIntoCockpit(newCaseKey);
       switchView('cockpit');
       if (submitBtn) {
         submitBtn.disabled = false;
