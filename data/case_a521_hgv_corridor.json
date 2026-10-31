@@ -7,7 +7,7 @@
     "id": "a521_hgv",
     "claim_id": "UK-2026-0904",
     "title": "Case 3: A521 Huntley Brook HGV Lane Encroachment",
-    "subtitle": "KX71 HGV (DAF XF 480 Articulated HGV) vs LV20 RTY (Vauxhall Astra \u2014 Wet Bend)",
+    "subtitle": "KX71 HGV (DAF XF 480 Articulated HGV) vs LV20 RTY (Vauxhall Astra — Wet Bend)",
     "video_url": "/videos/clip2_5.07s_to_10.90s_pickup_vs_lorry.mp4",
     "duration_seconds": 5.8,
     "badge": "HGV WET CORRIDOR 80/20",
@@ -34,7 +34,7 @@
       "summary": "Pass 3 (DVSA Causal vs Non-Causal Audit): Flagged KX71 HGV's second-axle air brake actuator seepage [1.2.2] as CAUSAL to its extended wet-bend braking distance, while flagging LV20 RTY's parking brake advisory [1.4.2] and historical 2024 rear stop-lamp failure as NOT CAUSAL because LV20 RTY was travelling in its own lane using its hydraulic footbrake."
     }
   ],
-  "physics_audit_log": "ANTIGRAVITY SANDBOX KINEMATIC VERIFICATION (`antigravity-preview-09-2026` | `gemini-4-argon`):\n1. ARTICULATED HGV WET-BEND BRAKING & SWEPT PATH ENCROACHMENT (\u03bc = 0.50 WET TARMAC):\n   - KX71 HGV (38,000 kg gross combination weight) entered the A521 Huntley Brook bend at 38.5 mph (17.21 m/s).\n   - Incorporating 0.45s pneumatic air-brake build-up lag (exacerbated by DVSA second-axle actuator seepage 1.2.2) plus 0.67s driver reaction time, HGV stopping distance on wet asphalt (\u03bc_hgv = 0.42) was 55.2m, sweeping the offside trailer corner 1.15m across the Diagram 1004.1 centre hazard line.\n   - LV20 RTY (Vauxhall Astra) approached in the opposing lane at 34.0 mph (30 mph limit) and delayed evasive nearside steering by 0.4s, resulting in an 80% Defendant (KX71 HGV) / 20% Claimant (LV20 RTY) split under Laurie v Raglan Building Co Ltd [1942] and Baker v Willoughby [1970].",
+  "physics_audit_log": "ANTIGRAVITY SANDBOX KINEMATIC VERIFICATION (`antigravity-preview-09-2026` | `gemini-4-argon`):\n1. ARTICULATED HGV WET-BEND BRAKING & SWEPT PATH ENCROACHMENT (μ = 0.50 WET TARMAC):\n   - KX71 HGV (38,000 kg gross combination weight) entered the A521 Huntley Brook bend at 38.5 mph (17.21 m/s).\n   - Incorporating 0.45s pneumatic air-brake build-up lag (exacerbated by DVSA second-axle actuator seepage 1.2.2) plus 0.67s driver reaction time, HGV stopping distance on wet asphalt (μ_hgv = 0.42) was 55.2m, sweeping the offside trailer corner 1.15m across the Diagram 1004.1 centre hazard line.\n   - LV20 RTY (Vauxhall Astra) approached in the opposing lane at 34.0 mph (30 mph limit) and delayed evasive nearside steering by 0.4s, resulting in an 80% Defendant (KX71 HGV) / 20% Claimant (LV20 RTY) split under Laurie v Raglan Building Co Ltd [1942] and Baker v Willoughby [1970].",
   "report": {
     "claim_id": "UK-2026-0904",
     "duration_seconds": 5.8,
@@ -105,7 +105,7 @@
     "vehicles": [
       {
         "vehicle_id": "vehicle_a",
-        "label": "2021 White DAF XF 480 Articulated HGV (KX71 HGV \u2014 Lane Encroachment)",
+        "label": "2021 White DAF XF 480 Articulated HGV (KX71 HGV — Lane Encroachment)",
         "color_hex": "#F59E0B",
         "registration_plate": "KX71 HGV",
         "dvsa_make": "DAF",
@@ -123,123 +123,35 @@
             "test_date": "2025-10-29",
             "defect_category": "Advisory",
             "causal_status": "CAUSAL",
-            "forensic_explanation": "CAUSAL / CONTRIBUTORY \u2014 Increased pneumatic brake pressure build-up lag to 0.45s on the second axle while braking on a wet bend at 38.5 mph, exacerbating trailer off-tracking across the centre line."
+            "forensic_explanation": "CAUSAL / CONTRIBUTORY — Increased pneumatic brake pressure build-up lag to 0.45s on the second axle while braking on a wet bend at 38.5 mph, exacerbating trailer off-tracking across the centre line."
           },
           {
             "defect_text": "Advisory: Nearside wide-angle blind-spot mirror housing slight vibration play [3.3 (b)]",
             "test_date": "2025-10-29",
             "defect_category": "Advisory",
             "causal_status": "NOT CAUSAL",
-            "forensic_explanation": "NOT CAUSAL \u2014 Collision occurred on the offside (right-hand centre line) of the HGV during an opposing-lane pass; the nearside (left-hand passenger) blind-spot mirror had no bearing on offside lane keeping."
+            "forensic_explanation": "NOT CAUSAL — Collision occurred on the offside (right-hand centre line) of the HGV during an opposing-lane pass; the nearside (left-hand passenger) blind-spot mirror had no bearing on offside lane keeping."
           }
         ],
         "causally_relevant": true,
         "causal_role_reason": "Primary collision participant (Defendant HGV, 80% liable): encroached 1.15m across the Diagram 1004.1 centre hazard line on a wet 30 mph bend at 38.5 mph.",
         "keyframes": [
-          {
-            "timestamp_sec": 0.0,
-            "x_meters": 25.25,
-            "z_meters": -1.48,
-            "heading_deg": 266.5,
-            "speed_mph": 38.5,
-            "braking_active": false,
-            "roll_deg": 0.0
-          },
-          {
-            "timestamp_sec": 0.5,
-            "x_meters": 16.72,
-            "z_meters": -0.96,
-            "heading_deg": 266.9,
-            "speed_mph": 38.0,
-            "braking_active": true,
-            "roll_deg": 0.0
-          },
-          {
-            "timestamp_sec": 0.9,
-            "x_meters": 10.17,
-            "z_meters": -0.6,
-            "heading_deg": 267.3,
-            "speed_mph": 35.4,
-            "braking_active": true,
-            "roll_deg": 3.0
-          },
-          {
-            "timestamp_sec": 1.15,
-            "x_meters": 6.4,
-            "z_meters": -0.42,
-            "heading_deg": 268.5,
-            "speed_mph": 32.2,
-            "braking_active": true,
-            "roll_deg": 4.0
-          },
-          {
-            "timestamp_sec": 1.35,
-            "x_meters": 3.65,
-            "z_meters": -0.35,
-            "heading_deg": 268.5,
-            "speed_mph": 29.4,
-            "braking_active": true,
-            "roll_deg": 5.0
-          },
-          {
-            "timestamp_sec": 1.65,
-            "x_meters": 0.32,
-            "z_meters": -0.64,
-            "heading_deg": 268.0,
-            "speed_mph": 20.4,
-            "braking_active": true,
-            "roll_deg": 2.0
-          },
-          {
-            "timestamp_sec": 2.05,
-            "x_meters": -2.36,
-            "z_meters": -0.77,
-            "heading_deg": 270.0,
-            "speed_mph": 9.6,
-            "braking_active": true,
-            "roll_deg": 0.0
-          },
-          {
-            "timestamp_sec": 2.5,
-            "x_meters": -3.33,
-            "z_meters": -0.8,
-            "heading_deg": 270.0,
-            "speed_mph": 0.0,
-            "braking_active": true,
-            "roll_deg": 0.0
-          },
-          {
-            "timestamp_sec": 3.0,
-            "x_meters": -3.33,
-            "z_meters": -0.8,
-            "heading_deg": 270.0,
-            "speed_mph": 0.0,
-            "braking_active": false,
-            "roll_deg": 0.0
-          },
-          {
-            "timestamp_sec": 4.4,
-            "x_meters": -3.33,
-            "z_meters": -0.8,
-            "heading_deg": 270.0,
-            "speed_mph": 0.0,
-            "braking_active": false,
-            "roll_deg": 0.0
-          },
-          {
-            "timestamp_sec": 5.8,
-            "x_meters": -3.33,
-            "z_meters": -0.8,
-            "heading_deg": 270.0,
-            "speed_mph": 0.0,
-            "braking_active": false,
-            "roll_deg": 0.0
-          }
+          {"timestamp_sec": 0.0, "x_meters": 25.0, "z_meters": -1.45, "heading_deg": 266.0, "speed_mph": 38.5, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.5, "x_meters": 16.8, "z_meters": -0.95, "heading_deg": 264.0, "speed_mph": 38.0, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 0.9, "x_meters": 10.4, "z_meters": -0.6, "heading_deg": 263.0, "speed_mph": 35.4, "braking_active": true, "roll_deg": 3.0},
+          {"timestamp_sec": 1.15, "x_meters": 6.6, "z_meters": -0.42, "heading_deg": 263.0, "speed_mph": 32.2, "braking_active": true, "roll_deg": 4.0},
+          {"timestamp_sec": 1.35, "x_meters": 3.65, "z_meters": -0.35, "heading_deg": 264.0, "speed_mph": 29.4, "braking_active": true, "roll_deg": 5.0},
+          {"timestamp_sec": 1.65, "x_meters": 0.15, "z_meters": -0.65, "heading_deg": 268.0, "speed_mph": 20.4, "braking_active": true, "roll_deg": 2.0},
+          {"timestamp_sec": 2.05, "x_meters": -2.85, "z_meters": -0.8, "heading_deg": 270.0, "speed_mph": 9.6, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 2.5, "x_meters": -4.25, "z_meters": -0.85, "heading_deg": 270.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 3.0, "x_meters": -4.25, "z_meters": -0.85, "heading_deg": 270.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 4.4, "x_meters": -4.25, "z_meters": -0.85, "heading_deg": 270.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 5.8, "x_meters": -4.25, "z_meters": -0.85, "heading_deg": 270.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
         ]
       },
       {
         "vehicle_id": "vehicle_b",
-        "label": "2020 Blue Vauxhall Astra SRi (LV20 RTY \u2014 Eastbound Oncoming Lane)",
+        "label": "2020 Blue Vauxhall Astra SRi (LV20 RTY — Eastbound Oncoming Lane)",
         "color_hex": "#06B6D4",
         "registration_plate": "LV20 RTY",
         "dvsa_make": "VAUXHALL",
@@ -256,118 +168,30 @@
             "test_date": "2026-03-10",
             "defect_category": "Advisory",
             "causal_status": "NOT CAUSAL",
-            "forensic_explanation": "NOT CAUSAL \u2014 Mechanical handbrake/parking brake efficiency applies only to stationary parking; LV20 RTY was in motion and decelerated using its serviceable four-wheel hydraulic ABS footbrake."
+            "forensic_explanation": "NOT CAUSAL — Mechanical handbrake/parking brake efficiency applies only to stationary parking; LV20 RTY was in motion and decelerated using its serviceable four-wheel hydraulic ABS footbrake."
           }
         ],
         "causally_relevant": true,
         "causal_role_reason": "Primary collision participant (Claimant vehicle, 20% contributory negligence): remained in its own Eastbound lane when struck by the encroaching HGV, but approached the wet bend at 34.0 mph in a 30 mph limit.",
         "keyframes": [
-          {
-            "timestamp_sec": 0.0,
-            "x_meters": -20.94,
-            "z_meters": 2.07,
-            "heading_deg": 89.8,
-            "speed_mph": 34.0,
-            "braking_active": false,
-            "roll_deg": 0.0
-          },
-          {
-            "timestamp_sec": 0.5,
-            "x_meters": -13.36,
-            "z_meters": 2.05,
-            "heading_deg": 89.7,
-            "speed_mph": 33.8,
-            "braking_active": false,
-            "roll_deg": 0.0
-          },
-          {
-            "timestamp_sec": 0.9,
-            "x_meters": -7.69,
-            "z_meters": 2.02,
-            "heading_deg": 89.4,
-            "speed_mph": 29.6,
-            "braking_active": true,
-            "roll_deg": 0.0
-          },
-          {
-            "timestamp_sec": 1.15,
-            "x_meters": -4.62,
-            "z_meters": 1.99,
-            "heading_deg": 89.2,
-            "speed_mph": 25.4,
-            "braking_active": true,
-            "roll_deg": 0.0
-          },
-          {
-            "timestamp_sec": 1.35,
-            "x_meters": -2.55,
-            "z_meters": 1.96,
-            "heading_deg": 89.2,
-            "speed_mph": 20.8,
-            "braking_active": true,
-            "roll_deg": 8.0
-          },
-          {
-            "timestamp_sec": 1.65,
-            "x_meters": -0.61,
-            "z_meters": 2.64,
-            "heading_deg": 112.0,
-            "speed_mph": 9.8,
-            "braking_active": true,
-            "roll_deg": 6.0
-          },
-          {
-            "timestamp_sec": 2.05,
-            "x_meters": 0.44,
-            "z_meters": 2.92,
-            "heading_deg": 122.0,
-            "speed_mph": 2.4,
-            "braking_active": true,
-            "roll_deg": 0.0
-          },
-          {
-            "timestamp_sec": 2.5,
-            "x_meters": 0.67,
-            "z_meters": 2.98,
-            "heading_deg": 124.0,
-            "speed_mph": 0.0,
-            "braking_active": false,
-            "roll_deg": 0.0
-          },
-          {
-            "timestamp_sec": 3.0,
-            "x_meters": 0.67,
-            "z_meters": 2.98,
-            "heading_deg": 124.0,
-            "speed_mph": 0.0,
-            "braking_active": false,
-            "roll_deg": 0.0
-          },
-          {
-            "timestamp_sec": 4.4,
-            "x_meters": 0.67,
-            "z_meters": 2.98,
-            "heading_deg": 124.0,
-            "speed_mph": 0.0,
-            "braking_active": false,
-            "roll_deg": 0.0
-          },
-          {
-            "timestamp_sec": 5.8,
-            "x_meters": 0.67,
-            "z_meters": 2.98,
-            "heading_deg": 124.0,
-            "speed_mph": 0.0,
-            "braking_active": false,
-            "roll_deg": 0.0
-          }
+          {"timestamp_sec": 0.0, "x_meters": -21.5, "z_meters": 2.3, "heading_deg": 90.0, "speed_mph": 34.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.5, "x_meters": -14.2, "z_meters": 2.28, "heading_deg": 90.0, "speed_mph": 33.8, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.9, "x_meters": -8.4, "z_meters": 2.25, "heading_deg": 90.5, "speed_mph": 29.6, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.15, "x_meters": -5.1, "z_meters": 2.22, "heading_deg": 91.0, "speed_mph": 25.4, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.35, "x_meters": -2.55, "z_meters": 2.18, "heading_deg": 92.0, "speed_mph": 20.8, "braking_active": true, "roll_deg": 8.0},
+          {"timestamp_sec": 1.65, "x_meters": -0.35, "z_meters": 2.95, "heading_deg": 112.0, "speed_mph": 9.8, "braking_active": true, "roll_deg": 6.0},
+          {"timestamp_sec": 2.05, "x_meters": 0.95, "z_meters": 3.3, "heading_deg": 122.0, "speed_mph": 2.4, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 2.5, "x_meters": 1.35, "z_meters": 3.4, "heading_deg": 124.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 3.0, "x_meters": 1.35, "z_meters": 3.4, "heading_deg": 124.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 4.4, "x_meters": 1.35, "z_meters": 3.4, "heading_deg": 124.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 5.8, "x_meters": 1.35, "z_meters": 3.4, "heading_deg": 124.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
         ]
       }
     ],
     "detected_cameras": [
       {
         "camera_id": "cam_1",
-        "camera_label": "Cam 1: Commercial Fleet Forward & Lane DVR (118\u00b0 FOV)",
+        "camera_label": "Cam 1: Commercial Fleet Forward & Lane DVR (118° FOV)",
         "camera_type": "dashcam_ego",
         "fov_deg": 118.0,
         "mount_position_x": 18.0,
@@ -427,11 +251,11 @@
       }
     ],
     "quantum_damage_estimate_gbp": 16840,
-    "legal_reasoning_chain": "1. PRIMARY BREACH (80% DEFENDANT \u2014 KX71 HGV): KX71 HGV entered a wet 30 mph bend at 38.5 mph, and its CAUSAL second-axle air brake actuator seepage (DVSA 1.2.2) contributed to a 1.15m encroachment across the Diagram 1004.1 centre line.\n2. CONTRIBUTORY NEGLIGENCE & NON-CAUSAL DVSA EXCLUSION (20% CLAIMANT \u2014 LV20 RTY): LV20 RTY bears 20% contributory fault for travelling at 34.0 mph in a 30 mph zone and failing to steer left into the available nearside margin. LV20 RTY's DVSA parking brake advisory (`1.4.2`) and rectified 2024 rear stop-lamp failure are explicitly flagged NOT CAUSAL."
+    "legal_reasoning_chain": "1. PRIMARY BREACH (80% DEFENDANT — KX71 HGV): KX71 HGV entered a wet 30 mph bend at 38.5 mph, and its CAUSAL second-axle air brake actuator seepage (DVSA 1.2.2) contributed to a 1.15m encroachment across the Diagram 1004.1 centre line.\n2. CONTRIBUTORY NEGLIGENCE & NON-CAUSAL DVSA EXCLUSION (20% CLAIMANT — LV20 RTY): LV20 RTY bears 20% contributory fault for travelling at 34.0 mph in a 30 mph zone and failing to steer left into the available nearside margin. LV20 RTY's DVSA parking brake advisory (`1.4.2`) and rectified 2024 rear stop-lamp failure are explicitly flagged NOT CAUSAL."
   },
   "subagents": {
-    "policy_audit": "### UK MOTOR POLICY #UK-8841 COVERAGE & DVSA MOT CAUSAL AUDIT (`UK-2026-0904`)\n**Prepared for:** A UK motor claims & subrogation solicitor\n\n* **Vehicle A (`KX71 HGV` \u2014 2021 DAF XF 480 HGV):** Second-axle air brake actuator seepage `[1.2.2]` is flagged **`CAUSAL`** (increased pneumatic brake lag to `0.45s` on a wet bend). Nearside mirror vibration advisory `[3.3 (b)]` is flagged **`NOT CAUSAL`** (impact occurred on the offside centre line).\n* **Vehicle B (`LV20 RTY` \u2014 2020 Vauxhall Astra):** Parking brake efficiency advisory `[1.4.2]` and historical rectified 2024 stop-lamp failure `[4.3.1 (a) (ii)]` are flagged **`NOT CAUSAL`** because `LV20 RTY` was in motion braking on its hydraulic footbrake.",
-    "repair_estimate": "### ABI SALVAGE & THATCHAM QUANTUM SCHEDULE (`UK-2026-0904`)\n**Prepared for:** A UK motor claims & subrogation solicitor\n\n* **Vehicle B (`LV20 RTY` \u2014 2020 Vauxhall Astra):** Offside front wing, A-pillar, door shell, and steering rack damage (`ABI CATEGORY S` total loss net outlay `\u00a311,940.00`).\n* **Vehicle A (`KX71 HGV` \u2014 2021 DAF XF 480):** Offside front corner step, bumper armature, and trailer side-guard rail replacement (`\u00a34,900.00`).\n* **Combined Quantum Exposure:** **\u00a316,840.00**.",
+    "policy_audit": "### UK MOTOR POLICY #UK-8841 COVERAGE & DVSA MOT CAUSAL AUDIT (`UK-2026-0904`)\n**Prepared for:** A UK motor claims & subrogation solicitor\n\n* **Vehicle A (`KX71 HGV` — 2021 DAF XF 480 HGV):** Second-axle air brake actuator seepage `[1.2.2]` is flagged **`CAUSAL`** (increased pneumatic brake lag to `0.45s` on a wet bend). Nearside mirror vibration advisory `[3.3 (b)]` is flagged **`NOT CAUSAL`** (impact occurred on the offside centre line).\n* **Vehicle B (`LV20 RTY` — 2020 Vauxhall Astra):** Parking brake efficiency advisory `[1.4.2]` and historical rectified 2024 stop-lamp failure `[4.3.1 (a) (ii)]` are flagged **`NOT CAUSAL`** because `LV20 RTY` was in motion braking on its hydraulic footbrake.",
+    "repair_estimate": "### ABI SALVAGE & THATCHAM QUANTUM SCHEDULE (`UK-2026-0904`)\n**Prepared for:** A UK motor claims & subrogation solicitor\n\n* **Vehicle B (`LV20 RTY` — 2020 Vauxhall Astra):** Offside front wing, A-pillar, door shell, and steering rack damage (`ABI CATEGORY S` total loss net outlay `£11,940.00`).\n* **Vehicle A (`KX71 HGV` — 2021 DAF XF 480):** Offside front corner step, bumper armature, and trailer side-guard rail replacement (`£4,900.00`).\n* **Combined Quantum Exposure:** **£16,840.00**.",
     "subrogation_letter": "### FORMAL CPR PRE-ACTION PROTOCOL LETTER OF CLAIM (`UK-2026-0904`)\n**From:** A UK motor claims & subrogation solicitor\n\nWe give formal notice under the CPR Pre-Action Protocol proposing an **80% Defendant (`KX71 HGV`) / 20% Claimant (`LV20 RTY`)** liability split in respect of the A521 Huntley Brook HGV lane encroachment collision, grounded in *Baker v Willoughby* [1970] AC 467 and *Colmore v Taylor* [2014] EWHC 1442 (QB)."
   }
 }

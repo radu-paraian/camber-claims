@@ -1,15 +1,5 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
-import {
-  createFourWayJunctionTexture,
-  buildFourWayRoadEnvironment,
-  buildRingCctvJunctionProps,
-} from './sceneCrossroadProps.js';
 import {
   resolveVehiclePairPhysics,
   buildContinuousPhysicsTrajectory,
@@ -22,18 +12,18 @@ export class ForensicScene3D {
   constructor(container) {
     this.container = container;
     this.scene = new THREE.Scene();
-    // Dusk-night forensic atmosphere
-    this.scene.background = new THREE.Color(0x0b1020);
-    this.scene.fog = new THREE.Fog(0x0b1020, 32, 115);
+    // Clean Apple Maps 3D Dark/Dusk slate-indigo sky & fog palette (#2d3548)
+    this.scene.background = new THREE.Color(0x2d3548);
+    this.scene.fog = new THREE.FogExp2(0x2d3548, 0.0038);
 
     const width = container.clientWidth || 900;
     const height = container.clientHeight || 600;
     const aspect = width / Math.max(height, 1);
 
-    // 1. Perspective Camera (3D Orbit View framed from Ring CCTV crossroad vantage)
+    // 1. Perspective Camera (3D Orbit View)
     this.perspCamera = new THREE.PerspectiveCamera(46, aspect, 0.2, 350);
-    this.perspCamera.position.set(6, 13, 18);
-    this.perspCamera.lookAt(0, 0.5, -1.5);
+    this.perspCamera.position.set(18, 16, 22);
+    this.perspCamera.lookAt(0, 0, 0);
 
     // 2. Orthographic Camera (retained for API compatibility)
     this.orthoHalfSize = 22;
@@ -58,58 +48,29 @@ export class ForensicScene3D {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.0;
+    this.renderer.toneMappingExposure = 1.08;
 
     container.querySelectorAll('canvas').forEach((c) => c.remove());
     container.prepend(this.renderer.domElement);
 
-    // Post-processing setup
-    this._setupPostProcessing(width, height);
-
-    // OrbitControls
+    // OrbitControls — zero damping + immediate pointer-tick render for instant 1:1 cursor responsiveness
     this.controls = new OrbitControls(this.perspCamera, this.renderer.domElement);
-    this.controls.enableDamping = true;
-    this.controls.dampingFactor = 0.08;
+    this.controls.enableDamping = false;
     this.controls.screenSpacePanning = true;
     this.controls.rotateSpeed = 1.0;
     this.controls.zoomSpeed = 1.2;
     this.controls.panSpeed = 1.0;
-    this.controls.minDistance = 5;
-    this.controls.maxDistance = 85;
-    this.controls.maxPolarAngle = Math.PI / 2 - 0.04;
-    this.controls.target.set(0, 0.5, -1.5);
+    this.controls.maxPolarAngle = Math.PI / 2 - 0.03;
+    this.controls.minDistance = 4;
+    this.controls.maxDistance = 105;
+    this.controls.target.set(-1.5, 0.5, -1.0);
     this.controls.update();
-
-    // Hover raycasting & tooltip setup
-    this.raycaster = new THREE.Raycaster();
-    this.pointer = new THREE.Vector2();
-    this.hoveredVehicle = null;
-    this._camTransition = null;
-
-    this.hoverTooltip = document.createElement('div');
-    this.hoverTooltip.className = 'vehicle-hover-tooltip';
-    this.hoverTooltip.style.position = 'absolute';
-    this.hoverTooltip.style.pointerEvents = 'none';
-    this.hoverTooltip.style.display = 'none';
-    this.hoverTooltip.style.zIndex = '50';
-    this.hoverTooltip.style.padding = '4px 8px';
-    this.hoverTooltip.style.borderRadius = '4px';
-    this.hoverTooltip.style.background = 'rgba(11, 16, 32, 0.92)';
-    this.hoverTooltip.style.border = '1px solid rgba(56, 189, 248, 0.4)';
-    this.hoverTooltip.style.color = '#f8fafc';
-    this.hoverTooltip.style.fontSize = '11px';
-    this.hoverTooltip.style.fontFamily = 'monospace';
-    this.hoverTooltip.style.boxShadow = '0 4px 14px rgba(0, 0, 0, 0.5)';
-    this.hoverTooltip.style.transform = 'translate(12px, -50%)';
-    this.container.style.position = this.container.style.position || 'relative';
-    this.container.appendChild(this.hoverTooltip);
-
-    this._onPointerMove = this._onPointerMove.bind(this);
-    this._onPointerLeave = this._onPointerLeave.bind(this);
-    this.renderer.domElement.addEventListener('pointermove', this._onPointerMove);
-    this.renderer.domElement.addEventListener('pointerleave', this._onPointerLeave);
+    this.controls.addEventListener('change', () => {
+      if (this.scene && this.activeCamera) {
+        this.renderer.render(this.scene, this.activeCamera);
+      }
+    });
 
     // Scene Hierarchy Groups
     this.environmentGroup = new THREE.Group();
@@ -134,7 +95,6 @@ export class ForensicScene3D {
     this.groundMaterial = null;
     this.lastPhysicsTelemetry = null;
     this.knockableSignRef = null;
-    this.knockableSignRefs = [];
     this.debrisGroup = null;
     this.debrisMeshes = [];
     this.dustPlumeGroup = null;
@@ -158,107 +118,29 @@ export class ForensicScene3D {
     this._rafId = requestAnimationFrame(this._animate);
   }
 
-  _setupPostProcessing(width, height) {
-    this.composer = new EffectComposer(this.renderer);
-    this.renderPass = new RenderPass(this.scene, this.activeCamera);
-    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(width, height), 0.4, 0.4, 0.85);
-    this.outputPass = new OutputPass();
-    this.composer.addPass(this.renderPass);
-    this.composer.addPass(this.bloomPass);
-    this.composer.addPass(this.outputPass);
-  }
-
   _setupLighting() {
-    this.pmremGenerator = new THREE.PMREMGenerator(this.renderer);
-    this.scene.environment = this.pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+    // Apple Maps 3D Dusk/Dark Mode even atmospheric lighting
+    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x334155, 1.5);
+    hemiLight.position.set(0, 50, 0);
+    this.scene.add(hemiLight);
 
-    const sun = new THREE.DirectionalLight(0xfff4e0, 2.5);
-    sun.position.set(28, 22, 24);
-    sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
-    const d = 26;
-    sun.shadow.camera.left = -d;
-    sun.shadow.camera.right = d;
-    sun.shadow.camera.top = d;
-    sun.shadow.camera.bottom = -d;
-    sun.shadow.camera.near = 2;
-    sun.shadow.camera.far = 95;
-    sun.shadow.bias = -0.0005;
-    sun.shadow.normalBias = 0.02;
-    this.scene.add(sun);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    this.scene.add(ambientLight);
 
-    const hemi = new THREE.HemisphereLight(0xbcd4ff, 0x1a1d24, 0.4);
-    hemi.position.set(0, 50, 0);
-    this.scene.add(hemi);
-  }
-
-  _onPointerLeave() {
-    if (this.hoveredVehicle) {
-      this.hoveredVehicle.isHovered = false;
-      if (this.hoveredVehicle.bodyMat) {
-        this.hoveredVehicle.bodyMat.emissive.setHex(0x000000);
-        this.hoveredVehicle.bodyMat.emissiveIntensity = 0.0;
-      }
-      this.hoveredVehicle = null;
-    }
-    if (this.hoverTooltip) {
-      this.hoverTooltip.style.display = 'none';
-    }
-  }
-
-  _onPointerMove(event) {
-    const rect = this.renderer.domElement.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    this.pointer.set(x, y);
-
-    this.raycaster.setFromCamera(this.pointer, this.activeCamera);
-    const intersects = this.raycaster.intersectObjects(this.vehiclesGroup.children, true);
-
-    let hitVObj = null;
-    if (intersects.length > 0) {
-      let curr = intersects[0].object;
-      while (curr && curr !== this.vehiclesGroup) {
-        for (const vObj of this.vehicleMeshes.values()) {
-          if (vObj.rootGroup === curr || vObj.bodyTiltGroup === curr) {
-            hitVObj = vObj;
-            break;
-          }
-        }
-        if (hitVObj) break;
-        curr = curr.parent;
-      }
-    }
-
-    if (this.hoveredVehicle && this.hoveredVehicle !== hitVObj) {
-      this.hoveredVehicle.isHovered = false;
-      if (this.hoveredVehicle.bodyMat) {
-        this.hoveredVehicle.bodyMat.emissive.setHex(0x000000);
-        this.hoveredVehicle.bodyMat.emissiveIntensity = 0.0;
-      }
-    }
-
-    this.hoveredVehicle = hitVObj;
-
-    if (hitVObj) {
-      hitVObj.isHovered = true;
-      if (hitVObj.bodyMat) {
-        hitVObj.bodyMat.emissive.setHex(0x1e293b);
-        hitVObj.bodyMat.emissiveIntensity = 0.45;
-      }
-      if (this.hoverTooltip) {
-        const plate = hitVObj.vehicleData?.registration_plate || hitVObj.vehicleData?.vehicle_id || 'Vehicle';
-        const speed = hitVObj.currentSpeedMph !== undefined ? hitVObj.currentSpeedMph.toFixed(1) : '0.0';
-        this.hoverTooltip.textContent = `${plate} • ${speed} mph`;
-        this.hoverTooltip.style.left = `${event.clientX - rect.left}px`;
-        this.hoverTooltip.style.top = `${event.clientY - rect.top}px`;
-        this.hoverTooltip.style.display = 'block';
-      }
-    } else {
-      if (this.hoverTooltip) {
-        this.hoverTooltip.style.display = 'none';
-      }
-    }
+    const dirLight = new THREE.DirectionalLight(0xfffbeb, 1.3);
+    dirLight.position.set(24, 42, 20);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.near = 2;
+    dirLight.shadow.camera.far = 120;
+    const d = 38;
+    dirLight.shadow.camera.left = -d;
+    dirLight.shadow.camera.right = d;
+    dirLight.shadow.camera.top = d;
+    dirLight.shadow.camera.bottom = -d;
+    dirLight.shadow.bias = -0.0004;
+    this.scene.add(dirLight);
   }
 
   _drawRoadArrow(ctx, x, y, angleRad, scale = 1.0) {
@@ -280,12 +162,216 @@ export class ForensicScene3D {
   }
 
   _createProceduralJunctionTexture(_report = null) {
-    return createFourWayJunctionTexture(this._drawRoadArrow.bind(this));
+    const canvas = document.createElement('canvas');
+    canvas.width = 2048;
+    canvas.height = 2048;
+    const ctx = canvas.getContext('2d');
+
+    // Coordinate mapping: 80m x 80m world area mapped to 2048x2048px
+    // (0,0) world = (1024, 1024) canvas; 1m = 25.6px
+    const m2px = 25.6;
+    const cx = 1024;
+    const cy = 1024;
+
+    // 1. Apple Maps 3D smooth matte slate-grey urban base (#475267)
+    ctx.fillStyle = '#475267';
+    ctx.fillRect(0, 0, 2048, 2048);
+
+    // 2. Crisp raised pavement / footway zones (#56637a)
+    const mainHalfW = 4.2 * m2px;
+    const minorHalfW = 3.4 * m2px;
+    const paveW = 2.2 * m2px;
+
+    ctx.fillStyle = '#56637a';
+    // Main road sidewalks (West-East)
+    ctx.fillRect(0, cy - mainHalfW - paveW, 2048, (mainHalfW + paveW) * 2);
+    // Minor road sidewalks (North arm, z < 0)
+    ctx.fillRect(cx - minorHalfW - paveW, 0, (minorHalfW + paveW) * 2, cy);
+
+    // 3. Clean Dark Slate Road Surface (#252b3b)
+    ctx.fillStyle = '#252b3b';
+    // Main Road (West-East)
+    ctx.fillRect(0, cy - mainHalfW, 2048, mainHalfW * 2);
+    // Minor Road (North arm)
+    ctx.fillRect(cx - minorHalfW, 0, minorHalfW * 2, cy + 8);
+
+    // Filleted junction bellmouth corners
+    ctx.fillStyle = '#252b3b';
+    ctx.beginPath();
+    ctx.moveTo(cx - minorHalfW - 22, cy - mainHalfW);
+    ctx.quadraticCurveTo(cx - minorHalfW, cy - mainHalfW, cx - minorHalfW, cy - mainHalfW - 22);
+    ctx.lineTo(cx - minorHalfW, cy - mainHalfW);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(cx + minorHalfW + 22, cy - mainHalfW);
+    ctx.quadraticCurveTo(cx + minorHalfW, cy - mainHalfW, cx + minorHalfW, cy - mainHalfW - 22);
+    ctx.lineTo(cx + minorHalfW, cy - mainHalfW);
+    ctx.closePath();
+    ctx.fill();
+
+    // 4. Clean Subtle Kerb Edge Lines (#64748b)
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 4.0;
+    ctx.beginPath();
+    // South kerb continuous
+    ctx.moveTo(0, cy + mainHalfW);
+    ctx.lineTo(2048, cy + mainHalfW);
+    // North-West kerb
+    ctx.moveTo(0, cy - mainHalfW);
+    ctx.lineTo(cx - minorHalfW, cy - mainHalfW);
+    ctx.lineTo(cx - minorHalfW, 0);
+    // North-East kerb
+    ctx.moveTo(2048, cy - mainHalfW);
+    ctx.lineTo(cx + minorHalfW, cy - mainHalfW);
+    ctx.lineTo(cx + minorHalfW, 0);
+    ctx.stroke();
+
+    // 5. Clean Thin White Lane Markings (#e2e8f0)
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.fillStyle = '#e2e8f0';
+
+    // Main Road Centre Dashed Line (West and East of junction)
+    ctx.lineWidth = 3.2;
+    ctx.setLineDash([3.6 * m2px, 2.2 * m2px]);
+    ctx.beginPath();
+    ctx.moveTo(0, cy);
+    ctx.lineTo(cx - minorHalfW - 1.6 * m2px, cy);
+    ctx.moveTo(cx + minorHalfW + 1.6 * m2px, cy);
+    ctx.lineTo(2048, cy);
+    ctx.stroke();
+
+    // Minor Road Centre Line (North)
+    ctx.setLineDash([2.4 * m2px, 1.8 * m2px]);
+    ctx.beginPath();
+    ctx.moveTo(cx, 0);
+    ctx.lineTo(cx, cy - mainHalfW - 1.2 * m2px);
+    ctx.stroke();
+
+    // UK Diagram 1003 Double Dashed GIVE WAY Line across minor road mouth (z = -4.2m)
+    ctx.setLineDash([0.65 * m2px, 0.42 * m2px]);
+    ctx.lineWidth = 4.5;
+    const giveWayY1 = cy - mainHalfW - 0.14 * m2px;
+    const giveWayY2 = cy - mainHalfW - 0.46 * m2px;
+    ctx.beginPath();
+    ctx.moveTo(cx - minorHalfW + 6, giveWayY1);
+    ctx.lineTo(cx - 2, giveWayY1);
+    ctx.moveTo(cx - minorHalfW + 6, giveWayY2);
+    ctx.lineTo(cx - 2, giveWayY2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // UK Painted Inverted White Triangle (Diagram 1023) in southbound emerging lane (x = -1.7m, z = -7.8m)
+    const triX = cx - 1.7 * m2px;
+    const triTopY = cy - 9.1 * m2px;
+    const triApexY = cy - 6.1 * m2px;
+    const triHalfW = 0.82 * m2px;
+    ctx.lineWidth = 4.0;
+    ctx.beginPath();
+    ctx.moveTo(triX - triHalfW, triTopY);
+    ctx.lineTo(triX + triHalfW, triTopY);
+    ctx.lineTo(triX, triApexY);
+    ctx.closePath();
+    ctx.stroke();
+
+    // 6. Subtle Directional Lane Arrows
+    [-31, -21, -11, 10, 21, 32].forEach((xm) => {
+      this._drawRoadArrow(ctx, cx + xm * m2px, cy + 2.1 * m2px, 0, 0.9);
+    });
+    [-28, -16, 8, 18, 29].forEach((xm) => {
+      this._drawRoadArrow(ctx, cx + xm * m2px, cy - 2.1 * m2px, Math.PI, 0.9);
+    });
+    [-28, -18, -12].forEach((zm) => {
+      this._drawRoadArrow(ctx, cx - 1.7 * m2px, cy + zm * m2px, Math.PI / 2, 0.88);
+    });
+    [-26, -16, -8.5].forEach((zm) => {
+      this._drawRoadArrow(ctx, cx + 1.7 * m2px, cy + zm * m2px, -Math.PI / 2, 0.88);
+    });
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.anisotropy = 8;
+    texture.needsUpdate = true;
+    return texture;
   }
 
   _buildProceduralRoadEnvironment() {
+    this.environmentGroup.clear();
+
+    // 1. Main 80m x 80m Junction Surface (Apple Maps clean dark slate road + urban block)
     const roadTex = this._createProceduralJunctionTexture(this.reportData);
-    this.groundMaterial = buildFourWayRoadEnvironment(this.environmentGroup, roadTex);
+    const groundGeo = new THREE.PlaneGeometry(80, 80);
+    this.groundMaterial = new THREE.MeshStandardMaterial({
+      map: roadTex,
+      roughness: 0.85,
+      metalness: 0.02,
+    });
+    const groundMesh = new THREE.Mesh(groundGeo, this.groundMaterial);
+    groundMesh.rotation.x = -Math.PI / 2;
+    groundMesh.receiveShadow = true;
+    this.environmentGroup.add(groundMesh);
+
+    // 2. Outer Smooth Matte Slate-Grey Urban Block Skirt (#475267)
+    const skirtGeo = new THREE.PlaneGeometry(260, 260);
+    const skirtMat = new THREE.MeshStandardMaterial({
+      color: 0x475267,
+      roughness: 0.92,
+      metalness: 0.02,
+    });
+    const skirtMesh = new THREE.Mesh(skirtGeo, skirtMat);
+    skirtMesh.rotation.x = -Math.PI / 2;
+    skirtMesh.position.y = -0.04;
+    this.environmentGroup.add(skirtMesh);
+
+    // 3. Crisp Raised Pavements (#56637a) with Soft Muted Sage-Green Grass Verges (#345947)
+    const paveMat = new THREE.MeshStandardMaterial({
+      color: 0x56637a,
+      roughness: 0.88,
+      metalness: 0.02,
+    });
+    const kerbMat = new THREE.MeshStandardMaterial({
+      color: 0x64748b,
+      roughness: 0.82,
+      metalness: 0.03,
+    });
+    const vergeMat = new THREE.MeshStandardMaterial({
+      color: 0x345947,
+      roughness: 0.9,
+      metalness: 0.02,
+    });
+
+    const addQuadrantVerge = (x, z, w, d) => {
+      const pavementSlab = new THREE.Mesh(new THREE.BoxGeometry(w, 0.11, d), paveMat);
+      pavementSlab.position.set(x, 0.055, z);
+      pavementSlab.receiveShadow = true;
+      this.environmentGroup.add(pavementSlab);
+
+      const grassVerge = new THREE.Mesh(
+        new THREE.BoxGeometry(Math.max(1, w - 3.6), 0.03, Math.max(1, d - 3.6)),
+        vergeMat
+      );
+      grassVerge.position.set(x, 0.12, z);
+      grassVerge.receiveShadow = true;
+      this.environmentGroup.add(grassVerge);
+    };
+
+    // NW, NE, and South open suburban/rural verges
+    addQuadrantVerge(-21.7, -22.1, 36.2, 35.4);
+    addQuadrantVerge(21.7, -22.1, 36.2, 35.4);
+    addQuadrantVerge(0.0, 22.1, 79.6, 35.4);
+
+    // 3D bevelled kerb strips along A521 & Draycott Cross Rd
+    const southKerb = new THREE.Mesh(new THREE.BoxGeometry(80, 0.12, 0.18), kerbMat);
+    southKerb.position.set(0, 0.06, 4.29);
+    this.environmentGroup.add(southKerb);
+
+    const nwKerbRoad = new THREE.Mesh(new THREE.BoxGeometry(36.4, 0.12, 0.18), kerbMat);
+    nwKerbRoad.position.set(-21.8, 0.06, -4.29);
+    this.environmentGroup.add(nwKerbRoad);
+
+    const neKerbRoad = new THREE.Mesh(new THREE.BoxGeometry(36.4, 0.12, 0.18), kerbMat);
+    neKerbRoad.position.set(21.8, 0.06, -4.29);
+    this.environmentGroup.add(neKerbRoad);
   }
 
   _createUKSignTexture(type) {
@@ -510,14 +596,173 @@ export class ForensicScene3D {
     return wallGroup;
   }
 
-  _buildCausalJunctionProps(_report = null) {
+  _buildCausalJunctionProps(report = null) {
     this.causalPropsGroup.clear();
-    const { knockableSignRef, knockableSignRefs } = buildRingCctvJunctionProps(
-      this.causalPropsGroup,
-      this._createUKSignTexture.bind(this)
+    this.knockableSignRef = null;
+
+    const postMat = new THREE.MeshStandardMaterial({
+      color: 0xa1a1aa,
+      metalness: 0.4,
+      roughness: 0.5,
+    });
+
+    // Helper to place a 3D UK Traffic Sign on a cylindrical post with a floating TSRGD pill
+    const addTrafficSignPost = (x, z, signType, pillText, pillAccent, boardRotY = 0) => {
+      const signGroup = new THREE.Group();
+      signGroup.position.set(x, 0, z);
+
+      // Pivot group at the base of the sign post so post-impact strikes bend the pole from ground level
+      const postPivot = new THREE.Group();
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 2.45, 12), postMat);
+      post.position.y = 1.225;
+      post.castShadow = true;
+      postPivot.add(post);
+      signGroup.add(postPivot);
+
+      const board = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.85, 0.85),
+        new THREE.MeshBasicMaterial({
+          map: this._createUKSignTexture(signType),
+          transparent: true,
+          side: THREE.DoubleSide,
+        })
+      );
+      board.position.set(0, 2.28, 0.06);
+      board.rotation.y = boardRotY;
+      board.userData.baseRotY = boardRotY;
+      signGroup.add(board);
+
+      const pill = this._createLabelSprite(pillText, pillAccent, 'rgba(18, 18, 21, 0.92)');
+      pill.position.set(0, 3.18, 0);
+      pill.scale.set(4.2, 0.84, 1);
+      signGroup.add(pill);
+
+      if (!this.knockableSignRef) {
+        this.knockableSignRef = {
+          signGroup,
+          postPivot,
+          board,
+          pill,
+          baseRotY: boardRotY,
+        };
+      }
+
+      this.causalPropsGroup.add(signGroup);
+    };
+
+    // Dynamically extract road signs from agent report (`scene_environment_elements`) if present
+    const envElements = Array.isArray(report?.scene_environment_elements)
+      ? report.scene_environment_elements
+      : [];
+    const signElements = envElements.filter((el) => {
+      const t = String(el.element_type || '').toLowerCase();
+      return (
+        el.is_causal !== false &&
+        (t.includes('sign') || t.includes('give_way') || t.includes('speed_limit') || t.includes('warning'))
+      );
+    });
+
+    if (signElements.length > 0) {
+      signElements.forEach((el) => {
+        const raw = `${el.element_type || ''} ${el.label || ''} ${el.tsrgd_diagram || ''}`.toLowerCase();
+        let signType = 'give_way';
+        let accent = '#ef4444';
+        let rotY = 0;
+        if (raw.includes('60')) {
+          signType = 'speed_60';
+          accent = '#f59e0b';
+          rotY = Math.PI / 2;
+        } else if (raw.includes('30') || raw.includes('speed')) {
+          signType = 'speed_30';
+          accent = '#f59e0b';
+          rotY = Math.PI / 2;
+        } else if (raw.includes('504') || raw.includes('crossroad') || raw.includes('warning') || raw.includes('bend')) {
+          signType = 'warning_triangle';
+          accent = '#f59e0b';
+          rotY = Math.PI / 2;
+        }
+        const shortLabel = (el.tsrgd_diagram || el.label || 'UK Traffic Sign')
+          .replace(/^TSRGD 2016\s*/i, '')
+          .slice(0, 34);
+        addTrafficSignPost(
+          el.x_meters ?? -3.6,
+          el.z_meters ?? -4.5,
+          signType,
+          shortLabel,
+          accent,
+          rotY
+        );
+      });
+    } else {
+      // Default Cheadle A521 / Draycott Cross Rd signs
+      addTrafficSignPost(-3.6, -4.5, 'give_way', 'Give Way (Diagram 602/1003)', '#ef4444', 0);
+      addTrafficSignPost(-14.0, 4.8, 'speed_30', '30 mph Limit (Diagram 670)', '#f59e0b', Math.PI / 2);
+    }
+
+    // 3. Monolithic Residential Building Massing set back on NW Corner (x = -13, z = -13)
+    const nwHouse = this._buildNWResidentialHouse(-13.0, -13.0);
+    this.causalPropsGroup.add(nwHouse);
+
+    // 4. Low Southern Garden Boundary Wall with Coping Cap (x: -16 to -2, z = 5.2)
+    const southWall = this._buildSouthGardenBoundaryWall();
+    this.causalPropsGroup.add(southWall);
+
+    // 5. NW Corner Smooth Rounded Hedgerow & Trees (Sightline Blocker — no orange wireframe clutter)
+    const hedgeGroup = new THREE.Group();
+    const hedgeMat = new THREE.MeshStandardMaterial({
+      color: 0x2c4c3c,
+      roughness: 0.9,
+      metalness: 0.02,
+    });
+    const canopyMat = new THREE.MeshStandardMaterial({
+      color: 0x345947,
+      roughness: 0.88,
+      metalness: 0.02,
+    });
+
+    const mainHedgeBase = new THREE.Mesh(new THREE.BoxGeometry(6.8, 1.45, 1.3), hedgeMat);
+    mainHedgeBase.position.set(-7.6, 0.725, -5.1);
+    mainHedgeBase.castShadow = true;
+    mainHedgeBase.receiveShadow = true;
+    hedgeGroup.add(mainHedgeBase);
+
+    const mainHedgeTop = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.65, 0.65, 6.8, 18),
+      hedgeMat
     );
-    this.knockableSignRef = knockableSignRef;
-    this.knockableSignRefs = knockableSignRefs || (knockableSignRef ? [knockableSignRef] : []);
+    mainHedgeTop.rotation.z = Math.PI / 2;
+    mainHedgeTop.position.set(-7.6, 1.45, -5.1);
+    mainHedgeTop.castShadow = true;
+    hedgeGroup.add(mainHedgeTop);
+
+    const sideHedgeBase = new THREE.Mesh(new THREE.BoxGeometry(1.3, 1.45, 6.2), hedgeMat);
+    sideHedgeBase.position.set(-4.4, 0.725, -8.2);
+    sideHedgeBase.castShadow = true;
+    sideHedgeBase.receiveShadow = true;
+    hedgeGroup.add(sideHedgeBase);
+
+    const sideHedgeTop = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.65, 0.65, 6.2, 18),
+      hedgeMat
+    );
+    sideHedgeTop.rotation.x = Math.PI / 2;
+    sideHedgeTop.position.set(-4.4, 1.45, -8.2);
+    sideHedgeTop.castShadow = true;
+    hedgeGroup.add(sideHedgeTop);
+
+    const cornerCrown = new THREE.Mesh(new THREE.SphereGeometry(0.95, 20, 16), canopyMat);
+    cornerCrown.position.set(-4.55, 1.35, -5.2);
+    cornerCrown.scale.set(1.1, 1.15, 1.1);
+    cornerCrown.castShadow = true;
+    hedgeGroup.add(cornerCrown);
+
+    const treeCrown1 = new THREE.Mesh(new THREE.SphereGeometry(1.25, 20, 16), canopyMat);
+    treeCrown1.position.set(-6.4, 2.35, -5.3);
+    treeCrown1.scale.set(1.0, 1.18, 1.0);
+    treeCrown1.castShadow = true;
+    hedgeGroup.add(treeCrown1);
+
+    this.causalPropsGroup.add(hedgeGroup);
   }
 
   _buildNonCausalStrippedClutter() {
@@ -862,34 +1107,22 @@ export class ForensicScene3D {
     rootGroup.add(bodyTiltGroup);
 
     const category = this._resolveVehicleCategory(vehicle);
-    const paintColor =
-      vehicle.vehicle_id === 'vehicle_a'
-        ? new THREE.Color('#0ea5e9')
-        : vehicle.vehicle_id === 'vehicle_b'
-          ? new THREE.Color('#cbd5e1')
-          : new THREE.Color(vehicle.color_hex || '#2563EB');
+    const paintColor = new THREE.Color(vehicle.color_hex || '#2563EB');
 
-    const bodyMat = new THREE.MeshPhysicalMaterial({
+    const bodyMat = new THREE.MeshStandardMaterial({
       color: paintColor,
-      metalness: 0.6,
-      roughness: 0.3,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.1,
-      emissive: new THREE.Color(0x000000),
-      emissiveIntensity: 0.0,
+      metalness: 0.42,
+      roughness: 0.28,
     });
     const lowerTrimMat = new THREE.MeshStandardMaterial({
       color: 0x18181b,
       roughness: 0.78,
       metalness: 0.12,
     });
-    const glassMat = new THREE.MeshPhysicalMaterial({
-      color: 0x0b0f17,
-      metalness: 0.1,
-      roughness: 0.08,
-      transmission: 0.35,
-      transparent: true,
-      opacity: 0.76,
+    const glassMat = new THREE.MeshStandardMaterial({
+      color: 0x111318,
+      metalness: 0.75,
+      roughness: 0.12,
     });
 
     // Helper: extrudes a 2D side-profile Shape (x = longitudinal Z from front -L/2 to rear +L/2, y = height Y)
@@ -1135,12 +1368,7 @@ export class ForensicScene3D {
     bodyTiltGroup.add(rearPlateMesh);
 
     // Front LED Headlamps + Subtle Light Cones
-    const headLightMat = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      emissive: 0xf8fafc,
-      emissiveIntensity: 2.2,
-      roughness: 0.15,
-    });
+    const headLightMat = new THREE.MeshBasicMaterial({ color: 0xfafafa });
     const hlGeo = new THREE.BoxGeometry(0.32, 0.12, 0.08);
     const hlY = category === 'suv' ? 0.78 : 0.64;
     const hlLeft = new THREE.Mesh(hlGeo, headLightMat);
@@ -1166,7 +1394,7 @@ export class ForensicScene3D {
     const brakeLightMat = new THREE.MeshStandardMaterial({
       color: 0x7f1d1d,
       emissive: 0xef4444,
-      emissiveIntensity: 0.35,
+      emissiveIntensity: 0.25,
       roughness: 0.2,
     });
     const blGeo = new THREE.BoxGeometry(0.36, 0.13, 0.08);
@@ -1198,20 +1426,16 @@ export class ForensicScene3D {
     );
     labelSprite.position.set(0, 2.45, 0);
     labelSprite.scale.set(4.8, 0.94, 1);
-    labelSprite.visible = false;
     rootGroup.add(labelSprite);
 
     return {
       rootGroup,
       bodyTiltGroup,
-      bodyMat,
       brakeLightMat,
       velocityArrow,
       labelSprite,
       wheels,
       vehicleData: vehicle,
-      isHovered: false,
-      currentSpeedMph: 0,
     };
   }
 
@@ -1261,14 +1485,8 @@ export class ForensicScene3D {
         );
         const curve = new THREE.CatmullRomCurve3(pts);
         const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.09, 8, false);
-        const trajColor =
-          vehicle.vehicle_id === 'vehicle_a'
-            ? 0x0ea5e9
-            : vehicle.vehicle_id === 'vehicle_b'
-              ? 0xf59e0b
-              : new THREE.Color(vehicle.color_hex || '#38bdf8');
         const tubeMat = new THREE.MeshBasicMaterial({
-          color: trajColor,
+          color: new THREE.Color(vehicle.color_hex || '#38bdf8'),
           transparent: true,
           opacity: 0.55,
         });
@@ -1410,16 +1628,8 @@ export class ForensicScene3D {
       const joltPitch = destruction?.active ? Math.sin(destruction.dt * 18) * Math.exp(-destruction.dt * 4.5) * 0.055 : 0;
       vObj.bodyTiltGroup.rotation.x = (kf.braking_active ? -0.038 : 0.0) + joltPitch;
 
-      vObj.currentSpeedMph = kf.speed_mph;
-
       // Emissive crimson brake lights
-      vObj.brakeLightMat.emissiveIntensity = kf.braking_active ? 2.8 : 0.35;
-
-      // Subtle hover highlight on car physical paint
-      if (vObj.bodyMat) {
-        vObj.bodyMat.emissive.setHex(0x1e293b);
-        vObj.bodyMat.emissiveIntensity = vObj.isHovered ? 0.45 : 0.0;
-      }
+      vObj.brakeLightMat.emissiveIntensity = kf.braking_active ? 3.5 : 0.2;
 
       // Spin wheels proportional to distance traveled
       if (Array.isArray(vObj.wheels)) {
@@ -1434,15 +1644,20 @@ export class ForensicScene3D {
       vObj.velocityArrow.setLength(speedLen, 0.55, 0.35);
       vObj.velocityArrow.visible = kf.speed_mph > 0.8;
 
-      // Update floating monochrome pill readout: hidden unless hovered or near impact
-      if (vObj.labelSprite) {
-        vObj.labelSprite.visible = Boolean(vObj.isHovered || Math.abs(timestampSec - impactT) <= 0.18);
-        if (vObj.labelSprite.userData?.updateLabel) {
-          const plate = vObj.vehicleData.registration_plate || vehicleId;
-          vObj.labelSprite.userData.updateLabel(
-            `${plate} • ${kf.speed_mph.toFixed(1)} mph`
-          );
-        }
+      // Update floating monochrome pill readout
+      if (vObj.labelSprite?.userData?.updateLabel) {
+        const plate = vObj.vehicleData.registration_plate || vehicleId;
+        const suffix =
+          Math.abs(kf.roll_deg || 0) > 15
+            ? `ROLL ${Math.round(kf.roll_deg)}°`
+            : Math.abs(timestampSec - impactT) <= 0.08
+              ? 'IMPACT'
+              : kf.braking_active
+                ? 'BRAKING'
+                : 'MOVING';
+        vObj.labelSprite.userData.updateLabel(
+          `${plate} • ${kf.speed_mph.toFixed(1)} mph (${suffix})`
+        );
       }
 
       positions[vehicleId] = new THREE.Vector3(kf.x_meters, 1.1, kf.z_meters);
@@ -1511,7 +1726,6 @@ export class ForensicScene3D {
       (this.container.clientWidth || 900) / Math.max(this.container.clientHeight || 600, 1);
 
     if (mode === 'top' || mode === 'side' || mode === 'front') {
-      this._camTransition = null;
       this.activeCamera = this.orthoCamera;
       this.controls.enabled = false;
       this.orthoCamera.left = -this.orthoHalfSize * aspect;
@@ -1536,71 +1750,21 @@ export class ForensicScene3D {
     } else {
       this.activeCamera = this.perspCamera;
       this.perspCamera.up.set(0, 1, 0);
-
-      let targetPos = new THREE.Vector3();
-      let targetLook = new THREE.Vector3();
-      let targetFov = 46;
-
       if (mode === 'orbit') {
         this.controls.enabled = true;
-        targetFov = 46;
-        targetPos.set(17, 15, 20);
-        targetLook.set(-1.5, 0.5, -1.0);
-      } else if (mode === 'cctv_1') {
+        this.perspCamera.fov = 46;
+        this.perspCamera.position.set(17, 15, 20);
+        this.controls.target.set(-1.5, 0.5, -1.0);
+        this.controls.update();
+      } else {
         this.controls.enabled = false;
-        const cam =
-          this.reportData?.detected_cameras?.[0] || {
-            mount_position_x: 11.5,
-            mount_position_y: 4.2,
-            mount_position_z: 8.5,
-            look_at_x: -1.5,
-            look_at_z: -1.0,
-            fov_deg: 68,
-          };
-        targetFov = Math.min(cam.fov_deg || 68, 75);
-        targetPos.set(cam.mount_position_x, cam.mount_position_y, cam.mount_position_z);
-        targetLook.set(cam.look_at_x, 0.8, cam.look_at_z);
-      } else if (mode === 'pov_a' || mode === 'pov_b') {
-        this.controls.enabled = false;
-        targetFov = 62;
-        const vKey = mode === 'pov_a' ? 'vehicle_a' : 'vehicle_b';
-        const kf =
-          this.lastPhysicsTelemetry?.[vKey] ||
-          this.reportData?.vehicles?.find((v) => v.vehicle_id === vKey)?.keyframes?.[0];
-        if (kf) {
-          const rad = THREE.MathUtils.degToRad(kf.heading_deg || 0);
-          const fwdX = Math.sin(rad);
-          const fwdZ = -Math.cos(rad);
-          const camY = mode === 'pov_a' ? 1.55 : 1.42;
-          targetPos.set(kf.x_meters - fwdX * 0.4, camY, kf.z_meters - fwdZ * 0.4);
-          targetLook.set(kf.x_meters + fwdX * 14, 1.0, kf.z_meters + fwdZ * 14);
-        } else {
-          targetPos.copy(this.perspCamera.position);
-          targetLook.copy(this.controls.target);
-        }
+        this.updateAtTime(this.currentTime);
       }
-
-      this.perspCamera.fov = targetFov;
       this.perspCamera.updateProjectionMatrix();
-
-      // Smoothly animate perspective camera transition over 0.6s (600ms) with cubic ease-out
-      this._camTransition = {
-        startPos: this.perspCamera.position.clone(),
-        endPos: targetPos,
-        startTarget: this.controls.target.clone(),
-        endTarget: targetLook,
-        startTime: performance.now(),
-        duration: 600,
-      };
-    }
-
-    if (this.renderPass) {
-      this.renderPass.camera = this.activeCamera;
     }
   }
 
   _updateActiveCameraTransform(snapshot) {
-    if (this._camTransition) return;
     if (this.cameraMode === 'pov_a' && snapshot.vehicle_a) {
       const kf = snapshot.vehicle_a;
       const rad = THREE.MathUtils.degToRad(kf.heading_deg);
@@ -1609,7 +1773,6 @@ export class ForensicScene3D {
       this.perspCamera.fov = 62;
       this.perspCamera.position.set(kf.x_meters - fwdX * 0.4, 1.55, kf.z_meters - fwdZ * 0.4);
       this.perspCamera.lookAt(kf.x_meters + fwdX * 14, 1.0, kf.z_meters + fwdZ * 14);
-      this.controls.target.set(kf.x_meters + fwdX * 14, 1.0, kf.z_meters + fwdZ * 14);
       this.perspCamera.updateProjectionMatrix();
     } else if (this.cameraMode === 'pov_b' && snapshot.vehicle_b) {
       const kf = snapshot.vehicle_b;
@@ -1619,7 +1782,6 @@ export class ForensicScene3D {
       this.perspCamera.fov = 62;
       this.perspCamera.position.set(kf.x_meters - fwdX * 0.4, 1.42, kf.z_meters - fwdZ * 0.4);
       this.perspCamera.lookAt(kf.x_meters + fwdX * 16, 1.0, kf.z_meters + fwdZ * 16);
-      this.controls.target.set(kf.x_meters + fwdX * 16, 1.0, kf.z_meters + fwdZ * 16);
       this.perspCamera.updateProjectionMatrix();
     } else if (this.cameraMode === 'cctv_1') {
       const cam =
@@ -1634,7 +1796,6 @@ export class ForensicScene3D {
       this.perspCamera.fov = Math.min(cam.fov_deg || 68, 75);
       this.perspCamera.position.set(cam.mount_position_x, cam.mount_position_y, cam.mount_position_z);
       this.perspCamera.lookAt(cam.look_at_x, 0.8, cam.look_at_z);
-      this.controls.target.set(cam.look_at_x, 0.8, cam.look_at_z);
       this.perspCamera.updateProjectionMatrix();
     }
   }
@@ -1659,48 +1820,14 @@ export class ForensicScene3D {
     this.orthoCamera.updateProjectionMatrix();
 
     this.renderer.setSize(width, height);
-    if (this.composer) {
-      this.composer.setSize(width, height);
-    }
   }
 
   _animate() {
     this._rafId = requestAnimationFrame(this._animate);
-
-    if (this._camTransition) {
-      const elapsed = performance.now() - this._camTransition.startTime;
-      const progress = Math.min(elapsed / this._camTransition.duration, 1.0);
-      const ease = 1 - Math.pow(1 - progress, 3);
-
-      this.perspCamera.position.lerpVectors(
-        this._camTransition.startPos,
-        this._camTransition.endPos,
-        ease
-      );
-      this.controls.target.lerpVectors(
-        this._camTransition.startTarget,
-        this._camTransition.endTarget,
-        ease
-      );
-      this.perspCamera.lookAt(this.controls.target);
-      this.controls.update();
-
-      if (progress >= 1.0) {
-        this._camTransition = null;
-      }
-    } else if (this.cameraMode === 'orbit' && this.controls.enabled) {
+    if (this.cameraMode === 'orbit' && this.controls.enabled) {
       this.controls.update();
     }
-
-    if (this.renderPass) {
-      this.renderPass.camera = this.activeCamera;
-    }
-
-    if (this.composer) {
-      this.composer.render();
-    } else {
-      this.renderer.render(this.scene, this.activeCamera);
-    }
+    this.renderer.render(this.scene, this.activeCamera);
   }
 
   dispose() {
@@ -1710,20 +1837,6 @@ export class ForensicScene3D {
     }
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
-    }
-    if (this.renderer?.domElement) {
-      this.renderer.domElement.removeEventListener('pointermove', this._onPointerMove);
-      this.renderer.domElement.removeEventListener('pointerleave', this._onPointerLeave);
-    }
-    if (this.hoverTooltip?.parentElement) {
-      this.hoverTooltip.remove();
-    }
-    if (this.pmremGenerator) {
-      this.pmremGenerator.dispose();
-      this.pmremGenerator = null;
-    }
-    if (this.composer) {
-      this.composer.dispose?.();
     }
     if (this.controls) {
       this.controls.dispose();

@@ -7,7 +7,7 @@
     "id": "cheadle_a521",
     "claim_id": "UK-2026-0819",
     "title": "Case 1: Cheadle A521 / Draycott Cross Rd Junction",
-    "subtitle": "VL19 OKP (Blue Peugeot 2008 Rollover) vs GD64 LKU (VW Golf \u2014 Expired MOT)",
+    "subtitle": "VL19 OKP (Blue Peugeot 2008 Rollover) vs GD64 LKU (VW Golf — Expired MOT)",
     "video_url": "/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4",
     "duration_seconds": 4.5,
     "badge": "LIVE DVSA + RING CCTV",
@@ -21,7 +21,7 @@
     {
       "step_index": 1,
       "type": "processing_call",
-      "summary": "Pass 1 (1x Macro Scene Scrub & Causal Relevance Filter): Identified Cheadle A521 / Draycott Cross Rd urban T-junction from elevated static Ring CCTV (FOV 110\u00b0). Stripped 3 non-causal background objects (2 distant parked domestic cars on Draycott Cross Rd and 1 non-involved roadside bin cluster) while retaining 2 causally involved vehicles (VL19 OKP & GD64 LKU) and 4 static regulatory/sightline features."
+      "summary": "Pass 1 (1x Macro Scene Scrub & Causal Relevance Filter): Identified Cheadle A521 / Draycott Cross Rd urban T-junction from elevated static Ring CCTV (FOV 110°). Stripped 3 non-causal background objects (2 distant parked domestic cars on Draycott Cross Rd and 1 non-involved roadside bin cluster) while retaining 2 causally involved vehicles (VL19 OKP & GD64 LKU) and 4 static regulatory/sightline features."
     },
     {
       "step_index": 2,
@@ -31,17 +31,17 @@
     {
       "step_index": 3,
       "type": "thought",
-      "summary": "Pass 3 (Post-Impact Rollover & DVSA Causal Audit t=1.15s..3.00s): Verified offside B-pillar impact at (0.0m, 0.2m) deflecting VL19 OKP onto a 118\u00b0 ESE heading and inducing an 86.0\u00b0 nearside rollover. Cross-referenced live UK DVSA MOT History: flagged GD64 LKU's expired MOT (2026-05-02) and worn front/rear brake discs as CAUSAL to its extended wet stopping envelope, while flagging historical rectified MOT failures and surface suspension corrosion as NOT CAUSAL."
+      "summary": "Pass 3 (Post-Impact Rollover & DVSA Causal Audit t=1.15s..3.00s): Verified offside B-pillar impact at (0.0m, 0.2m) deflecting VL19 OKP onto a 118° ESE heading and inducing an 86.0° nearside rollover. Cross-referenced live UK DVSA MOT History: flagged GD64 LKU's expired MOT (2026-05-02) and worn front/rear brake discs as CAUSAL to its extended wet stopping envelope, while flagging historical rectified MOT failures and surface suspension corrosion as NOT CAUSAL."
     }
   ],
-  "physics_audit_log": "ANTIGRAVITY SANDBOX KINEMATIC & ROLLOVER VERIFICATION (`antigravity-preview-09-2026` | `gemini-4-argon`):\n1. STOPPING DISTANCE AT 30.0 MPH vs 41.2 MPH (DAMP TARMAC \u03bc = 0.55):\n   - Compliant 30.0 mph (13.41 m/s): Thinking distance (t_r = 0.67s) = 8.98m; Wet braking distance = v\u00b2 / (2\u00b7g\u00b7\u03bc) = 16.66m; Total forensic stopping distance = 25.64m.\n   - Actual GD64 LKU Speed 41.2 mph (18.42 m/s) with DVSA worn front/rear brake discs (\u03bc_eff = 0.51): Thinking distance = 12.34m; Wet braking distance = 33.91m; Total = 46.25m (+80.4% stopping envelope extension).\n2. KINETIC ENERGY & ROLLOVER TORQUE VERIFICATION:\n   - Pre-impact braking from t=0.50s to t=1.15s scrubbed GD64 LKU speed from 41.2 mph to 33.4 mph (14.93 m/s).\n   - Lateral impact impulse delivered into VL19 OKP offside B-pillar at (0.0m, 0.2m): E_k = 0.5 \u00d7 1,385 kg \u00d7 (14.93 m/s)\u00b2 = 154.4 kJ.\n   - Because the Peugeot 2008 SUV center of gravity (h_cg = 0.64m) sits above the VW Golf front bumper impact plane (h_imp = 0.46m), the overturning moment rotated roll_deg from 0.0\u00b0 (t=1.00s) -> 28.0\u00b0 (t=1.15s) -> 72.0\u00b0 (t=1.50s) -> 86.0\u00b0 nearside rest (t=2.00s..3.00s).",
+  "physics_audit_log": "ANTIGRAVITY SANDBOX KINEMATIC & ROLLOVER VERIFICATION (`antigravity-preview-09-2026` | `gemini-4-argon`):\n1. STOPPING DISTANCE AT 30.0 MPH vs 41.2 MPH (DAMP TARMAC μ = 0.55):\n   - Compliant 30.0 mph (13.41 m/s): Thinking distance (t_r = 0.67s) = 8.98m; Wet braking distance = v² / (2·g·μ) = 16.66m; Total forensic stopping distance = 25.64m.\n   - Actual GD64 LKU Speed 41.2 mph (18.42 m/s) with DVSA worn front/rear brake discs (μ_eff = 0.51): Thinking distance = 12.34m; Wet braking distance = 33.91m; Total = 46.25m (+80.4% stopping envelope extension).\n2. KINETIC ENERGY & ROLLOVER TORQUE VERIFICATION:\n   - Pre-impact braking from t=0.50s to t=1.15s scrubbed GD64 LKU speed from 41.2 mph to 33.4 mph (14.93 m/s).\n   - Lateral impact impulse delivered into VL19 OKP offside B-pillar at (0.0m, 0.2m): E_k = 0.5 × 1,385 kg × (14.93 m/s)² = 154.4 kJ.\n   - Because the Peugeot 2008 SUV center of gravity (h_cg = 0.64m) sits above the VW Golf front bumper impact plane (h_imp = 0.46m), the overturning moment rotated roll_deg from 0.0° (t=1.00s) -> 28.0° (t=1.15s) -> 72.0° (t=1.50s) -> 86.0° nearside rest (t=2.00s..3.00s).",
   "report": {
     "claim_id": "UK-2026-0819",
     "duration_seconds": 4.5,
     "video_url": "/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4",
     "is_public_demo": true,
     "local_only": false,
-    "incident_summary": "At approximately 14:22 BST on damp tarmacadam at the Cheadle A521 / Draycott Cross Road urban T-junction (30 mph limit), a 2019 Blue Peugeot 2008 SUV (VL19 OKP, Vehicle A) emerged Southbound from Draycott Cross Road across Diagram 1003 Give Way markings at 18.6 mph without halting. Concurrently, a 2015 Silver/Grey Volkswagen Golf (GD64 LKU, Vehicle B) approached Eastbound along the A521 priority corridor at 41.2 mph (37.3% above the 30 mph statutory limit) while operating with an EXPIRED UK DVSA MOT Certificate (expired 2 May 2026 at 93,028 miles) and unrectified DVSA advisories for worn/pitted front and offside-rear brake discs. Despite emergency braking onset at t=0.50s, GD64 LKU could only scrub speed to 33.4 mph before striking the offside B-pillar of VL19 OKP at (x=0.0m, z=0.2m) at t=1.15s, deflecting the Peugeot 2008 East-Southeast and rolling it onto its nearside (roll_deg = 86.0\u00b0).",
+    "incident_summary": "At approximately 14:22 BST on damp tarmacadam at the Cheadle A521 / Draycott Cross Road urban T-junction (30 mph limit), a 2019 Blue Peugeot 2008 SUV (VL19 OKP, Vehicle A) emerged Southbound from Draycott Cross Road across Diagram 1003 Give Way markings at 18.6 mph without halting. Concurrently, a 2015 Silver/Grey Volkswagen Golf (GD64 LKU, Vehicle B) approached Eastbound along the A521 priority corridor at 41.2 mph (37.3% above the 30 mph statutory limit) while operating with an EXPIRED UK DVSA MOT Certificate (expired 2 May 2026 at 93,028 miles) and unrectified DVSA advisories for worn/pitted front and offside-rear brake discs. Despite emergency braking onset at t=0.50s, GD64 LKU could only scrub speed to 33.4 mph before striking the offside B-pillar of VL19 OKP at (x=0.0m, z=0.2m) at t=1.15s, deflecting the Peugeot 2008 East-Southeast and rolling it onto its nearside (roll_deg = 86.0°).",
     "location_and_time_context": {
       "inferred_uk_location": "Cheadle, Staffordshire Moorlands (A521 / Draycott Cross Rd Junction)",
       "road_name_and_classification": "A521 Urban Single Carriageway (Priority Corridor) / Draycott Cross Rd (Minor Unclassified Approach)",
@@ -57,7 +57,7 @@
         "Damp specular sheen on asphalt surface without standing water puddles (mu = 0.55)"
       ]
     },
-    "impact_timestamp_sec": 0.4,
+    "impact_timestamp_sec": 1.15,
     "impact_x_meters": -0.95,
     "impact_z_meters": 0.2,
     "claimant_PreImpact_Speed_mph": 41.2,
@@ -67,62 +67,62 @@
     "filtered_irrelevant_objects_count": 3,
     "scene_environment_elements": [
       {
-        "element_id": "env_ne_pole_30_sign",
-        "element_type": "speed_limit_sign",
-        "label": "NE Corner Telegraph Pole & 30 mph Terminal Speed Sign (Struck by Rolling SUV)",
-        "x_meters": 3.8,
-        "z_meters": -3.6,
-        "radius_meters": 0.35,
-        "causal_relevance_note": "Directly struck and bent by Claimant Vehicle A (VL19 OKP) at t = 1.15s during its 86-degree nearside rollover after being T-boned by Defendant Vehicle B.",
-        "tsrgd_diagram": "TSRGD 2016 Schedule 10 Diagram 670 (30 mph Maximum Speed Limit) mounted on NE corner utility/telegraph pole",
-        "statutory_duty": "Road Traffic Regulation Act 1984 s.81 & s.89; Highway Code Rule 124 (mandatory 30 mph speed limit in built-up rural crossroad zone).",
-        "driver_compliance": "BREACH BY VEHICLE B (GD64 LKU): Approached at 41.2 mph (37.3% above the 30 mph statutory limit). Vehicle A (VL19 OKP) was shoved laterally by the 29.5 mph T-bone impact into this NE corner pole at t = 1.15s.",
-        "legal_liability_impact": "Establishes primary speeding negligence and excessive kinetic energy (1.89x energy of a 30 mph vehicle) against Defendant Vehicle B, which directly propelled Vehicle A into the NE corner telegraph pole and 86-degree rollover."
+        "element_id": "sign_give_way_draycott",
+        "element_type": "road_sign",
+        "label": "UK Diagram 602 Give Way Sign & Diagram 1003 Double Dashed Line",
+        "x_meters": -2.4,
+        "z_meters": -4.2,
+        "causal_relevance_note": "Establishes statutory duty under Highway Code Rule 172 and RTA 1988 s.36 for emerging Southbound traffic (VL19 OKP) to yield priority to A521 traffic.",
+        "tsrgd_diagram": "TSRGD 2016 Diagram 602 & 1003 (Give Way Sign & Transverse Double Broken Line)",
+        "statutory_duty": "Road Traffic Act 1988 s.36 / TSRGD 2016 Schedule 9 Part 7 / Highway Code Rule 172: Driver emerging from Draycott Cross Rd minor approach must give way to priority traffic on the A521 major carriageway.",
+        "driver_compliance": "BREACHED by Vehicle A (VL19 OKP — Peugeot 2008): Crossed the Diagram 1003 Give Way line at t=0.50s..0.85s at 19.0–19.4 mph with zero braking (braking_active=False), failing to halt or creep.",
+        "legal_liability_impact": "Establishes 75% primary liability against VL19 OKP under Powell v Moody [1966] 110 SJ 215 and Worsfold v Howe [1980] 1 WLR 1175 for emerging across a mandatory Give Way line into a priority corridor."
       },
       {
-        "element_id": "env_sw_give_way_sign",
-        "element_type": "give_way_sign",
-        "label": "SW Foreground Give Way Sign & Transverse Markings (TSRGD Diag 602 / 1003)",
-        "x_meters": -3.6,
+        "element_id": "sign_speed_30_a521",
+        "element_type": "road_sign",
+        "label": "A521 Statutory 30 mph Built-Up Area Repeater & Street Lamp Column",
+        "x_meters": -18.0,
         "z_meters": 4.5,
-        "radius_meters": 0.35,
-        "causal_relevance_note": "Governs the minor road southern approach from which Vehicle A emerged into the A521 crossroad at t = 0.00s.",
-        "tsrgd_diagram": "TSRGD 2016 Schedule 9 Part 2 Diagram 602 (Give Way triangle) & Part 6 Diagram 1003 (Double Broken Transverse Give Way Line)",
-        "statutory_duty": "Highway Code Rule 172 & Road Traffic Act 1988 s.36: Drivers emerging from the minor road must give priority to traffic on the A521 major carriageway.",
-        "driver_compliance": "PARTIAL BREACH BY VEHICLE A (VL19 OKP): Emerged across the South Give Way line at 19.8 mph without pausing to re-verify right-hand sightline clearance past the NW hedgerow.",
-        "legal_liability_impact": "Grounds 25% contributory negligence reduction against Claimant Vehicle A under Law Reform (Contributory Negligence) Act 1945 s.1(1) and Harding v Hinchcliffe [1964]."
+        "causal_relevance_note": "Confirms 30 mph speed limit breached by GD64 LKU (approaching at 41.2 mph) under Highway Code Rule 124.",
+        "tsrgd_diagram": "TSRGD 2016 Diagram 670 (30 mph Mandatory Restricted Road Speed Limit)",
+        "statutory_duty": "Road Traffic Regulation Act 1984 s.81 & s.82 / Highway Code Rule 124: Mandatory 30 mph maximum speed limit across street-lit built-up A521 corridor; requires lower speed on damp tarmac (Rule 126).",
+        "driver_compliance": "BREACHED by Vehicle B (GD64 LKU — VW Golf): Approached Eastbound at 41.2 mph (+37.3% above the 30 mph limit, +88.6% excess kinetic energy) before braking at t=0.50s; COMPLIED by Vehicle A (19.8 mph).",
+        "legal_liability_impact": "Establishes 25% contributory negligence against GD64 LKU under Harding v Hinchcliffe [1964] RTR 112 and Froom v Butcher [1976] QB 286 for expanding wet stopping distance from 25.64m to 46.25m."
       },
       {
-        "element_id": "env_sw_brick_wall",
+        "element_id": "marking_give_way_triangle_draycott",
+        "element_type": "road_marking",
+        "label": "UK Diagram 1023 Give Way Approach Triangle & Diagram 1004 Centre Warning Line",
+        "x_meters": -0.4,
+        "z_meters": -6.5,
+        "causal_relevance_note": "Provides advance carriageway surface warning of the Diagram 1003 Give Way threshold on Draycott Cross Rd.",
+        "tsrgd_diagram": "TSRGD 2016 Diagram 1023 & 1003 (Give Way Approach Triangle & Transverse Give Way Line)",
+        "statutory_duty": "TSRGD 2016 Schedule 9 / Highway Code Rules 170 & 172: Requires approaching minor-road driver to decelerate on approach and prepare to stop at the transverse double broken Give Way line.",
+        "driver_compliance": "BREACHED by Vehicle A (VL19 OKP): Traversed the Diagram 1023 triangle at 19.4 mph without deceleration pitch or brake light activation.",
+        "legal_liability_impact": "Reinforces primary negligence finding against VL19 OKP by demonstrating continuous disregard of both upright and carriageway priority warnings."
+      },
+      {
+        "element_id": "sightline_blocker_nw_terrace",
         "element_type": "building",
-        "label": "SW Foreground Low Brick Boundary Wall",
-        "x_meters": -5.2,
-        "z_meters": 5.0,
-        "radius_meters": 1.2,
-        "causal_relevance_note": "Foreground fixed brick boundary wall beneath the Ring CCTV camera anchoring photogrammetric scale at the SW corner.",
-        "tsrgd_diagram": "Fixed Highway Boundary Feature (SW Corner Brick Wall adjacent to CCTV Camera)",
-        "statutory_duty": "Highway Code Rule 170: Exercise heightened caution at junctions with restricted lateral corners.",
-        "driver_compliance": "Non-struck foreground reference feature anchoring Ring CCTV camera photogrammetry at the SW corner.",
-        "legal_liability_impact": "Provides fixed photogrammetric scale reference confirming junction entry coordinates at t = 0.00s."
+        "label": "Northwest Corner Brick Terrace Property (A521 / Draycott Cross Rd)",
+        "x_meters": -8.5,
+        "z_meters": -7.8,
+        "causal_relevance_note": "Obstructed deep diagonal sightline between Northbound/Southbound minor road approach and Eastbound A521 corridor prior to the Give Way line."
       },
       {
-        "element_id": "env_nw_hedgerow",
+        "element_id": "sightline_blocker_nw_hedgerow",
         "element_type": "vegetation_sightline_blocker",
-        "label": "NW Corner Hedgerow Sightline Obstruction",
-        "x_meters": -5.8,
-        "z_meters": -4.6,
-        "radius_meters": 2.4,
-        "causal_relevance_note": "Restricts diagonal inter-visibility between the Westbound/Eastbound A521 approach and the minor road crossroad.",
-        "tsrgd_diagram": "Highways Act 1980 s.154 Overhanging Verge Hedgerow (Restricted Visibility Splay)",
-        "statutory_duty": "Highway Code Rule 126 & Rule 146: Drivers approaching a blind rural crossroad must adjust speed to stop within the visible clear distance.",
-        "driver_compliance": "MUTUAL SIGHTLINE RESTRICTION: Restricted early inter-visibility across the NW corner, compounding the hazard of Vehicle B's 41.2 mph approach.",
-        "legal_liability_impact": "Supports apportionment of 75% primary liability to Vehicle B for approaching a restricted-visibility crossroad at 41.2 mph."
+        "label": "Dense Boundary Hedgerow Restricting Lateral Splay to 26m",
+        "x_meters": -6.2,
+        "z_meters": -5.1,
+        "causal_relevance_note": "Restricted lateral visibility splay to 26m, requiring VL19 OKP to halt and creep under Worsfold v Howe [1980] rather than emerging at 18.6 mph."
       }
     ],
     "vehicles": [
       {
         "vehicle_id": "vehicle_a",
-        "label": "Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant",
+        "label": "2019 Blue Peugeot 2008 SUV (VL19 OKP — Emerging from Minor Road)",
         "color_hex": "#2563EB",
         "registration_plate": "VL19 OKP",
         "dvsa_make": "PEUGEOT",
@@ -141,114 +141,36 @@
             "test_date": "2026-08-28",
             "defect_category": "Advisory",
             "causal_status": "NOT CAUSAL",
-            "forensic_explanation": "NOT CAUSAL \u2014 Video reconstruction confirms VL19 OKP rolled across the Give Way line at 18.6 mph without applying its brakes (`braking_active=False` through impact). Emerging into the A521 priority corridor was a primary driver observation error under Highway Code Rule 172 rather than mechanical brake failure."
+            "forensic_explanation": "NOT CAUSAL — Video reconstruction confirms VL19 OKP rolled across the Give Way line at 18.6 mph without applying its brakes (`braking_active=False` through impact). Emerging into the A521 priority corridor was a primary driver observation error under Highway Code Rule 172 rather than mechanical brake failure."
           },
           {
             "defect_text": "Advisory: Front Tyre worn close to legal limit/worn on edge both sides [5.2.3 (e)]",
             "test_date": "2026-08-28",
             "defect_category": "Advisory",
             "causal_status": "CAUSAL",
-            "forensic_explanation": "CAUSAL (SECONDARY POST-IMPACT SLIDE & ROLLOVER) \u2014 Worn front tyre outer edges on damp tarmac (mu=0.55) reduced lateral friction during the late evasive steer at t=1.00s and accelerated lateral side-slip into the rollover fulcrum."
+            "forensic_explanation": "CAUSAL (SECONDARY POST-IMPACT SLIDE & ROLLOVER) — Worn front tyre outer edges on damp tarmac (mu=0.55) reduced lateral friction during the late evasive steer at t=1.00s and accelerated lateral side-slip into the rollover fulcrum."
           }
         ],
         "causally_relevant": true,
-        "causal_role_reason": "Primary collision participant (Defendant vehicle): emerged Southbound from Draycott Cross Rd across Diagram 1003 Give Way markings at 18.6 mph directly into the A521 Eastbound priority corridor, sustaining offside B-pillar impact and rolling 86.0\u00b0 onto its nearside.",
+        "causal_role_reason": "Primary collision participant (Defendant vehicle): emerged Southbound from Draycott Cross Rd across Diagram 1003 Give Way markings at 18.6 mph directly into the A521 Eastbound priority corridor, sustaining offside B-pillar impact and rolling 86.0° onto its nearside.",
         "keyframes": [
-          {
-            "timestamp_sec": 0.0,
-            "speed_mph": 19.8,
-            "heading_deg": 2.0,
-            "pitch_deg": 0.0,
-            "roll_deg": 0.0,
-            "braking_active": false,
-            "x_meters": -0.0,
-            "z_meters": 3.4
-          },
-          {
-            "timestamp_sec": 0.2,
-            "speed_mph": 19.4,
-            "heading_deg": 2.0,
-            "pitch_deg": 0.3,
-            "roll_deg": 0.0,
-            "braking_active": false,
-            "x_meters": 0.06,
-            "z_meters": 1.65
-          },
-          {
-            "timestamp_sec": 0.4,
-            "speed_mph": 18.6,
-            "heading_deg": 2.0,
-            "pitch_deg": -2.2,
-            "roll_deg": 6.0,
-            "braking_active": true,
-            "x_meters": 0.12,
-            "z_meters": -0.05
-          },
-          {
-            "timestamp_sec": 0.65,
-            "speed_mph": 17.6,
-            "heading_deg": 46.0,
-            "pitch_deg": -4.8,
-            "roll_deg": 48.0,
-            "braking_active": true,
-            "x_meters": 1.62,
-            "z_meters": -1.4
-          },
-          {
-            "timestamp_sec": 0.95,
-            "speed_mph": 10.4,
-            "heading_deg": 68.0,
-            "pitch_deg": -3.1,
-            "roll_deg": 82.0,
-            "braking_active": true,
-            "x_meters": 2.99,
-            "z_meters": -2.68
-          },
-          {
-            "timestamp_sec": 1.15,
-            "speed_mph": 4.4,
-            "heading_deg": 74.0,
-            "pitch_deg": -1.5,
-            "roll_deg": 86.0,
-            "braking_active": true,
-            "x_meters": 3.47,
-            "z_meters": -3.14
-          },
-          {
-            "timestamp_sec": 1.45,
-            "speed_mph": 0.0,
-            "heading_deg": 76.0,
-            "pitch_deg": 0.0,
-            "roll_deg": 86.0,
-            "braking_active": true,
-            "x_meters": 3.68,
-            "z_meters": -3.34
-          },
-          {
-            "timestamp_sec": 3.0,
-            "speed_mph": 0.0,
-            "heading_deg": 76.0,
-            "pitch_deg": 0.0,
-            "roll_deg": 86.0,
-            "braking_active": true,
-            "x_meters": 3.68,
-            "z_meters": -3.34
-          },
-          {
-            "timestamp_sec": 4.5,
-            "speed_mph": 0.0,
-            "heading_deg": 76.0,
-            "pitch_deg": 0.0,
-            "roll_deg": 86.0,
-            "braking_active": true,
-            "x_meters": 3.68,
-            "z_meters": -3.34
-          }
+          {"timestamp_sec": 0.0, "x_meters": 0.0, "z_meters": -9.8, "heading_deg": 180.0, "speed_mph": 19.8, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.5, "x_meters": 0.02, "z_meters": -5.35, "heading_deg": 179.5, "speed_mph": 19.4, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.85, "x_meters": 0.05, "z_meters": -2.3, "heading_deg": 179.0, "speed_mph": 19.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 1.0, "x_meters": 0.08, "z_meters": -1.02, "heading_deg": 178.0, "speed_mph": 18.6, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 1.15, "x_meters": 0.12, "z_meters": 0.15, "heading_deg": 175.0, "speed_mph": 17.8, "braking_active": false, "roll_deg": 6.0},
+          {"timestamp_sec": 1.35, "x_meters": 1.58, "z_meters": 0.85, "heading_deg": 136.0, "speed_mph": 13.8, "braking_active": true, "roll_deg": 48.0},
+          {"timestamp_sec": 1.65, "x_meters": 2.98, "z_meters": 1.55, "heading_deg": 114.0, "speed_mph": 5.8, "braking_active": true, "roll_deg": 86.0},
+          {"timestamp_sec": 2.1, "x_meters": 3.78, "z_meters": 1.85, "heading_deg": 106.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 86.0},
+          {"timestamp_sec": 2.5, "x_meters": 3.78, "z_meters": 1.85, "heading_deg": 106.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 86.0},
+          {"timestamp_sec": 3.0, "x_meters": 3.78, "z_meters": 1.85, "heading_deg": 106.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 86.0},
+          {"timestamp_sec": 3.8, "x_meters": 3.78, "z_meters": 1.85, "heading_deg": 106.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 86.0},
+          {"timestamp_sec": 4.5, "x_meters": 3.78, "z_meters": 1.85, "heading_deg": 106.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 86.0}
         ]
       },
       {
         "vehicle_id": "vehicle_b",
-        "label": "Vehicle B: Silver VW Golf (GD64 LKU), Claimant",
+        "label": "2015 Silver/Grey Volkswagen Golf (GD64 LKU — A521 Main Road Priority)",
         "color_hex": "#94A3B8",
         "registration_plate": "GD64 LKU",
         "dvsa_make": "VOLKSWAGEN",
@@ -264,137 +186,49 @@
         ],
         "dvsa_defect_classifications": [
           {
-            "defect_text": "STATUTORY MOT EXPIRED on 2026-05-02 (Last recorded odometer: 93,028 miles) \u2014 Road Traffic Act 1988 s.47 Breach",
+            "defect_text": "STATUTORY MOT EXPIRED on 2026-05-02 (Last recorded odometer: 93,028 miles) — Road Traffic Act 1988 s.47 Breach",
             "test_date": "2026-05-02",
             "defect_category": "Statutory Expiry",
             "causal_status": "CAUSAL",
-            "forensic_explanation": "CAUSAL / CONTRIBUTORY \u2014 Operating on the A521 without a valid MOT certificate left prior multi-axle braking advisories uninspected past 93,028 miles and triggers Policy #UK-8841 Section 4 Clause 4.2 Roadworthiness Exclusion & Subrogation Right."
+            "forensic_explanation": "CAUSAL / CONTRIBUTORY — Operating on the A521 without a valid MOT certificate left prior multi-axle braking advisories uninspected past 93,028 miles and triggers Policy #UK-8841 Section 4 Clause 4.2 Roadworthiness Exclusion & Subrogation Right."
           },
           {
             "defect_text": "Advisory: Front Brake disc worn, pitted or scored, but not seriously weakened Offside & Nearside [1.1.14 (a) (i)]",
             "test_date": "2025-05-03",
             "defect_category": "Advisory",
             "causal_status": "CAUSAL",
-            "forensic_explanation": "CAUSAL / CONTRIBUTORY \u2014 GD64 LKU was braking hard from 41.2 mph in a 30 mph zone on damp tarmac (mu=0.55) from t=0.50s to t=1.15s. Degraded and pitted front brake discs directly lengthened its wet stopping distance and prevented velocity scrubbing below 29.5 mph."
+            "forensic_explanation": "CAUSAL / CONTRIBUTORY — GD64 LKU was braking hard from 41.2 mph in a 30 mph zone on damp tarmac (mu=0.55) from t=0.50s to t=1.15s. Degraded and pitted front brake discs directly lengthened its wet stopping distance and prevented velocity scrubbing below 29.5 mph."
           },
           {
             "defect_text": "Advisory: Offside Rear Brake disc worn, pitted or scored, but not seriously weakened [1.1.14 (a) (i)]",
             "test_date": "2025-05-03",
             "defect_category": "Advisory",
             "causal_status": "CAUSAL",
-            "forensic_explanation": "CAUSAL / CONTRIBUTORY \u2014 Scored offside-rear brake rotor reduced total four-wheel ABS deceleration efficiency during the emergency stop on damp asphalt."
+            "forensic_explanation": "CAUSAL / CONTRIBUTORY — Scored offside-rear brake rotor reduced total four-wheel ABS deceleration efficiency during the emergency stop on damp asphalt."
           },
           {
             "defect_text": "Advisory: Front & Rear Suspension components slightly corroded (surface corrosion only)",
             "test_date": "2025-05-03",
             "defect_category": "Advisory",
             "causal_status": "NOT CAUSAL",
-            "forensic_explanation": "NOT CAUSAL \u2014 Superficial surface corrosion on suspension arms had zero mechanical impact on straight-line emergency braking performance."
+            "forensic_explanation": "NOT CAUSAL — Superficial surface corrosion on suspension arms had zero mechanical impact on straight-line emergency braking performance."
           }
         ],
         "causally_relevant": true,
         "causal_role_reason": "Primary collision participant (Claimant priority vehicle): approached Eastbound on A521 at 41.2 mph in a 30 mph zone with an expired MOT and worn brake discs, striking VL19 OKP's offside flank at 29.5 mph after 0.65s of emergency braking.",
         "keyframes": [
-          {
-            "timestamp_sec": 0.0,
-            "speed_mph": 41.2,
-            "heading_deg": 90.0,
-            "pitch_deg": 0.0,
-            "roll_deg": 0.0,
-            "braking_active": false,
-            "x_meters": -9.57,
-            "z_meters": -0.95
-          },
-          {
-            "timestamp_sec": 0.2,
-            "speed_mph": 38.4,
-            "heading_deg": 90.0,
-            "pitch_deg": -1.6,
-            "roll_deg": 0.0,
-            "braking_active": true,
-            "x_meters": -6.01,
-            "z_meters": -0.95
-          },
-          {
-            "timestamp_sec": 0.4,
-            "speed_mph": 29.5,
-            "heading_deg": 90.0,
-            "pitch_deg": -3.2,
-            "roll_deg": -2.5,
-            "braking_active": true,
-            "x_meters": -2.97,
-            "z_meters": -0.95
-          },
-          {
-            "timestamp_sec": 0.48,
-            "speed_mph": 12.0,
-            "heading_deg": 78.0,
-            "pitch_deg": -2.5,
-            "roll_deg": -2.0,
-            "braking_active": true,
-            "x_meters": -2.66,
-            "z_meters": -1.62
-          },
-          {
-            "timestamp_sec": 0.65,
-            "speed_mph": 6.4,
-            "heading_deg": 68.0,
-            "pitch_deg": -1.8,
-            "roll_deg": -1.4,
-            "braking_active": true,
-            "x_meters": -2.26,
-            "z_meters": -2.19
-          },
-          {
-            "timestamp_sec": 0.95,
-            "speed_mph": 2.2,
-            "heading_deg": 62.0,
-            "pitch_deg": -0.6,
-            "roll_deg": -0.5,
-            "braking_active": true,
-            "x_meters": -1.85,
-            "z_meters": -2.6
-          },
-          {
-            "timestamp_sec": 1.15,
-            "speed_mph": 0.0,
-            "heading_deg": 60.0,
-            "pitch_deg": 0.0,
-            "roll_deg": 0.0,
-            "braking_active": true,
-            "x_meters": -1.78,
-            "z_meters": -2.67
-          },
-          {
-            "timestamp_sec": 1.45,
-            "speed_mph": 0.0,
-            "heading_deg": 60.0,
-            "pitch_deg": 0.0,
-            "roll_deg": 0.0,
-            "braking_active": true,
-            "x_meters": -1.78,
-            "z_meters": -2.67
-          },
-          {
-            "timestamp_sec": 3.0,
-            "speed_mph": 0.0,
-            "heading_deg": 60.0,
-            "pitch_deg": 0.0,
-            "roll_deg": 0.0,
-            "braking_active": true,
-            "x_meters": -1.78,
-            "z_meters": -2.67
-          },
-          {
-            "timestamp_sec": 4.5,
-            "speed_mph": 0.0,
-            "heading_deg": 60.0,
-            "pitch_deg": 0.0,
-            "roll_deg": 0.0,
-            "braking_active": true,
-            "x_meters": -1.78,
-            "z_meters": -2.67
-          }
+          {"timestamp_sec": 0.0, "x_meters": -22.4, "z_meters": 0.35, "heading_deg": 90.0, "speed_mph": 41.2, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.5, "x_meters": -13.2, "z_meters": 0.35, "heading_deg": 90.0, "speed_mph": 41.2, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 0.85, "x_meters": -7.4, "z_meters": 0.3, "heading_deg": 90.5, "speed_mph": 36.8, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.0, "x_meters": -5.1, "z_meters": 0.25, "heading_deg": 90.5, "speed_mph": 34.2, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.15, "x_meters": -3.12, "z_meters": 0.2, "heading_deg": 91.0, "speed_mph": 29.5, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.35, "x_meters": -2.15, "z_meters": 1.45, "heading_deg": 108.0, "speed_mph": 14.2, "braking_active": true, "roll_deg": -3.0},
+          {"timestamp_sec": 1.65, "x_meters": -0.95, "z_meters": 2.15, "heading_deg": 116.0, "speed_mph": 4.6, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 2.1, "x_meters": -0.5, "z_meters": 2.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 2.5, "x_meters": -0.5, "z_meters": 2.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 3.0, "x_meters": -0.5, "z_meters": 2.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 3.8, "x_meters": -0.5, "z_meters": 2.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 4.5, "x_meters": -0.5, "z_meters": 2.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
         ]
       }
     ],
@@ -415,33 +249,45 @@
     "forensic_events": [
       {
         "timestamp_sec": 0.0,
-        "event_type": "Give_Way_Line_Encroachment",
-        "severity": "warning",
-        "description": "At clip start (t = 0.00s), Vehicle A (VL19 OKP, Blue Peugeot 2008 SUV) is emerging Northbound (heading 1.9 deg, 19.8 mph) across the South Give Way line at (0.00m, +3.45m) while Vehicle B (GD64 LKU, Silver VW Golf) approaches Eastbound on the A521 priority carriageway at 41.2 mph (-9.66m, -0.95m)."
+        "event_type": "Perception_Hazard_Entry",
+        "description": "GD64 LKU (VW Golf) enters West A521 approach at 41.2 mph (30 mph zone); VL19 OKP (Peugeot 2008) approaches Draycott Cross Rd Give Way line at 19.4 mph.",
+        "severity": "info"
       },
       {
-        "timestamp_sec": 0.2,
+        "timestamp_sec": 0.35,
+        "event_type": "Line_Of_Sight_Obstruction",
+        "description": "Northwest corner brick terrace and boundary hedgerow restrict mutual diagonal visibility splay to 26.0m.",
+        "severity": "warning"
+      },
+      {
+        "timestamp_sec": 0.5,
         "event_type": "Braking_Onset",
-        "severity": "warning",
-        "description": "Vehicle B (GD64 LKU) initiates emergency braking at (-6.10m, -0.95m, 38.4 mph, pitch -1.6 deg) as Vehicle A continues entering the crossroad box at (0.06m, +1.69m, 19.4 mph)."
+        "description": "GD64 LKU driver perceives VL19 OKP failing to slow at Give Way line and initiates emergency braking at x=-15.3m (40.8 mph); degraded brake discs limit deceleration.",
+        "severity": "warning"
       },
       {
-        "timestamp_sec": 0.4,
-        "event_type": "Point_Of_Impact",
-        "severity": "critical",
-        "description": "Primary T-bone collision inside the 4-way crossroad: Vehicle B's front bumper (-2.97m, -0.95m, 29.5 mph) strikes Vehicle A's nearside (left) front door and B-pillar at (0.12m, -0.05m, 18.6 mph), inducing immediate 6.0 deg starboard roll and northeastward lateral shove."
+        "timestamp_sec": 0.75,
+        "event_type": "Give_Way_Line_Encroachment",
+        "description": "VL19 OKP crosses Diagram 1003 double dashed Give Way line at z=-5.4m at 18.7 mph without halting or creeping (breach of Highway Code Rule 172).",
+        "severity": "critical"
       },
       {
-        "timestamp_sec": 0.65,
-        "event_type": "Post_Impact_Rollover_Rest",
-        "severity": "critical",
-        "description": "Lateral tire-scrub and high-CG overturning moment drive Vehicle A to 48.0 deg roll at (1.62m, -1.40m, 17.6 mph) as both vehicles deflect toward the Northeast corner verge."
+        "timestamp_sec": 1.0,
+        "event_type": "Evasive_Steering",
+        "description": "VL19 OKP initiates slight 4° left steering input at z=-1.8m as GD64 LKU closes to x=-4.8m at 35.2 mph.",
+        "severity": "warning"
       },
       {
         "timestamp_sec": 1.15,
+        "event_type": "Point_Of_Impact",
+        "description": "T-bone collision at (x=0.0m, z=0.2m): GD64 LKU front structure (33.4 mph) strikes VL19 OKP offside B-pillar/doors (16.2 mph), initiating 28.0° nearside roll.",
+        "severity": "critical"
+      },
+      {
+        "timestamp_sec": 2.0,
         "event_type": "Post_Impact_Rollover_Rest",
-        "severity": "critical",
-        "description": "Vehicle A (VL19 OKP) strikes and bends the Northeast corner telegraph pole / 30 mph speed sign at (3.8m, -3.6m), rolling onto its side at 86.0 deg roll (3.55m, -3.22m) and sliding to rest at (3.76m, -3.43m) while brown verge dust billows across the junction through t = 4.50s."
+        "description": "VL19 OKP rolls onto its nearside (roll_deg = 86.0°) coming to rest at (x=5.8m, z=3.4m, heading 118°); GD64 LKU comes to rest at (x=4.2m, z=1.1m, heading 108°).",
+        "severity": "critical"
       }
     ],
     "recommended_claimant_liability_pct": 25,
@@ -484,88 +330,11 @@
       }
     ],
     "quantum_damage_estimate_gbp": 21480,
-    "legal_reasoning_chain": "1. PRIMARY BREACH (75% DEFENDANT \u2014 Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant): Under Highway Code Rules 170 and 172 and Road Traffic Act 1988 s.36, the driver of Vehicle A owed an unambiguous statutory duty to give way at the Diagram 1003 double broken white lines on Draycott Cross Road. Because the northwest brick terrace and hedgerow limited west sightlines to 26.0m, Worsfold v Howe [1980] required Vehicle A to halt or creep at <4 mph. Emerging across the Give Way line at 18.6 mph with zero braking (braking_active=False) was the dominant proximate cause of the collision.\n2. CONTRIBUTORY NEGLIGENCE & DVSA CAUSAL AUDIT (25% CLAIMANT \u2014 Vehicle B: Silver VW Golf (GD64 LKU), Claimant): Pursuant to Section 1(1) of the Law Reform (Contributory Negligence) Act 1945, Harding v Hinchcliffe [1964], and Froom v Butcher [1976], the driver of Vehicle B bears 25% contributory responsibility. Photogrammetric tracking proves Vehicle B approached at 41.2 mph in a street-lit 30 mph zone (+37.3% speed excess, +88.6% kinetic energy). Furthermore, live UK DVSA MOT History confirms Vehicle B's MOT EXPIRED on 2 May 2026 (93,028 miles, breaching s.47 RTA 1988) with CAUSAL unrectified advisories for worn, pitted, and scored front and offside-rear brake discs (1.1.14 (a) (i)), extending its wet stopping distance to 46.25m and triggering Policy #UK-8841 Section 4 Clause 4.2."
+    "legal_reasoning_chain": "1. PRIMARY BREACH (75% DEFENDANT — VL19 OKP): Under Highway Code Rules 170 and 172 and Road Traffic Act 1988 s.36, the driver of the 2019 Peugeot 2008 (VL19 OKP) owed an unambiguous statutory duty to give way at the Diagram 1003 double broken white lines on Draycott Cross Road. Because the northwest brick terrace and hedgerow limited west sightlines to 26.0m, Worsfold v Howe [1980] required VL19 OKP to halt or creep at <4 mph. Emerging across the Give Way line at 18.6 mph with zero braking (`braking_active=False`) was the dominant proximate cause of the collision.\n2. CONTRIBUTORY NEGLIGENCE & DVSA CAUSAL AUDIT (25% CLAIMANT — GD64 LKU): Pursuant to Section 1(1) of the Law Reform (Contributory Negligence) Act 1945, Harding v Hinchcliffe [1964], and Froom v Butcher [1976], the driver of the 2015 VW Golf (GD64 LKU) bears 25% contributory responsibility. Photogrammetric tracking proves GD64 LKU approached at 41.2 mph in a street-lit 30 mph zone (+37.3% speed excess, +88.6% kinetic energy). Furthermore, live UK DVSA MOT History confirms GD64 LKU's MOT EXPIRED on 2 May 2026 (93,028 miles, breaching s.47 RTA 1988) with CAUSAL unrectified advisories for worn, pitted, and scored front and offside-rear brake discs (`1.1.14 (a) (i)`), extending its wet stopping distance to 46.25m and Triggering Policy #UK-8841 Section 4 Clause 4.2."
   },
   "subagents": {
-    "policy_audit": "### UK MOTOR POLICY #UK-8841 COVERAGE & DVSA MOT CAUSAL DEFECT AUDIT\n**Prepared for:** A UK motor claims & subrogation solicitor\n**Claim Reference:** `UK-2026-0819` | **Policy Form:** Standard Comprehensive Motor Policy `#UK-8841`\n\n#### 1. Section 4 Clause 4.2 Statutory MOT & Roadworthiness Audit\n* **Vehicle B: Silver VW Golf (GD64 LKU), Claimant (25% liability):**\n  * **Official UK DVSA MOT Status:** **`EXPIRED`** on **2 May 2026** (Last Odometer: `93,028 miles`).\n  * **Contractual & Statutory Consequence:** Operating `GD64 LKU` on the A521 public highway after 2 May 2026 constitutes a strict criminal offence under **Section 47 of the Road Traffic Act 1988** and a direct breach of **Policy #UK-8841 Section 4 Clause 4.2.1(b)**. Own-damage indemnity under Section 3 is subject to proportionate reduction/repudiation, and any third-party outlay satisfied under Section 151 RTA 1988 triggers an immediate **Section 4 Clause 4.2.2(c) Subrogation & Recovery Reservation**.\n* **Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant (75% liability):**\n  * **Official UK DVSA MOT Status:** **`Valid`** until **27 August 2027** (Last Odometer: `39,953 miles`). Section 47 RTA 1988 satisfied.\n\n#### 2. Explicit DVSA MOT History `CAUSAL` vs `NOT CAUSAL` Forensic Classification\n| Vehicle | DVSA MOT History Item / Defect / Advisory | Test Date | Classification | Forensic Engineering & Legal Justification |\n| :--- | :--- | :--- | :--- | :--- |\n| **`GD64 LKU`** (VW Golf) | **MOT Certificate EXPIRED** (`93,028 miles` \u2014 RTA 1988 s.47) | `2026-05-02` | **`CAUSAL`** | Left multi-axle brake disc wear uninspected prior to emergency stop on damp tarmac; triggers Policy Section 4 Clause 4.2. |\n| **`GD64 LKU`** (VW Golf) | **Front brake disc worn, pitted or scored** O/S & N/S `[1.1.14 (a) (i)]` | `2025-05-03` | **`CAUSAL`** | Golf braked hard from `41.2 mph` (`t=0.50s..1.15s`) on damp asphalt (`\u03bc=0.55`); pitted front rotors degraded friction (`\u03bc_eff=0.51`), lengthening stopping distance to `46.25m`. |\n| **`GD64 LKU`** (VW Golf) | **Offside Rear brake disc worn, pitted or scored** `[1.1.14 (a) (i)]` | `2025-05-03` | **`CAUSAL`** | Reduced rear-axle ABS deceleration efficiency during straight-line emergency braking. |\n| **`GD64 LKU`** (VW Golf) | **Front & rear suspension components slightly corroded** | `2025-05-03` | **`NOT CAUSAL`** | Surface oxidation only; did not alter straight-line braking geometry or directional control on the A521. |\n| **`GD64 LKU`** (VW Golf) | **Historical 2023 MOT Fail:** N/S Front Shock absorber fluid leak `[5.3.2 (b)]` | `2023-04-28` | **`NOT CAUSAL`** | Rectified and passed official DVSA re-test over two years prior to the collision. |\n| **`VL19 OKP`** (Peugeot 2008) | **Historical 2024 MOT Fail:** N/S Front Headlamp aim too high `[4.1.2 (a)]` | `2024-08-22` | **`NOT CAUSAL`** | Rectified same day in 2024 over a year before the crash; collision occurred in overcast daylight (`14:22 BST`). |\n| **`VL19 OKP`** (Peugeot 2008) | **Offside Front service brake binding** `[1.2.1 (f)]` & **Front brake discs worn** | `2026-08-28` | **`NOT CAUSAL`** | Video telemetry proves `VL19 OKP` never applied its brakes prior to impact (`braking_active=False` at `18.6 mph`). Emerging across the Give Way line was a driver observation/yield error, not brake failure. |\n| **`VL19 OKP`** (Peugeot 2008) | **Front Tyre worn close to legal limit/worn on edge both sides** `[5.2.3 (e)]` | `2026-08-28` | **`CAUSAL`** | Reduced lateral wet scrub resistance during `t=1.00s` evasive steer and post-impact rollover initiation. |",
-    "repair_estimate": "### ABI SALVAGE CODE & THATCHAM RESEARCH QUANTUM SCHEDULE (`UK-2026-0819`)\n**Prepared for:** A UK motor claims & subrogation solicitor\n**Assessment Standard:** ABI Salvage Code of Practice (2026) & Thatcham Times Matrix\n\n#### 1. Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant (75% liability) (`VL19 OKP`)\n* **Collision & Rollover Kinematics:** Struck broadside on offside B-pillar at `33.4 mph` (`154.4 kJ` impulse) and rolled `86.0\u00b0` onto nearside (`t=1.15s..2.00s`).\n* **ABI Salvage Classification:** **`CATEGORY S (Structurally Damaged \u2014 Constructive Total Loss)`**\n  * *Engineering Justification:* Boron-steel offside B-pillar and outer sill inward intrusion exceeds `28mm` OEM tolerance; nearside cantrail, roof bow assembly, and A-pillar suffered plastic deformation during the `86.0\u00b0` nearside rollover (`roll_deg=86.0`). Full Thatcham repair estimate (`\u00a314,920.00` inc. VAT) exceeds 65% of Pre-Accident Market Value (`PAV = \u00a313,850.00` at `39,953 miles`).\n\n| Operation / Component Description (Peugeot 2008 `VL19 OKP`) | Thatcham Hrs / Spec | GBP (\u00a3) |\n| :--- | :--- | ---: |\n| Pre-Accident Retail Market Value (CAP HPI / Glass's Guide @ 39,953 mi) | Verified PAV | \u00a313,850.00 |\n| *Less* Category S Salvage Realisation Value (Copart UK Auction Grade S) | -22% Residual | -\u00a33,047.00 |\n| Specialist Upright Winching (86\u00b0 Rollover), Flatbed Recovery & 14d Storage | Statutory Tariff | \u00a3890.00 |\n| ABI GTA Group F2 Credit Hire Replacement (18 days @ \u00a394.50/day) | ABI GTA Rate | \u00a31,701.00 |\n| **Net Subrogatable Outlay \u2014 Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant** | **Total Cat S** | **\u00a313,394.00** |\n\n#### 2. Vehicle B: Silver VW Golf (GD64 LKU), Claimant (25% liability) (`GD64 LKU`)\n* **Collision Kinematics:** Frontal oblique impact into SUV side structure at `33.4 mph`.\n* **ABI Salvage Classification:** **`CATEGORY N (Non-Structural / Uneconomical Bolt-On Frontal Write-Off)`** (or Economical Repair subject to 35% Betterment deduction on worn brake rotors under Policy Section 3 Clause 3.3).\n\n| Operation / Component Description (VW Golf `GD64 LKU`) | Thatcham Hrs / Spec | GBP (\u00a3) |\n| :--- | :--- | ---: |\n| OEM Front Bumper Cover, Reinforcement Beam & Sacrificial Crash Cans | 4.0 hrs + Parts | \u00a31,140.00 |\n| Radiator, A/C Condenser, Intercooler Cooling Pack & Slam Panel | 4.5 hrs + Parts | \u00a31,385.00 |\n| Bonnet Panel, O/S & N/S Halogen Headlamps & Front Wing Alignment | 5.2 hrs + Parts | \u00a31,890.00 |\n| Two-Stage Metallic Waterborne Refinishing, Booth Levy & ADAS Calibration | 9.5 hrs Paint | \u00a31,465.00 |\n| *Less* Policy Section 3 Clause 3.3 Betterment & Expired MOT Adjustment | Statutory Deduction | -\u00a3494.00 |\n| Recovery, Storage & Engineer Inspection Fee (`GD64 LKU`) | Fixed Tariff | \u00a32,700.00 |\n| **Total Combined Gross Quantum Exposure (`VL19 OKP` + `GD64 LKU`)** | **Combined GBP** | **\u00a321,480.00** |",
-    "subrogation_letter": "### FORMAL CPR PRE-ACTION PROTOCOL LETTER OF CLAIM & SUBROGATION NOTICE\n**WITHOUT PREJUDICE SAVE AS TO COSTS**\n\n**From:** A UK motor claims & subrogation solicitor (Motor Liability & Subrogation Practice Group)\n**To:** Third-Party Motor Claims & Underwriting Department\n**Date:** 31 October 2026\n**Our Claim Ref:** `UK-2026-0819` | **Incident Location:** A521 / Draycott Cross Road Junction, Cheadle, Staffordshire Moorlands\n**Vehicles Involved:** Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant & Vehicle B: Silver VW Golf (GD64 LKU), Claimant\n\nDear Sirs,\n\n#### RE: PRE-ACTION PROTOCOL FOR ROAD TRAFFIC ACCIDENT CLAIMS \u2014 LIABILITY APPORTIONMENT (75% / 25%) & SUBROGATED DEMAND\nWe act as **a UK motor claims & subrogation solicitor** in respect of the road traffic collision at the A521 / Draycott Cross Road junction, Cheadle, captured on static 110\u00b0 FOV Ring CCTV and audited via 3D kinematic reconstruction and live UK DVSA MOT History telemetry.\n\n#### 1. Forensic Kinematic Reconstruction & Statutory Breaches\n1. **Primary Breach by Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant (75% liability):** Frame-accurate 3D trajectory analysis confirms that `VL19 OKP` approached Southbound on Draycott Cross Road and crossed the statutory **Diagram 1003 double broken Give Way line** at `t = 0.75s` at an unreduced speed of **18.6 mph** (`braking_active = False`), emerging directly into the Eastbound A521 priority corridor in breach of **Highway Code Rules 170 and 172** and **Section 36 of the Road Traffic Act 1988**. Because the northwest corner brick terrace and boundary hedgerow restricted lateral visibility to `26.0 metres`, *Worsfold v Howe* [1980] 1 WLR 1175 required the emerging driver to halt or creep forward at walking pace.\n2. **Contributory Negligence & DVSA Causal Defect Audit on Vehicle B: Silver VW Golf (GD64 LKU), Claimant (25% liability):** Photogrammetric tracking establishes that `GD64 LKU` approached Eastbound on the street-lit 30 mph A521 carriageway at **41.2 mph** (`+37.3%` above the limit, carrying `+88.6%` excess kinetic energy in breach of **Highway Code Rules 124, 125, and 126**). Furthermore, live UK DVSA MOT History verification confirms:\n   * **CAUSAL Defects:** `GD64 LKU` was driven with an **EXPIRED MOT Certificate** (expired **2 May 2026** at `93,028 miles` in contravention of **Section 47 of the Road Traffic Act 1988**) and unrectified DVSA advisories for **worn, pitted, and scored front brake discs (Offside & Nearside, `1.1.14 (a) (i)`)** and **worn offside-rear brake disc (`1.1.14 (a) (i)`)**. On damp tarmac (`\u03bc = 0.55`), this degraded braking efficiency prevented `GD64 LKU` from stopping within the compliant 30 mph envelope (`25.64m`), striking `VL19 OKP` at `33.4 mph` (`t = 1.15s`) and rolling it `86.0\u00b0` onto its nearside.\n   * **NOT CAUSAL Defects Excluded:** For forensic completeness, we have excluded `GD64 LKU`'s surface suspension corrosion and rectified 2023 shock absorber failure, as well as `VL19 OKP`'s rectified 2024 headlamp aim failure and front brake binding advisory (since `VL19 OKP` never braked prior to impact), as **NOT CAUSAL**.\n\n#### 2. Binding Case Law & Proposed 75% / 25% Apportionment\nApplying **Section 1(1) of the Law Reform (Contributory Negligence) Act 1945** and the binding Court of Appeal authorities in *Powell v Moody* [1966] 110 SJ 215, *Harding v Hinchcliffe* [1964] RTR 112, *Macintyre v Coles* [1966] 1 WLR 831, and *Froom v Butcher* [1976] QB 286, we hereby propose a formal pre-action liability apportionment of **75% against Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant and 25% against Vehicle B: Silver VW Golf (GD64 LKU), Claimant**, saving both parties months of insurer back-and-forth and thousands of pounds in external forensic and legal fees.\n\nPlease acknowledge receipt of this Letter of Claim within **15 business days** and confirm your agreement to the **75% / 25%** split within **30 business days** pursuant to Paragraph 6.11 of the CPR Pre-Action Protocol.\n\nYours faithfully,\n\n**A UK Motor Claims & Subrogation Solicitor**\n*Authorised under the Civil Procedure Rules Pre-Action Protocol*"
-  },
-  "liability_determination": {
-    "recommended_defendant_liability_pct": 75,
-    "recommended_claimant_liability_pct": 25,
-    "defendant_party": "Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant",
-    "claimant_party": "Vehicle B: Silver VW Golf (GD64 LKU), Claimant",
-    "legal_apportionment_ratio": "75% Defendant / 25% Claimant",
-    "statutory_basis": "Law Reform (Contributory Negligence) Act 1945 s.1(1); Highway Code Rules 170 & 172 vs Rules 124 & 126; Powell v Moody [1966]; Harding v Hinchcliffe [1964]",
-    "quantum_recovery_gbp": {
-      "gross_claim_gbp": 14200.0,
-      "deductible_excess_gbp": 500.0,
-      "net_subrogation_recovery_gbp": 10150.0
-    },
-    "summary": "75% liability apportioned to Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant for emerging across Give Way lines without stopping (Rule 172); 25% contributory negligence apportioned to Vehicle B: Silver VW Golf (GD64 LKU), Claimant for excessive speed (41.2 mph in a 30 mph zone, Rule 124) and uninspected braking defects."
-  },
-  "dvsa_mot_telemetry": {
-    "vehicle_a": {
-      "party": "Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant",
-      "registration_plate": "VL19 OKP",
-      "mot_status": "Valid",
-      "mot_expiry": "2027-08-27",
-      "mileage": "39,953 miles",
-      "liability_pct": 75,
-      "advisories": [
-        {
-          "defect_description": "Offside Front Service brake binding but not excessively (1.2.1 (f))",
-          "is_causal": false,
-          "causal_explanation": "Not causal to this crash: Vehicle A emerged across junction without braking (braking_active=false); impact caused by observation failure under Rule 172 rather than brake binding."
-        },
-        {
-          "defect_description": "Front Brake disc worn, pitted or scored, but not seriously weakened both sides (1.1.14 (a) (i))",
-          "is_causal": false,
-          "causal_explanation": "Not causal to this crash: Vehicle A rolled into priority road at 18.6 mph without applying brakes prior to impact."
-        },
-        {
-          "defect_description": "Front Tyre worn close to legal limit/worn on edge both sides (5.2.3 (e))",
-          "is_causal": false,
-          "causal_explanation": "Not causal to initial collision: failed junction entry was the primary cause, though edge wear marginally reduced secondary lateral slide grip."
-        }
-      ]
-    },
-    "vehicle_b": {
-      "party": "Vehicle B: Silver VW Golf (GD64 LKU), Claimant",
-      "registration_plate": "GD64 LKU",
-      "mot_status": "EXPIRED",
-      "mot_expiry": "2026-05-02 (EXPIRED)",
-      "mileage": "93,028 miles",
-      "liability_pct": 25,
-      "advisories": [
-        {
-          "defect_description": "Statutory MOT expired on 2026-05-02 at 93,028 miles (Road Traffic Act 1988 s.47 breach)",
-          "is_causal": true,
-          "causal_explanation": "Causal to crash envelope: driving without valid MOT left uninspected brake degradation in service, contributing to extended wet stopping distance."
-        },
-        {
-          "defect_description": "Front Brake disc worn, pitted or scored, but not seriously weakened Offside & Nearside (1.1.14 (a) (i))",
-          "is_causal": true,
-          "causal_explanation": "Causal to stopping distance: scored discs reduced friction on damp tarmac from 41.2 mph, extending stopping distance by 17.5m and preventing collision avoidance."
-        },
-        {
-          "defect_description": "Offside Rear Brake disc worn, pitted or scored, but not seriously weakened (1.1.14 (a) (i))",
-          "is_causal": true,
-          "causal_explanation": "Causal to braking efficiency: worn rear rotor impaired four-wheel ABS deceleration balance during wet emergency stop."
-        },
-        {
-          "defect_description": "Front & Rear Suspension components slightly corroded (surface corrosion only)",
-          "is_causal": false,
-          "causal_explanation": "Not causal to this crash: superficial surface corrosion on suspension arms had no mechanical impact on straight-line emergency braking."
-        }
-      ]
-    }
-  },
-  "subagent_outputs": {
-    "policy_audit": "### UK MOTOR POLICY #UK-8841 COVERAGE & DVSA MOT CAUSAL DEFECT AUDIT\n**Prepared for:** A UK motor claims & subrogation solicitor\n**Claim Reference:** `UK-2026-0819` | **Policy Form:** Standard Comprehensive Motor Policy `#UK-8841`\n\n#### 1. Section 4 Clause 4.2 Statutory MOT & Roadworthiness Audit\n* **Vehicle B: Silver VW Golf (GD64 LKU), Claimant (25% liability):**\n  * **Official UK DVSA MOT Status:** **`EXPIRED`** on **2 May 2026** (Last Odometer: `93,028 miles`).\n  * **Contractual & Statutory Consequence:** Operating `GD64 LKU` on the A521 public highway after 2 May 2026 constitutes a strict criminal offence under **Section 47 of the Road Traffic Act 1988** and a direct breach of **Policy #UK-8841 Section 4 Clause 4.2.1(b)**. Own-damage indemnity under Section 3 is subject to proportionate reduction/repudiation, and any third-party outlay satisfied under Section 151 RTA 1988 triggers an immediate **Section 4 Clause 4.2.2(c) Subrogation & Recovery Reservation**.\n* **Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant (75% liability):**\n  * **Official UK DVSA MOT Status:** **`Valid`** until **27 August 2027** (Last Odometer: `39,953 miles`). Section 47 RTA 1988 satisfied.\n\n#### 2. Explicit DVSA MOT History `CAUSAL` vs `NOT CAUSAL` Forensic Classification\n| Vehicle | DVSA MOT History Item / Defect / Advisory | Test Date | Classification | Forensic Engineering & Legal Justification |\n| :--- | :--- | :--- | :--- | :--- |\n| **`GD64 LKU`** (VW Golf) | **MOT Certificate EXPIRED** (`93,028 miles` \u2014 RTA 1988 s.47) | `2026-05-02` | **`CAUSAL`** | Left multi-axle brake disc wear uninspected prior to emergency stop on damp tarmac; triggers Policy Section 4 Clause 4.2. |\n| **`GD64 LKU`** (VW Golf) | **Front brake disc worn, pitted or scored** O/S & N/S `[1.1.14 (a) (i)]` | `2025-05-03` | **`CAUSAL`** | Golf braked hard from `41.2 mph` (`t=0.50s..1.15s`) on damp asphalt (`\u03bc=0.55`); pitted front rotors degraded friction (`\u03bc_eff=0.51`), lengthening stopping distance to `46.25m`. |\n| **`GD64 LKU`** (VW Golf) | **Offside Rear brake disc worn, pitted or scored** `[1.1.14 (a) (i)]` | `2025-05-03` | **`CAUSAL`** | Reduced rear-axle ABS deceleration efficiency during straight-line emergency braking. |\n| **`GD64 LKU`** (VW Golf) | **Front & rear suspension components slightly corroded** | `2025-05-03` | **`NOT CAUSAL`** | Surface oxidation only; did not alter straight-line braking geometry or directional control on the A521. |\n| **`GD64 LKU`** (VW Golf) | **Historical 2023 MOT Fail:** N/S Front Shock absorber fluid leak `[5.3.2 (b)]` | `2023-04-28` | **`NOT CAUSAL`** | Rectified and passed official DVSA re-test over two years prior to the collision. |\n| **`VL19 OKP`** (Peugeot 2008) | **Historical 2024 MOT Fail:** N/S Front Headlamp aim too high `[4.1.2 (a)]` | `2024-08-22` | **`NOT CAUSAL`** | Rectified same day in 2024 over a year before the crash; collision occurred in overcast daylight (`14:22 BST`). |\n| **`VL19 OKP`** (Peugeot 2008) | **Offside Front service brake binding** `[1.2.1 (f)]` & **Front brake discs worn** | `2026-08-28` | **`NOT CAUSAL`** | Video telemetry proves `VL19 OKP` never applied its brakes prior to impact (`braking_active=False` at `18.6 mph`). Emerging across the Give Way line was a driver observation/yield error, not brake failure. |\n| **`VL19 OKP`** (Peugeot 2008) | **Front Tyre worn close to legal limit/worn on edge both sides** `[5.2.3 (e)]` | `2026-08-28` | **`CAUSAL`** | Reduced lateral wet scrub resistance during `t=1.00s` evasive steer and post-impact rollover initiation. |",
-    "repair_estimate": "### ABI SALVAGE CODE & THATCHAM RESEARCH QUANTUM SCHEDULE (`UK-2026-0819`)\n**Prepared for:** A UK motor claims & subrogation solicitor\n**Assessment Standard:** ABI Salvage Code of Practice (2026) & Thatcham Times Matrix\n\n#### 1. Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant (75% liability) (`VL19 OKP`)\n* **Collision & Rollover Kinematics:** Struck broadside on offside B-pillar at `33.4 mph` (`154.4 kJ` impulse) and rolled `86.0\u00b0` onto nearside (`t=1.15s..2.00s`).\n* **ABI Salvage Classification:** **`CATEGORY S (Structurally Damaged \u2014 Constructive Total Loss)`**\n  * *Engineering Justification:* Boron-steel offside B-pillar and outer sill inward intrusion exceeds `28mm` OEM tolerance; nearside cantrail, roof bow assembly, and A-pillar suffered plastic deformation during the `86.0\u00b0` nearside rollover (`roll_deg=86.0`). Full Thatcham repair estimate (`\u00a314,920.00` inc. VAT) exceeds 65% of Pre-Accident Market Value (`PAV = \u00a313,850.00` at `39,953 miles`).\n\n| Operation / Component Description (Peugeot 2008 `VL19 OKP`) | Thatcham Hrs / Spec | GBP (\u00a3) |\n| :--- | :--- | ---: |\n| Pre-Accident Retail Market Value (CAP HPI / Glass's Guide @ 39,953 mi) | Verified PAV | \u00a313,850.00 |\n| *Less* Category S Salvage Realisation Value (Copart UK Auction Grade S) | -22% Residual | -\u00a33,047.00 |\n| Specialist Upright Winching (86\u00b0 Rollover), Flatbed Recovery & 14d Storage | Statutory Tariff | \u00a3890.00 |\n| ABI GTA Group F2 Credit Hire Replacement (18 days @ \u00a394.50/day) | ABI GTA Rate | \u00a31,701.00 |\n| **Net Subrogatable Outlay \u2014 Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant** | **Total Cat S** | **\u00a313,394.00** |\n\n#### 2. Vehicle B: Silver VW Golf (GD64 LKU), Claimant (25% liability) (`GD64 LKU`)\n* **Collision Kinematics:** Frontal oblique impact into SUV side structure at `33.4 mph`.\n* **ABI Salvage Classification:** **`CATEGORY N (Non-Structural / Uneconomical Bolt-On Frontal Write-Off)`** (or Economical Repair subject to 35% Betterment deduction on worn brake rotors under Policy Section 3 Clause 3.3).\n\n| Operation / Component Description (VW Golf `GD64 LKU`) | Thatcham Hrs / Spec | GBP (\u00a3) |\n| :--- | :--- | ---: |\n| OEM Front Bumper Cover, Reinforcement Beam & Sacrificial Crash Cans | 4.0 hrs + Parts | \u00a31,140.00 |\n| Radiator, A/C Condenser, Intercooler Cooling Pack & Slam Panel | 4.5 hrs + Parts | \u00a31,385.00 |\n| Bonnet Panel, O/S & N/S Halogen Headlamps & Front Wing Alignment | 5.2 hrs + Parts | \u00a31,890.00 |\n| Two-Stage Metallic Waterborne Refinishing, Booth Levy & ADAS Calibration | 9.5 hrs Paint | \u00a31,465.00 |\n| *Less* Policy Section 3 Clause 3.3 Betterment & Expired MOT Adjustment | Statutory Deduction | -\u00a3494.00 |\n| Recovery, Storage & Engineer Inspection Fee (`GD64 LKU`) | Fixed Tariff | \u00a32,700.00 |\n| **Total Combined Gross Quantum Exposure (`VL19 OKP` + `GD64 LKU`)** | **Combined GBP** | **\u00a321,480.00** |",
-    "subrogation_letter": "### FORMAL CPR PRE-ACTION PROTOCOL LETTER OF CLAIM & SUBROGATION NOTICE\n**WITHOUT PREJUDICE SAVE AS TO COSTS**\n\n**From:** A UK motor claims & subrogation solicitor (Motor Liability & Subrogation Practice Group)\n**To:** Third-Party Motor Claims & Underwriting Department\n**Date:** 31 October 2026\n**Our Claim Ref:** `UK-2026-0819` | **Incident Location:** A521 / Draycott Cross Road Junction, Cheadle, Staffordshire Moorlands\n**Vehicles Involved:** Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant & Vehicle B: Silver VW Golf (GD64 LKU), Claimant\n\nDear Sirs,\n\n#### RE: PRE-ACTION PROTOCOL FOR ROAD TRAFFIC ACCIDENT CLAIMS \u2014 LIABILITY APPORTIONMENT (75% / 25%) & SUBROGATED DEMAND\nWe act as **a UK motor claims & subrogation solicitor** in respect of the road traffic collision at the A521 / Draycott Cross Road junction, Cheadle, captured on static 110\u00b0 FOV Ring CCTV and audited via 3D kinematic reconstruction and live UK DVSA MOT History telemetry.\n\n#### 1. Forensic Kinematic Reconstruction & Statutory Breaches\n1. **Primary Breach by Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant (75% liability):** Frame-accurate 3D trajectory analysis confirms that `VL19 OKP` approached Southbound on Draycott Cross Road and crossed the statutory **Diagram 1003 double broken Give Way line** at `t = 0.75s` at an unreduced speed of **18.6 mph** (`braking_active = False`), emerging directly into the Eastbound A521 priority corridor in breach of **Highway Code Rules 170 and 172** and **Section 36 of the Road Traffic Act 1988**. Because the northwest corner brick terrace and boundary hedgerow restricted lateral visibility to `26.0 metres`, *Worsfold v Howe* [1980] 1 WLR 1175 required the emerging driver to halt or creep forward at walking pace.\n2. **Contributory Negligence & DVSA Causal Defect Audit on Vehicle B: Silver VW Golf (GD64 LKU), Claimant (25% liability):** Photogrammetric tracking establishes that `GD64 LKU` approached Eastbound on the street-lit 30 mph A521 carriageway at **41.2 mph** (`+37.3%` above the limit, carrying `+88.6%` excess kinetic energy in breach of **Highway Code Rules 124, 125, and 126**). Furthermore, live UK DVSA MOT History verification confirms:\n   * **CAUSAL Defects:** `GD64 LKU` was driven with an **EXPIRED MOT Certificate** (expired **2 May 2026** at `93,028 miles` in contravention of **Section 47 of the Road Traffic Act 1988**) and unrectified DVSA advisories for **worn, pitted, and scored front brake discs (Offside & Nearside, `1.1.14 (a) (i)`)** and **worn offside-rear brake disc (`1.1.14 (a) (i)`)**. On damp tarmac (`\u03bc = 0.55`), this degraded braking efficiency prevented `GD64 LKU` from stopping within the compliant 30 mph envelope (`25.64m`), striking `VL19 OKP` at `33.4 mph` (`t = 1.15s`) and rolling it `86.0\u00b0` onto its nearside.\n   * **NOT CAUSAL Defects Excluded:** For forensic completeness, we have excluded `GD64 LKU`'s surface suspension corrosion and rectified 2023 shock absorber failure, as well as `VL19 OKP`'s rectified 2024 headlamp aim failure and front brake binding advisory (since `VL19 OKP` never braked prior to impact), as **NOT CAUSAL**.\n\n#### 2. Binding Case Law & Proposed 75% / 25% Apportionment\nApplying **Section 1(1) of the Law Reform (Contributory Negligence) Act 1945** and the binding Court of Appeal authorities in *Powell v Moody* [1966] 110 SJ 215, *Harding v Hinchcliffe* [1964] RTR 112, *Macintyre v Coles* [1966] 1 WLR 831, and *Froom v Butcher* [1976] QB 286, we hereby propose a formal pre-action liability apportionment of **75% against Vehicle A: Blue Peugeot 2008 (VL19 OKP), Defendant and 25% against Vehicle B: Silver VW Golf (GD64 LKU), Claimant**, saving both parties months of insurer back-and-forth and thousands of pounds in external forensic and legal fees.\n\nPlease acknowledge receipt of this Letter of Claim within **15 business days** and confirm your agreement to the **75% / 25%** split within **30 business days** pursuant to Paragraph 6.11 of the CPR Pre-Action Protocol.\n\nYours faithfully,\n\n**A UK Motor Claims & Subrogation Solicitor**\n*Authorised under the Civil Procedure Rules Pre-Action Protocol*"
-  },
-  "impact_timestamp_sec": 0.4
+    "policy_audit": "### UK MOTOR POLICY #UK-8841 COVERAGE & DVSA MOT CAUSAL DEFECT AUDIT\n**Prepared for:** A UK motor claims & subrogation solicitor\n**Claim Reference:** `UK-2026-0819` | **Policy Form:** Standard Comprehensive Motor Policy `#UK-8841`\n\n#### 1. Section 4 Clause 4.2 Statutory MOT & Roadworthiness Audit\n* **Vehicle B (`GD64 LKU` — 2015 Silver/Grey Volkswagen Golf):**\n  * **Official UK DVSA MOT Status:** **`EXPIRED`** on **2 May 2026** (Last Odometer: `93,028 miles`).\n  * **Contractual & Statutory Consequence:** Operating `GD64 LKU` on the A521 public highway after 2 May 2026 constitutes a strict criminal offence under **Section 47 of the Road Traffic Act 1988** and a direct breach of **Policy #UK-8841 Section 4 Clause 4.2.1(b)**. Own-damage indemnity under Section 3 is subject to proportionate reduction/repudiation, and any third-party outlay satisfied under Section 151 RTA 1988 triggers an immediate **Section 4 Clause 4.2.2(c) Subrogation & Recovery Reservation**.\n* **Vehicle A (`VL19 OKP` — 2019 Blue Peugeot 2008 Allure Prem PureTech SS A):**\n  * **Official UK DVSA MOT Status:** **`Valid`** until **27 August 2027** (Last Odometer: `39,953 miles`). Section 47 RTA 1988 satisfied.\n\n#### 2. Explicit DVSA MOT History `CAUSAL` vs `NOT CAUSAL` Forensic Classification\n| Vehicle | DVSA MOT History Item / Defect / Advisory | Test Date | Classification | Forensic Engineering & Legal Justification |\n| :--- | :--- | :--- | :--- | :--- |\n| **`GD64 LKU`** (VW Golf) | **MOT Certificate EXPIRED** (`93,028 miles` — RTA 1988 s.47) | `2026-05-02` | **`CAUSAL`** | Left multi-axle brake disc wear uninspected prior to emergency stop on damp tarmac; triggers Policy Section 4 Clause 4.2. |\n| **`GD64 LKU`** (VW Golf) | **Front brake disc worn, pitted or scored** O/S & N/S `[1.1.14 (a) (i)]` | `2025-05-03` | **`CAUSAL`** | Golf braked hard from `41.2 mph` (`t=0.50s..1.15s`) on damp asphalt (`μ=0.55`); pitted front rotors degraded friction (`μ_eff=0.51`), lengthening stopping distance to `46.25m`. |\n| **`GD64 LKU`** (VW Golf) | **Offside Rear brake disc worn, pitted or scored** `[1.1.14 (a) (i)]` | `2025-05-03` | **`CAUSAL`** | Reduced rear-axle ABS deceleration efficiency during straight-line emergency braking. |\n| **`GD64 LKU`** (VW Golf) | **Front & rear suspension components slightly corroded** | `2025-05-03` | **`NOT CAUSAL`** | Surface oxidation only; did not alter straight-line braking geometry or directional control on the A521. |\n| **`GD64 LKU`** (VW Golf) | **Historical 2023 MOT Fail:** N/S Front Shock absorber fluid leak `[5.3.2 (b)]` | `2023-04-28` | **`NOT CAUSAL`** | Rectified and passed official DVSA re-test over two years prior to the collision. |\n| **`VL19 OKP`** (Peugeot 2008) | **Historical 2024 MOT Fail:** N/S Front Headlamp aim too high `[4.1.2 (a)]` | `2024-08-22` | **`NOT CAUSAL`** | Rectified same day in 2024 over a year before the crash; collision occurred in overcast daylight (`14:22 BST`). |\n| **`VL19 OKP`** (Peugeot 2008) | **Offside Front service brake binding** `[1.2.1 (f)]` & **Front brake discs worn** | `2026-08-28` | **`NOT CAUSAL`** | Video telemetry proves `VL19 OKP` never applied its brakes prior to impact (`braking_active=False` at `18.6 mph`). Emerging across the Give Way line was a driver observation/yield error, not brake failure. |\n| **`VL19 OKP`** (Peugeot 2008) | **Front Tyre worn close to legal limit/worn on edge both sides** `[5.2.3 (e)]` | `2026-08-28` | **`CAUSAL`** | Reduced lateral wet scrub resistance during `t=1.00s` evasive steer and post-impact rollover initiation. |",
+    "repair_estimate": "### ABI SALVAGE CODE & THATCHAM RESEARCH QUANTUM SCHEDULE (`UK-2026-0819`)\n**Prepared for:** A UK motor claims & subrogation solicitor\n**Assessment Standard:** ABI Salvage Code of Practice (2026) & Thatcham Times Matrix\n\n#### 1. Vehicle A: 2019 Peugeot 2008 Allure Prem PureTech SS A (`VL19 OKP`)\n* **Collision & Rollover Kinematics:** Struck broadside on offside B-pillar at `33.4 mph` (`154.4 kJ` impulse) and rolled `86.0°` onto nearside (`t=1.15s..2.00s`).\n* **ABI Salvage Classification:** **`CATEGORY S (Structurally Damaged — Constructive Total Loss)`**\n  * *Engineering Justification:* Boron-steel offside B-pillar and outer sill inward intrusion exceeds `28mm` OEM tolerance; nearside cantrail, roof bow assembly, and A-pillar suffered plastic deformation during the `86.0°` nearside rollover (`roll_deg=86.0`). Full Thatcham repair estimate (`£14,920.00` inc. VAT) exceeds 65% of Pre-Accident Market Value (`PAV = £13,850.00` at `39,953 miles`).\n\n| Operation / Component Description (Peugeot 2008 `VL19 OKP`) | Thatcham Hrs / Spec | GBP (£) |\n| :--- | :--- | ---: |\n| Pre-Accident Retail Market Value (CAP HPI / Glass's Guide @ 39,953 mi) | Verified PAV | £13,850.00 |\n| *Less* Category S Salvage Realisation Value (Copart UK Auction Grade S) | -22% Residual | -£3,047.00 |\n| Specialist Upright Winching (86° Rollover), Flatbed Recovery & 14d Storage | Statutory Tariff | £890.00 |\n| ABI GTA Group F2 Credit Hire Replacement (18 days @ £94.50/day) | ABI GTA Rate | £1,701.00 |\n| **Net Subrogatable Outlay — Vehicle A (`VL19 OKP`)** | **Total Cat S** | **£13,394.00** |\n\n#### 2. Vehicle B: 2015 Volkswagen Golf (`GD64 LKU`)\n* **Collision Kinematics:** Frontal oblique impact into SUV side structure at `33.4 mph`.\n* **ABI Salvage Classification:** **`CATEGORY N (Non-Structural / Uneconomical Bolt-On Frontal Write-Off)`** (or Economical Repair subject to 35% Betterment deduction on worn brake rotors under Policy Section 3 Clause 3.3).\n\n| Operation / Component Description (VW Golf `GD64 LKU`) | Thatcham Hrs / Spec | GBP (£) |\n| :--- | :--- | ---: |\n| OEM Front Bumper Cover, Reinforcement Beam & Sacrificial Crash Cans | 4.0 hrs + Parts | £1,140.00 |\n| Radiator, A/C Condenser, Intercooler Cooling Pack & Slam Panel | 4.5 hrs + Parts | £1,385.00 |\n| Bonnet Panel, O/S & N/S Halogen Headlamps & Front Wing Alignment | 5.2 hrs + Parts | £1,890.00 |\n| Two-Stage Metallic Waterborne Refinishing, Booth Levy & ADAS Calibration | 9.5 hrs Paint | £1,465.00 |\n| *Less* Policy Section 3 Clause 3.3 Betterment & Expired MOT Adjustment | Statutory Deduction | -£494.00 |\n| Recovery, Storage & Engineer Inspection Fee (`GD64 LKU`) | Fixed Tariff | £2,700.00 |\n| **Total Combined Gross Quantum Exposure (`VL19 OKP` + `GD64 LKU`)** | **Combined GBP** | **£21,480.00** |",
+    "subrogation_letter": "### FORMAL CPR PRE-ACTION PROTOCOL LETTER OF CLAIM & SUBROGATION NOTICE\n**WITHOUT PREJUDICE SAVE AS TO COSTS**\n\n**From:** A UK motor claims & subrogation solicitor (Motor Liability & Subrogation Practice Group)\n**To:** Third-Party Motor Claims & Underwriting Department\n**Date:** 31 October 2026\n**Our Claim Ref:** `UK-2026-0819` | **Incident Location:** A521 / Draycott Cross Road Junction, Cheadle, Staffordshire Moorlands\n**Vehicles Involved:** `VL19 OKP` (2019 Peugeot 2008 Allure Prem) & `GD64 LKU` (2015 Volkswagen Golf)\n\nDear Sirs,\n\n#### RE: PRE-ACTION PROTOCOL FOR ROAD TRAFFIC ACCIDENT CLAIMS — LIABILITY APPORTIONMENT (75% / 25%) & SUBROGATED DEMAND\nWe act as **a UK motor claims & subrogation solicitor** in respect of the road traffic collision at the A521 / Draycott Cross Road junction, Cheadle, captured on static 110° FOV Ring CCTV and audited via 3D kinematic reconstruction and live UK DVSA MOT History telemetry.\n\n#### 1. Forensic Kinematic Reconstruction & Statutory Breaches\n1. **Primary Breach by `VL19 OKP` (75% Liability):** Frame-accurate 3D trajectory analysis confirms that `VL19 OKP` approached Southbound on Draycott Cross Road and crossed the statutory **Diagram 1003 double broken Give Way line** at `t = 0.75s` at an unreduced speed of **18.6 mph** (`braking_active = False`), emerging directly into the Eastbound A521 priority corridor in breach of **Highway Code Rules 170 and 172** and **Section 36 of the Road Traffic Act 1988**. Because the northwest corner brick terrace and boundary hedgerow restricted lateral visibility to `26.0 metres`, *Worsfold v Howe* [1980] 1 WLR 1175 required the emerging driver to halt or creep forward at walking pace.\n2. **Contributory Negligence & DVSA Causal Defect Audit on `GD64 LKU` (25% Liability):** Photogrammetric tracking establishes that `GD64 LKU` approached Eastbound on the street-lit 30 mph A521 carriageway at **41.2 mph** (`+37.3%` above the limit, carrying `+88.6%` excess kinetic energy in breach of **Highway Code Rules 124, 125, and 126**). Furthermore, live UK DVSA MOT History verification confirms:\n   * **CAUSAL Defects:** `GD64 LKU` was driven with an **EXPIRED MOT Certificate** (expired **2 May 2026** at `93,028 miles` in contravention of **Section 47 of the Road Traffic Act 1988**) and unrectified DVSA advisories for **worn, pitted, and scored front brake discs (Offside & Nearside, `1.1.14 (a) (i)`)** and **worn offside-rear brake disc (`1.1.14 (a) (i)`)**. On damp tarmac (`μ = 0.55`), this degraded braking efficiency prevented `GD64 LKU` from stopping within the compliant 30 mph envelope (`25.64m`), striking `VL19 OKP` at `33.4 mph` (`t = 1.15s`) and rolling it `86.0°` onto its nearside.\n   * **NOT CAUSAL Defects Excluded:** For forensic completeness, we have excluded `GD64 LKU`'s surface suspension corrosion and rectified 2023 shock absorber failure, as well as `VL19 OKP`'s rectified 2024 headlamp aim failure and front brake binding advisory (since `VL19 OKP` never braked prior to impact), as **NOT CAUSAL**.\n\n#### 2. Binding Case Law & Proposed 75% / 25% Apportionment\nApplying **Section 1(1) of the Law Reform (Contributory Negligence) Act 1945** and the binding Court of Appeal authorities in *Powell v Moody* [1966] 110 SJ 215, *Harding v Hinchcliffe* [1964] RTR 112, *Macintyre v Coles* [1966] 1 WLR 831, and *Froom v Butcher* [1976] QB 286, we hereby propose a formal pre-action liability apportionment of **75% against `VL19 OKP` (Emerging Minor-Road Vehicle) and 25% against `GD64 LKU` (Speeding Main-Road Vehicle with Expired MOT & Worn Brake Discs)**, saving both parties months of insurer back-and-forth and thousands of pounds in external forensic and legal fees.\n\nPlease acknowledge receipt of this Letter of Claim within **15 business days** and confirm your agreement to the **75% / 25%** split within **30 business days** pursuant to Paragraph 6.11 of the CPR Pre-Action Protocol.\n\nYours faithfully,\n\n**A UK Motor Claims & Subrogation Solicitor**\n*Authorised under the Civil Procedure Rules Pre-Action Protocol*"
+  }
 }
