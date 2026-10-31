@@ -24,10 +24,15 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from fastapi.testclient import TestClient
 
-from backend.gemini_pipeline import fetch_uk_dvsa_mot_history
+from backend.gemini_pipeline import (
+    FORENSIC_SYSTEM_INSTRUCTION,
+    ensure_production_case_quality,
+    fetch_uk_dvsa_mot_history,
+    filter_negative_dvsa_records,
+)
 from backend.legal_corpus import UK_MOTOR_LEGAL_AND_POLICY_CORPUS
 from backend.main import app
-from backend.schemas import ForensicLegalReport
+from backend.schemas import DVSADefectAnalysis, ForensicLegalReport
 
 DATA_DIR = PROJECT_ROOT / "data"
 
@@ -117,19 +122,20 @@ def test_case_1_peugeot_rollover_and_vw_golf_kinematics() -> None:
     assert golf.dvsa_mot_status == "EXPIRED"
     assert "2026-05-02" in golf.dvsa_mot_expiry
 
-    # Check Peugeot rollover progression (0.0 at t=1.0s -> 6.0 at t=1.15s -> 48.0 at t=1.35s -> 86.0 at t=1.65s..3.0s)
+    # Check Peugeot rollover progression synchronized to video frames (0.0 at t=0.2s -> 6.0 at impact t=0.4s -> 48.0 at t=0.65s -> 86.0 at t=1.15s..3.0s)
+    assert report.impact_timestamp_sec == 0.4
     roll_by_t = {kf.timestamp_sec: kf.roll_deg for kf in peugeot.keyframes}
-    assert roll_by_t[1.0] == 0.0
-    assert roll_by_t[1.15] == 6.0
-    assert roll_by_t[1.35] == 48.0
-    assert roll_by_t[1.65] == 86.0
+    assert roll_by_t[0.2] == 0.0
+    assert roll_by_t[0.4] == 6.0
+    assert roll_by_t[0.65] == 48.0
+    assert roll_by_t[1.15] == 86.0
     assert roll_by_t[3.0] == 86.0
 
-    # Check VW Golf speeds and braking
+    # Check VW Golf speeds and braking synchronized to video frames
     golf_by_t = {kf.timestamp_sec: kf for kf in golf.keyframes}
     assert golf_by_t[0.0].speed_mph == 41.2
-    assert golf_by_t[0.5].braking_active is True
-    assert golf_by_t[1.15].speed_mph == 29.5
+    assert golf_by_t[0.2].braking_active is True
+    assert golf_by_t[0.4].speed_mph == 29.5
     assert golf_by_t[3.0].speed_mph == 0.0
 
     # Check both CAUSAL and NOT CAUSAL DVSA items exist on Golf and negative-only NOT CAUSAL item on Peugeot
@@ -213,25 +219,39 @@ def _obb_sat_penetration_and_clearance(
 
 
 def test_zero_obb_interpenetration_and_c1_smooth_trajectories_all_cases() -> None:
-    """Verify 0.00m OBB penetration at every 0.01s step (0.00s..3.00s) and C1 smoothness across all 3 cases."""
+    """Verify 0.00m OBB penetration across the entire video duration (0.00s..duration_seconds) and C1 smoothness across all 3 cases."""
     case_specs = [
-        ("case_cheadle_a521_junction.json", (4.35, 1.84), (4.26, 1.79)),
-        ("case_delphouse_rollover.json", (4.35, 1.84), (4.26, 1.79)),
-        ("case_a521_hgv_corridor.json", (8.40, 2.42), (4.26, 1.79)),
+        ("case_cheadle_a521_junction.json", 4.5, True, False, (4.35, 1.84), (4.26, 1.79)),
+        ("case_delphouse_rollover.json", 5.0, False, True, (4.35, 1.84), (4.26, 1.79)),
+        ("case_a521_hgv_corridor.json", 5.8, False, True, (8.40, 2.42), (4.26, 1.79)),
     ]
 
-    for filename, dims_a, dims_b in case_specs:
+    for filename, expected_dur, expected_public, expected_local, dims_a, dims_b in case_specs:
         with open(DATA_DIR / filename, "r", encoding="utf-8") as f:
             payload = json.load(f)
 
+        assert payload["duration_seconds"] == expected_dur
+        assert payload["is_public_demo"] is expected_public
+        assert payload["local_only"] is expected_local
+
         report = payload["report"]
+        assert report["duration_seconds"] == expected_dur
+        assert report["is_public_demo"] is expected_public
+        assert report["local_only"] is expected_local
+
         impact_t = float(report["impact_timestamp_sec"])
         kfs_a = report["vehicles"][0]["keyframes"]
         kfs_b = report["vehicles"][1]["keyframes"]
 
+        assert kfs_a[0]["timestamp_sec"] == 0.0
+        assert kfs_a[-1]["timestamp_sec"] == expected_dur
+        assert kfs_b[0]["timestamp_sec"] == 0.0
+        assert kfs_b[-1]["timestamp_sec"] == expected_dur
+
+        total_steps = int(round(expected_dur * 100)) + 1
         prev_a = None
         prev_b = None
-        for step in range(301):
+        for step in range(total_steps):
             t = round(step * 0.01, 2)
             sa = _interpolate_keyframe(kfs_a, t)
             sb = _interpolate_keyframe(kfs_b, t)
@@ -260,6 +280,53 @@ def test_zero_obb_interpenetration_and_c1_smooth_trajectories_all_cases() -> Non
                 assert step_b < 0.23, f"{filename} vehicle_b teleport jump {step_b:.4f}m at t={t:.2f}s"
             prev_a = sa
             prev_b = sb
+
+
+def test_kinematic_self_consistency_heading_alignment_and_video_bounds_all_cases() -> None:
+    """Verify ds == v_avg * dt (< 0.15m tolerance), pre-impact heading alignment, and strict video duration bounds across all 3 cases."""
+    case_specs = [
+        ("case_cheadle_a521_junction.json", 4.5),
+        ("case_delphouse_rollover.json", 5.0),
+        ("case_a521_hgv_corridor.json", 5.8),
+    ]
+    mph_to_ms = 0.44704
+
+    for filename, expected_dur in case_specs:
+        with open(DATA_DIR / filename, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+
+        report = payload["report"]
+        impact_t = float(report["impact_timestamp_sec"])
+        assert payload["duration_seconds"] == expected_dur
+        assert payload["case_metadata"]["duration_seconds"] == expected_dur
+        assert report["duration_seconds"] == expected_dur
+
+        for veh in report["vehicles"]:
+            kfs = veh["keyframes"]
+            assert kfs[0]["timestamp_sec"] == 0.0
+            assert kfs[-1]["timestamp_sec"] == expected_dur
+
+            for i in range(len(kfs) - 1):
+                k0, k1 = kfs[i], kfs[i + 1]
+                dt = k1["timestamp_sec"] - k0["timestamp_sec"]
+                assert dt > 0.0
+                dx = k1["x_meters"] - k0["x_meters"]
+                dz = k1["z_meters"] - k0["z_meters"]
+                ds_actual = math.hypot(dx, dz)
+                ds_expected = 0.5 * (k0["speed_mph"] + k1["speed_mph"]) * mph_to_ms * dt
+                assert abs(ds_actual - ds_expected) < 0.15, (
+                    f"{filename} {veh['vehicle_id']} [{k0['timestamp_sec']}..{k1['timestamp_sec']}s]: "
+                    f"ds_actual={ds_actual:.3f}m vs ds_expected={ds_expected:.3f}m"
+                )
+
+                if k1["timestamp_sec"] <= impact_t and ds_actual > 0.05:
+                    vec_hdg = (math.degrees(math.atan2(dx, -dz)) + 360.0) % 360.0
+                    dh = abs(((k0["heading_deg"] - vec_hdg + 180.0) % 360.0) - 180.0)
+                    assert dh < 2.0, (
+                        f"{filename} {veh['vehicle_id']} at t={k0['timestamp_sec']}s: "
+                        f"heading_deg={k0['heading_deg']} vs velocity vector heading={vec_hdg:.2f}"
+                    )
+
 
 
 def test_road_sign_legal_analysis_and_negative_only_dvsa_and_video_urls() -> None:
@@ -292,6 +359,51 @@ def test_road_sign_legal_analysis_and_negative_only_dvsa_and_video_urls() -> Non
                 assert "Rectified" not in defect["defect_text"]
                 assert "Statutory Compliance" not in defect["defect_category"]
                 assert "Rectified" not in defect["defect_category"]
+
+
+def test_ensure_production_case_quality_pipeline_guarantees() -> None:
+    """Verify ensure_production_case_quality enforces all 5 mandates on newly constructed cases."""
+    assert "CRITICAL SCENE RULE" in FORENSIC_SYSTEM_INSTRUCTION
+    assert "NEVER invent or extrapolate events before the video starts" in FORENSIC_SYSTEM_INSTRUCTION
+
+    with open(DATA_DIR / "case_cheadle_a521_junction.json", "r", encoding="utf-8") as f:
+        payload = json.load(f)
+
+    report = ForensicLegalReport.model_validate(payload["report"])
+    # Inject synthetic pre-video (t < 0.0) and post-video (t > duration) keyframes, positive MOT pass,
+    # duplicate (EXPIRED), and blank TSRGD fields to verify ensure_production_case_quality cleans them all
+    report.vehicles[0].dvsa_mot_expiry = "2026-05-02 (EXPIRED) (EXPIRED)"
+    report.vehicles[0].dvsa_advisories.append("MOT Test PASS with no advisories")
+    report.vehicles[0].dvsa_defect_classifications.append(
+        DVSADefectAnalysis(
+            defect_text="MOT Test PASS (Rectified)",
+            defect_category="Statutory Compliance (Rectified)",
+            causal_status="NOT CAUSAL",
+            forensic_explanation="Should be stripped by filter_negative_dvsa_records",
+        )
+    )
+    report.scene_environment_elements[0].tsrgd_diagram = ""
+    report.scene_environment_elements[0].statutory_duty = ""
+    report.scene_environment_elements[0].driver_compliance = ""
+    report.scene_environment_elements[0].legal_liability_impact = ""
+
+    cleaned = ensure_production_case_quality(
+        report,
+        video_url="/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4",
+        duration_seconds=4.5,
+    )
+    assert cleaned.duration_seconds == 4.5
+    assert cleaned.vehicles[0].dvsa_mot_expiry == "2026-05-02 (EXPIRED)"
+    assert all("MOT Test PASS" not in a for a in cleaned.vehicles[0].dvsa_advisories)
+    assert all("MOT Test PASS" not in d.defect_text for d in cleaned.vehicles[0].dvsa_defect_classifications)
+    assert cleaned.scene_environment_elements[0].tsrgd_diagram != ""
+    assert cleaned.scene_environment_elements[0].statutory_duty != ""
+    assert cleaned.scene_environment_elements[0].driver_compliance != ""
+    assert cleaned.scene_environment_elements[0].legal_liability_impact != ""
+    for veh in cleaned.vehicles:
+        assert veh.keyframes[0].timestamp_sec == 0.0
+        assert veh.keyframes[-1].timestamp_sec == 4.5
+        assert all(0.0 <= kf.timestamp_sec <= 4.5 for kf in veh.keyframes)
 
 
 def test_live_uk_dvsa_mot_history_lookup() -> None:
@@ -338,8 +450,8 @@ def test_stopping_distance_physics_math() -> None:
 
 
 def test_fastapi_endpoints_and_interactive_clarification() -> None:
-    """Test FastAPI endpoints including /api/cases, /api/dvsa, /api/pre-scan-video, /api/analyze-claim, and /api/approve-settlement."""
-    # 1. GET /api/cases
+    """Test FastAPI endpoints including /api/cases (local vs public filtering), /api/dvsa, /api/pre-scan-video, /api/analyze-claim, and /api/approve-settlement."""
+    # 1a. GET /api/cases on local testserver -> returns all 3 cases
     resp_cases = client.get("/api/cases")
     assert resp_cases.status_code == 200
     cases_json = resp_cases.json()
@@ -348,10 +460,20 @@ def test_fastapi_endpoints_and_interactive_clarification() -> None:
     assert "delphouse_rollover" in cases_json
     assert "a521_hgv" in cases_json
 
+    # 1b. GET /api/cases?include_local=false (or public Vercel host) -> returns only public demo Case 1
+    resp_public = client.get("/api/cases?include_local=false")
+    assert resp_public.status_code == 200
+    public_json = resp_public.json()
+    assert len(public_json["cases"]) == 1
+    assert public_json["cases"][0]["case_metadata"]["id"] == "cheadle_a521"
+    assert public_json["cases"][0]["is_public_demo"] is True
+    assert public_json["cases"][0]["local_only"] is False
+
     # 2. GET /api/cases/{case_id}
     resp_c1 = client.get("/api/cases/cheadle_a521")
     assert resp_c1.status_code == 200
     assert resp_c1.json()["report"]["claim_id"] == "UK-2026-0819"
+    assert resp_c1.json()["report"]["duration_seconds"] == 4.5
 
     # 3. GET /api/dvsa/{registration}
     resp_dvsa = client.get("/api/dvsa/GD64LKU")

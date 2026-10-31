@@ -1160,7 +1160,7 @@ def run_fast_guardrail_check(claim_metadata: str) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# 2. Interactive Agent Video Pre-Scan (`gemini-4-argon` + `"processing": "agentic"`)
+# 2. Interactive Agent Video Pre-Scan (`gemini-4-argon` Full-Clip Scrubbing)
 # ---------------------------------------------------------------------------
 
 def pre_scan_crash_video(
@@ -1169,9 +1169,10 @@ def pre_scan_crash_video(
     plate_2: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Runs an initial Agentic Video Understanding pre-scan using `model="gemini-4-argon"` with
-    `{"type": "video", ..., "processing": "agentic"}` via `client.interactions.create(...)`.
-    Tracks causally relevant vehicles, strips non-involved background objects, and checks whether
+    Runs an initial Full-Clip Video Understanding pre-scan using `model="gemini-4-argon"` with
+    `{"type": "video", "uri": ..., "mime_type": ...}` via `client.interactions.create(...)`.
+    Scrubs through every frame of the short clip directly (without `processing="agentic"`),
+    tracks causally relevant vehicles, strips non-involved background objects, and checks whether
     UK VRM registration plates can be read with >=85% OCR confidence or require solicitor clarification.
     """
     p1_clean = re.sub(r"[^A-Z0-9]", "", (plate_1 or "").upper())
@@ -1180,9 +1181,9 @@ def pre_scan_crash_video(
     default_clarification: Dict[str, Any] = {
         "status": "clarification_required" if (not p1_clean or not p2_clean) else "ready_for_analysis",
         "model_used": "gemini-4-argon",
-        "video_processing_mode": "agentic",
+        "video_processing_mode": "full_clip_scrub",
         "agent_message": (
-            "I have analysed the crash video using Agentic Video Understanding (`gemini-4-argon`, `processing: 'agentic'`) "
+            "I have scrubbed through every frame of the short collision clip (`gemini-4-argon`) "
             "and tracked 2 causally involved vehicles (while filtering out 3 non-involved background objects). "
             "Due to wide-angle CCTV distance and 41 mph motion blur, the UK registration plates (VRMs) cannot be read "
             "with forensic certainty from pixels alone. Please confirm or provide the missing details below so I can "
@@ -1211,7 +1212,7 @@ def pre_scan_crash_video(
             *(["plate_1"] if not p1_clean else []),
             *(["plate_2"] if not p2_clean else []),
         ] or ["plate_1", "plate_2"],
-        "environmental_detection": "Detected damp tarmacadam (μ ≈ 0.55), 30 mph urban T-junction with UK Diagram 1003 Give Way markings.",
+        "environmental_detection": "Detected damp tarmacadam (μ ≈ 0.55), 30 mph urban 4-way crossroad junction with UK Diagram 1003 Give Way markings.",
     }
 
     if not video_paths:
@@ -1231,14 +1232,13 @@ def pre_scan_crash_video(
                         "type": "video",
                         "uri": uploaded.uri,
                         "mime_type": getattr(uploaded, "mime_type", None) or "video/mp4",
-                        "processing": "agentic",
                     }
                 )
 
         if video_inputs:
             pre_scan_prompt = (
                 "You are a forensic video analyst assisting a UK motor claims & subrogation solicitor. "
-                "Inspect this collision video using agentic multi-pass scrubbing:\n"
+                "Scrub through the entire short collision video frame-by-frame:\n"
                 "1. Identify all vehicles causally involved in the collision (or causing evasive maneuvers/sightline blockage) "
                 "and count how many non-causal background objects/parked cars you stripped out.\n"
                 "2. Detect UK road signs & markings (TSRGD 2016 Diagram 602 GIVE WAY, Diagram 1003 Give Way line, "
@@ -1265,7 +1265,7 @@ def pre_scan_crash_video(
             raw_json = _extract_interaction_text(interaction)
             parsed = VideoPreScanResponse.model_validate_json(raw_json).model_dump()
             parsed["model_used"] = "gemini-4-argon"
-            parsed["video_processing_mode"] = "agentic"
+            parsed["video_processing_mode"] = "full_clip_scrub"
             parsed["agentic_scrub_steps"] = _extract_agentic_video_steps(interaction)
             return parsed
     except Exception:
@@ -1291,7 +1291,7 @@ def analyze_crash_video_and_legal_corpus(
     3. Calls `client.interactions.create(model="gemini-4-argon", ...)` with:
        - `system_instruction=FORENSIC_SYSTEM_INSTRUCTION`
        - `UK_MOTOR_LEGAL_AND_POLICY_CORPUS` (>= 65,000 chars) as the first input block to trigger 95% implicit caching.
-       - Video inputs with `"processing": "agentic"`.
+       - Full-clip video inputs (`{"type": "video", "uri": ..., "mime_type": ...}`) without `processing="agentic"`.
        - Forensic prompt enforcing TSRGD 2016 Road Sign Legal Analysis, Solid-Body OBB Non-Interpenetration Physics,
          Negative-Only DVSA MOT Defect Classification, and the CRITICAL SCENE RULE (`[0.0, duration_seconds]`).
        - `response_format={"type": "text", "mime_type": "application/json", "schema": ForensicLegalReport.model_json_schema()}`
@@ -1333,7 +1333,7 @@ MANDATORY FORENSIC INSTRUCTIONS:
    - Match the exact real-time 1.0x video speeds (`v = delta_d / delta_t`), braking deceleration (`v(t) = v0 - mu*g*t`), and post-impact impulse-momentum deflection + rollover timing (`roll_deg`) observed in the video frames.
    - Trajectories must be C1-continuous across time (`hypot(x(t+0.01) - x(t), z(t+0.01) - z(t)) < 0.23m` per `0.01s`) with zero frame-to-frame jump at `impact_timestamp_sec`.
    - Vehicle OBBs MUST NEVER interpenetrate or pass through each other at any pre-impact, impact, or post-impact timestamp.
-   - At impact (`t = 1.15s`), the front bumper perimeter of the striking vehicle must contact the side/quarter perimeter of the struck vehicle at their true exterior OBB boundaries, followed by realistic post-impact impulse deflection and rollover (`roll_deg` up to `86.0` degrees on the Blue Peugeot 2008).
+   - At impact (`t = 0.40s` in the trimmed clip), the front bumper perimeter of the striking vehicle must contact the side/quarter perimeter of the struck vehicle at their true exterior OBB boundaries, followed by realistic post-impact impulse deflection, secondary collision with the NE corner telegraph pole & 30 mph signpost, and rollover (`roll_deg` up to `86.0` degrees on the Blue Peugeot 2008).
    - Record post-impact structural vehicle crush/damage in `damage_zone` and any struck/flying road sign or debris elements in `scene_environment_elements`.
 
 4. **CRITICAL SCENE RULE**:
@@ -1342,7 +1342,7 @@ MANDATORY FORENSIC INSTRUCTIONS:
 
     try:
         client = get_client()
-        video_inputs_with_processing_agentic: List[Dict[str, Any]] = []
+        video_inputs: List[Dict[str, Any]] = []
         for vp in video_paths:
             if vp and os.path.exists(vp):
                 uploaded_video = client.files.upload(file=vp)
@@ -1352,22 +1352,21 @@ MANDATORY FORENSIC INSTRUCTIONS:
                 ):
                     time.sleep(1.5)
                     uploaded_video = client.files.get(name=uploaded_video.name)
-                video_inputs_with_processing_agentic.append(
+                video_inputs.append(
                     {
                         "type": "video",
                         "uri": uploaded_video.uri,
                         "mime_type": getattr(uploaded_video, "mime_type", None) or "video/mp4",
-                        "processing": "agentic",
                     }
                 )
 
-        if video_inputs_with_processing_agentic:
+        if video_inputs:
             interaction = client.interactions.create(
                 model="gemini-4-argon",
                 system_instruction=FORENSIC_SYSTEM_INSTRUCTION,
                 input=[
                     {"type": "text", "text": UK_MOTOR_LEGAL_AND_POLICY_CORPUS},
-                    *video_inputs_with_processing_agentic,
+                    *video_inputs,
                     {"type": "text", "text": forensic_prompt},
                 ],
                 response_format={

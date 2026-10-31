@@ -196,19 +196,47 @@ export function interpolateVehicleKeyframeAt(keyframes, t) {
     return {
       timestamp_sec: t,
       x_meters: 0,
+      y_meters: 0,
       z_meters: 0,
+      position: [0, 0, 0],
       heading_deg: 0,
       speed_mph: 0,
       braking_active: false,
+      pitch_deg: 0,
       roll_deg: 0,
     };
   }
   if (t <= keyframes[0].timestamp_sec) {
-    return { ...keyframes[0], timestamp_sec: t };
+    const k0 = keyframes[0];
+    const x0 = k0.x_meters || 0;
+    const y0 = k0.y_meters || 0;
+    const z0 = k0.z_meters || 0;
+    return {
+      ...k0,
+      timestamp_sec: t,
+      x_meters: x0,
+      y_meters: y0,
+      z_meters: z0,
+      position: [x0, y0, z0],
+      pitch_deg: k0.pitch_deg || 0,
+      roll_deg: k0.roll_deg || 0,
+    };
   }
   const last = keyframes[keyframes.length - 1];
   if (t >= last.timestamp_sec) {
-    return { ...last, timestamp_sec: t };
+    const xl = last.x_meters || 0;
+    const yl = last.y_meters || 0;
+    const zl = last.z_meters || 0;
+    return {
+      ...last,
+      timestamp_sec: t,
+      x_meters: xl,
+      y_meters: yl,
+      z_meters: zl,
+      position: [xl, yl, zl],
+      pitch_deg: last.pitch_deg || 0,
+      roll_deg: last.roll_deg || 0,
+    };
   }
 
   for (let i = 0; i < keyframes.length - 1; i++) {
@@ -218,18 +246,93 @@ export function interpolateVehicleKeyframeAt(keyframes, t) {
       const span = Math.max(k1.timestamp_sec - k0.timestamp_sec, 1e-5);
       const alpha = (t - k0.timestamp_sec) / span;
       const deltaHeading = ((k1.heading_deg - k0.heading_deg + 540) % 360) - 180;
+      const x = k0.x_meters + (k1.x_meters - k0.x_meters) * alpha;
+      const y = (k0.y_meters || 0) + ((k1.y_meters || 0) - (k0.y_meters || 0)) * alpha;
+      const z = k0.z_meters + (k1.z_meters - k0.z_meters) * alpha;
       return {
         timestamp_sec: t,
-        x_meters: k0.x_meters + (k1.x_meters - k0.x_meters) * alpha,
-        z_meters: k0.z_meters + (k1.z_meters - k0.z_meters) * alpha,
+        x_meters: x,
+        y_meters: y,
+        z_meters: z,
+        position: [x, y, z],
         heading_deg: (k0.heading_deg + deltaHeading * alpha + 360) % 360,
         speed_mph: k0.speed_mph + (k1.speed_mph - k0.speed_mph) * alpha,
         braking_active: alpha < 0.5 ? Boolean(k0.braking_active) : Boolean(k1.braking_active),
+        pitch_deg: (k0.pitch_deg || 0) + ((k1.pitch_deg || 0) - (k0.pitch_deg || 0)) * alpha,
         roll_deg: (k0.roll_deg || 0) + ((k1.roll_deg || 0) - (k0.roll_deg || 0)) * alpha,
       };
     }
   }
-  return { ...last, timestamp_sec: t };
+  const xl = last.x_meters || 0;
+  const yl = last.y_meters || 0;
+  const zl = last.z_meters || 0;
+  return {
+    ...last,
+    timestamp_sec: t,
+    x_meters: xl,
+    y_meters: yl,
+    z_meters: zl,
+    position: [xl, yl, zl],
+    pitch_deg: last.pitch_deg || 0,
+    roll_deg: last.roll_deg || 0,
+  };
+}
+
+/**
+ * Interpolates a vehicle object `{ keyframes: [...] }` or keyframe array at `t` seconds (60 FPS smooth).
+ */
+export function interpolateVehicleState(vehicleOrKeyframes, t = 0) {
+  const keyframes = Array.isArray(vehicleOrKeyframes)
+    ? vehicleOrKeyframes
+    : vehicleOrKeyframes?.keyframes || [];
+  return interpolateVehicleKeyframeAt(keyframes, Number(t) || 0);
+}
+
+/**
+ * Computes UK Highway Code Rule 126 & Newtonian stopping distance analysis for a case payload or report.
+ */
+export function getStoppingDistanceAnalysis(caseData) {
+  const report = caseData?.report || caseData || {};
+  const loc = report.location_and_time_context || {};
+  const speedLimitMph = Number(loc.speed_limit_mph) || 30;
+  const surfaceText = String(loc.road_surface_condition || '');
+  const muMatch = surfaceText.match(/mu\s*=\s*([0-9.]+)/i);
+  const mu = muMatch ? Number(muMatch[1]) : 0.55;
+  const g = 9.81;
+  const reactionTimeSec = 0.67;
+  const MPS_PER_MPH = 0.44704;
+
+  const vLimit = speedLimitMph * MPS_PER_MPH;
+  const compliantThinkingM = vLimit * reactionTimeSec;
+  const compliantBrakingM = (vLimit * vLimit) / (2 * g * Math.max(0.2, mu));
+  const compliantStoppingM = compliantThinkingM + compliantBrakingM;
+
+  const claimantSpeedMph = Number(report.claimant_PreImpact_Speed_mph) || speedLimitMph;
+  const defendantSpeedMph = Number(report.defendant_PreImpact_Speed_mph) || 20;
+  const primarySpeedMph = Math.max(claimantSpeedMph, defendantSpeedMph);
+  const vActual = primarySpeedMph * MPS_PER_MPH;
+  const muEffective = Math.max(0.2, mu - 0.04);
+  const actualThinkingM = vActual * reactionTimeSec;
+  const actualBrakingM = (vActual * vActual) / (2 * g * muEffective);
+  const actualStoppingM = actualThinkingM + actualBrakingM;
+  const kineticEnergyRatio = Math.pow(primarySpeedMph / Math.max(1, speedLimitMph), 2);
+
+  return {
+    speed_limit_mph: speedLimitMph,
+    claimant_speed_mph: claimantSpeedMph,
+    defendant_speed_mph: defendantSpeedMph,
+    friction_mu: mu,
+    effective_mu: Number(muEffective.toFixed(2)),
+    compliant_thinking_m: Number(compliantThinkingM.toFixed(2)),
+    compliant_braking_m: Number(compliantBrakingM.toFixed(2)),
+    compliant_stopping_m: Number(compliantStoppingM.toFixed(2)),
+    thinking_distance_m: Number(actualThinkingM.toFixed(2)),
+    braking_distance_m: Number(actualBrakingM.toFixed(2)),
+    actual_stopping_m: Number(actualStoppingM.toFixed(2)),
+    kinetic_energy_ratio: Number(kineticEnergyRatio.toFixed(2)),
+    impact_timestamp_sec: Number(report.impact_timestamp_sec ?? 0.4),
+    summary: report.stopping_distance_analysis || '',
+  };
 }
 
 /**
@@ -257,9 +360,7 @@ function projectPairNonOverlapping(stateA, specA, stateB, specB, minClearance) {
   let sat = computeOBBCollisionSAT(stateA, specA, stateB, specB);
   for (let iter = 0; iter < 6; iter++) {
     const requiredShift = sat.intersects
-      ? sat.penetration + minClearance
-      : sat.clearance < minClearance
-      ? minClearance - sat.clearance
+      ? sat.penetration + Math.min(0.02, minClearance)
       : 0;
 
     if (requiredShift <= 1e-4) break;
@@ -276,7 +377,7 @@ function projectPairNonOverlapping(stateA, specA, stateB, specB, minClearance) {
 
 const PAIR_TRAJECTORY_CACHE = new WeakMap();
 
-function getOrBuildPairTrajectoryTable(metaA, metaB, impactTime = 1.15, stepSec = 0.01) {
+function getOrBuildPairTrajectoryTable(metaA, metaB, impactTime = 0.4, stepSec = 0.01) {
   if (!metaA?.keyframes?.length || !metaB?.keyframes?.length) {
     return null;
   }
@@ -361,6 +462,19 @@ function getOrBuildPairTrajectoryTable(metaA, metaB, impactTime = 1.15, stepSec 
     stepSec,
     maxT,
     samples,
+    sampleAtTime(timestampSec) {
+      const rawA = interpolateVehicleKeyframeAt(metaA.keyframes, timestampSec);
+      const rawB = interpolateVehicleKeyframeAt(metaB.keyframes, timestampSec);
+      return resolveVehiclePairPhysics(
+        rawA,
+        metaA,
+        rawB,
+        metaB,
+        timestampSec,
+        impactTime,
+        { _physicsCache: this, vehicles: [metaA, metaB], impact_timestamp_sec: impactTime }
+      );
+    },
   };
   subMap.set(metaB, table);
   return table;
@@ -373,7 +487,7 @@ export function buildContinuousPhysicsTrajectory(report, stepSec = 0.01) {
   if (!report || !Array.isArray(report.vehicles) || report.vehicles.length < 2) {
     return null;
   }
-  const impactTime = report.impact_timestamp_sec ?? 1.15;
+  const impactTime = report.impact_timestamp_sec ?? 0.4;
   const table = getOrBuildPairTrajectoryTable(
     report.vehicles[0],
     report.vehicles[1],
@@ -400,9 +514,14 @@ export function resolveVehiclePairPhysics(
   rawStateB,
   metaB,
   currentTime,
-  impactTime = 1.15,
+  impactTime = null,
   report = null
 ) {
+  const resolvedImpactTime =
+    typeof impactTime === 'number' && !Number.isNaN(impactTime)
+      ? impactTime
+      : report?.impact_timestamp_sec ?? 0.4;
+  impactTime = resolvedImpactTime;
   const stateA = { ...rawStateA };
   const stateB = { ...rawStateB };
   const specA = getVehicleRigidSpec(metaA);
@@ -700,41 +819,67 @@ function evaluateVerticalBounce(dt, y0, vy0, g = 9.81, e = 0.38, yFloor = 0.04) 
  * and roadside sign-post impact / flying sign plate physics as a pure function of
  * `dt = timestampSec - impact_timestamp_sec`.
  */
-export function computeCrashDestructionState(report, snapshot = {}, timestampSec = 0) {
-  const impactTime = report?.impact_timestamp_sec ?? 1.15;
+export function computeCrashDestructionState(arg1, arg2 = {}, arg3 = 0, arg4 = 0) {
+  const isDirectSignature = typeof arg1 === 'number';
+  const report = isDirectSignature ? null : arg1;
+  const timestampSec = isDirectSignature ? arg1 : arg3;
+  const impactTime = isDirectSignature
+    ? typeof arg2 === 'number'
+      ? arg2
+      : 0.4
+    : report?.impact_timestamp_sec ?? 0.4;
   const dt = timestampSec - impactTime;
-  const ix = report?.impact_x_meters ?? 0.0;
-  const iz = report?.impact_z_meters ?? 0.2;
+  const ix = isDirectSignature
+    ? typeof arg3 === 'number'
+      ? arg3
+      : 0.0
+    : report?.impact_x_meters ?? 0.0;
+  const iz = isDirectSignature
+    ? typeof arg4 === 'number'
+      ? arg4
+      : -0.2
+    : report?.impact_z_meters ?? -0.2;
 
   if (dt < 0) {
+    const emptyCrush = {
+      factor: 0,
+      frontCompression: 0,
+      frontCompress: 0,
+      sideIntrusion: 0,
+      hoodBuckle: 0,
+      roofBuckle: 0,
+      roofCrush: 0,
+      glassShatterOpacity: 0,
+    };
     return {
       active: false,
       dt: 0,
       severity: 0,
       crushFactor: 0,
-      crushA: {
-        factor: 0,
-        frontCompression: 0,
-        sideIntrusion: 0,
-        hoodBuckle: 0,
-        roofBuckle: 0,
-        glassShatterOpacity: 0,
-      },
-      crushB: {
-        factor: 0,
-        frontCompression: 0,
-        sideIntrusion: 0,
-        hoodBuckle: 0,
-        roofBuckle: 0,
-        glassShatterOpacity: 0,
-      },
+      crushA: emptyCrush,
+      crushB: emptyCrush,
+      crumpleA: emptyCrush,
+      crumpleB: emptyCrush,
       debrisFragments: [],
+      shards: [],
       dustParticles: [],
+      dustPuffs: [],
       signImpact: {
         active: false,
         postTiltX: 0,
         postTiltZ: 0,
+        tiltRadX: 0,
+        tiltRadZ: 0,
         boardDetached: false,
+        detached: false,
+        boardPos: { x: 0, y: 2.25, z: 0.06 },
+        boardRot: { x: 0, y: 0, z: 0 },
+      },
+      signKnockdown: {
+        active: false,
+        tiltRadX: 0,
+        tiltRadZ: 0,
+        detached: false,
         boardPos: { x: 0, y: 2.25, z: 0.06 },
         boardRot: { x: 0, y: 0, z: 0 },
       },
@@ -760,9 +905,11 @@ export function computeCrashDestructionState(report, snapshot = {}, timestampSec
   const crushA = {
     factor: crushFactor,
     frontCompression: 0.18 * crushFactor,
+    frontCompress: 0.18 * crushFactor,
     sideIntrusion: 0.30 * crushFactor,
     hoodBuckle: 0.24 * crushFactor,
     roofBuckle: 0.16 * crushFactor,
+    roofCrush: 0.16 * crushFactor,
     impactJolt,
     glassShatterOpacity: Math.min(0.95, rawCrush * 1.15),
   };
@@ -770,9 +917,11 @@ export function computeCrashDestructionState(report, snapshot = {}, timestampSec
   const crushB = {
     factor: crushFactor,
     frontCompression: 0.35 * crushFactor,
+    frontCompress: 0.35 * crushFactor,
     sideIntrusion: 0.16 * crushFactor,
     hoodBuckle: 0.40 * crushFactor,
     roofBuckle: 0.12 * crushFactor,
+    roofCrush: 0.12 * crushFactor,
     impactJolt: -impactJolt,
     glassShatterOpacity: Math.min(0.95, rawCrush * 1.15),
   };
@@ -806,15 +955,21 @@ export function computeCrashDestructionState(report, snapshot = {}, timestampSec
       spinTime = dHit1 + tSlide * 0.65;
     }
 
+    const rotX = bounce.isGrounded ? Math.PI * 0.5 : seed.omegaX * spinTime;
+    const rotY = seed.omegaY * spinTime;
+    const rotZ = bounce.isGrounded ? 0.08 * (seed.id % 3) : seed.omegaZ * spinTime;
     return {
       id: seed.id,
       category: seed.category,
       x: ix + seed.offsetX + ux * horizDist,
       y: bounce.y,
       z: iz + seed.offsetZ + uz * horizDist,
-      rotX: bounce.isGrounded ? Math.PI * 0.5 : seed.omegaX * spinTime,
-      rotY: seed.omegaY * spinTime,
-      rotZ: bounce.isGrounded ? 0.08 * (seed.id % 3) : seed.omegaZ * spinTime,
+      rotX,
+      rotY,
+      rotZ,
+      rx: rotX,
+      ry: rotY,
+      rz: rotZ,
       scale: seed.scale,
     };
   });
@@ -824,7 +979,10 @@ export function computeCrashDestructionState(report, snapshot = {}, timestampSec
     active: false,
     postTiltX: 0,
     postTiltZ: 0,
+    tiltRadX: 0,
+    tiltRadZ: 0,
     boardDetached: false,
+    detached: false,
     boardPos: { x: 0, y: 2.25, z: 0.06 },
     boardRot: { x: 0, y: 0, z: 0 },
   };
@@ -858,7 +1016,10 @@ export function computeCrashDestructionState(report, snapshot = {}, timestampSec
       active: true,
       postTiltX: tiltRad * 0.68,
       postTiltZ: -tiltRad * 0.73,
+      tiltRadX: tiltRad * 0.68,
+      tiltRadZ: -tiltRad * 0.73,
       boardDetached: true,
+      detached: true,
       boardPos: {
         x: boardVx * boardHorizScale,
         y: boardBounce.y,
@@ -876,16 +1037,16 @@ export function computeCrashDestructionState(report, snapshot = {}, timestampSec
   const dustParticles = Array.from({ length: 12 }, (_, i) => {
     const delay = i * 0.045;
     const tau = Math.max(0, dt - delay);
-    const angle = 0.35 + (i / 12) * 1.45 + ((i % 3) - 1) * 0.14;
-    const speed = 2.1 + (i % 4) * 0.65;
-    const driftDist = speed * Math.min(tau, 1.6) * (1 - 0.25 * Math.min(1, tau / 1.6));
-    const radius = 0.28 + Math.min(1.35, tau * (0.75 + (i % 3) * 0.18));
-    const opacity = tau <= 0 ? 0 : Math.max(0, 0.42 * Math.exp(-tau * 0.95));
+    const angle = -0.78 + (i / 12) * 0.85 + ((i % 3) - 1) * 0.12;
+    const speed = 2.4 + (i % 4) * 0.65;
+    const driftDist = speed * Math.min(tau, 1.8) * (1 - 0.22 * Math.min(1, tau / 1.8));
+    const radius = 0.32 + Math.min(1.45, tau * (0.78 + (i % 3) * 0.18));
+    const opacity = tau <= 0 ? 0 : Math.max(0, 0.44 * Math.exp(-tau * 0.75));
     return {
       id: i,
       x: ix + 0.8 + Math.cos(angle) * driftDist,
       y: 0.22 + Math.min(1.35, tau * (0.48 + (i % 4) * 0.12)),
-      z: iz + 0.4 + Math.sin(angle) * driftDist,
+      z: iz - 0.4 + Math.sin(angle) * driftDist,
       scale: radius,
       opacity,
     };
@@ -898,9 +1059,14 @@ export function computeCrashDestructionState(report, snapshot = {}, timestampSec
     crushFactor,
     crushA,
     crushB,
+    crumpleA: crushA,
+    crumpleB: crushB,
     debrisFragments,
+    shards: debrisFragments,
     dustParticles,
+    dustPuffs: dustParticles,
     signImpact,
+    signKnockdown: signImpact,
   };
 }
 
