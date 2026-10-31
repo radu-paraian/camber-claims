@@ -5,7 +5,7 @@
     "claim_id": "UK-2026-0904",
     "title": "Case 3: A521 Huntley Brook HGV Lane Encroachment",
     "subtitle": "KX71 HGV (DAF XF 480 Articulated HGV) vs LV20 RTY (Vauxhall Astra — Wet Bend)",
-    "video_url": "/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4",
+    "video_url": "/videos/clip2_5.07s_to_10.90s_pickup_vs_lorry.mp4",
     "badge": "HGV WET CORRIDOR 80/20",
     "plate_1": "KX71 HGV",
     "plate_2": "LV20 RTY"
@@ -47,8 +47,8 @@
       ]
     },
     "impact_timestamp_sec": 1.35,
-    "impact_x_meters": -0.8,
-    "impact_z_meters": 0.5,
+    "impact_x_meters": -0.52,
+    "impact_z_meters": 1.32,
     "claimant_PreImpact_Speed_mph": 34.0,
     "defendant_PreImpact_Speed_mph": 38.5,
     "stopping_distance_analysis": "Under UK Highway Code Rule 126 and Rule 221, heavy goods vehicles require substantially longer wet stopping distances due to pneumatic brake lag and lower tyre-road friction on wet asphalt (mu_hgv = 0.42). At KX71 HGV's entry speed of 38.5 mph (17.21 m/s) with a 0.45s air-brake actuator build-up delay (DVSA advisory 1.2.2), total stopping distance reached 55.2m (19.3m reaction+lag + 35.9m braking), causing lateral trailer off-tracking of 1.15m into the opposing lane. LV20 RTY approached at 34.0 mph in a 30 mph zone (wet stopping distance 33.7m vs 27.4m at 30 mph).",
@@ -57,19 +57,39 @@
     "scene_environment_elements": [
       {
         "element_id": "marking_centre_hazard_1004",
-        "element_type": "road_marking",
+        "element_type": "hazard_line",
         "label": "UK Diagram 1004.1 Centre Hazard Warning Line",
         "x_meters": 0.0,
-        "z_meters": 0.0,
-        "causal_relevance_note": "Demarcates lane boundary breached by 1.15m by KX71 HGV's offside tractor/trailer swept path."
+        "z_meters": 0.65,
+        "causal_relevance_note": "Demarcates lane boundary breached by 1.15m by KX71 HGV's offside tractor/trailer swept path.",
+        "tsrgd_diagram": "TSRGD Diagram 1004.1",
+        "statutory_duty": "Highway Code Rule 127 & TSRGD Schedule 11 Part 4: Elongated longitudinal hazard markings warn of an approaching bend hazard; drivers must not cross or straddle the line unless safe.",
+        "driver_compliance": "BREACHED by KX71 HGV (offside tractor and semi-trailer swept path encroached 1.15m across the Diagram 1004.1 line into the opposing Eastbound lane); COMPLIED WITH by LV20 RTY (remained wholly inside Eastbound lane).",
+        "legal_liability_impact": "Establishes 80% primary liability against KX71 HGV for lane encroachment under Laurie v Raglan Building Co Ltd [1942] and Baker v Willoughby [1970] AC 467."
       },
       {
         "element_id": "sign_speed_30_huntley",
-        "element_type": "road_sign",
-        "label": "A521 30 mph Gateway Sign & Wet Bend Chevron",
+        "element_type": "speed_limit_sign",
+        "label": "A521 30 mph Terminal Gateway Sign (TSRGD Diagram 670)",
         "x_meters": 16.0,
         "z_meters": -3.9,
-        "causal_relevance_note": "Establishes 30 mph statutory limit breached by both KX71 HGV (38.5 mph) and LV20 RTY (34.0 mph)."
+        "causal_relevance_note": "Establishes 30 mph statutory limit breached by both KX71 HGV (38.5 mph) and LV20 RTY (34.0 mph).",
+        "tsrgd_diagram": "TSRGD Diagram 670 (30 mph)",
+        "statutory_duty": "Road Traffic Regulation Act 1984 s.81 & Highway Code Rule 124: Mandatory 30 mph maximum speed limit through the A521 Huntley Brook corridor.",
+        "driver_compliance": "BREACHED by both KX71 HGV (entered wet bend at 38.5 mph, +28.3% over limit) and LV20 RTY (approached at 34.0 mph, +13.3% over limit).",
+        "legal_liability_impact": "Grounds primary fault on KX71 HGV (38.5 mph in a 38-tonne HGV on a wet bend) and 20% contributory negligence on LV20 RTY under Colmore v Taylor [2014] EWHC 1442 (QB)."
+      },
+      {
+        "element_id": "sign_bend_warning_a521",
+        "element_type": "warning_sign",
+        "label": "UK Diagram 512.1 Double Bend Ahead Warning Sign",
+        "x_meters": 21.5,
+        "z_meters": -4.2,
+        "causal_relevance_note": "Warned Westbound HGV traffic of the reverse S-bend alignment requiring speed moderation to prevent trailer off-tracking.",
+        "tsrgd_diagram": "TSRGD Diagram 512.1",
+        "statutory_duty": "Highway Code Rules 125, 126 & 221: Drivers of long articulated vehicles must reduce speed before entering a bend to account for trailer swept-path off-tracking and wet braking distances.",
+        "driver_compliance": "BREACHED by KX71 HGV (failed to decelerate prior to bend entry, braking only at t=0.50s with a 0.45s second-axle pneumatic actuator lag).",
+        "legal_liability_impact": "Reinforces the 80% primary liability allocation against KX71 HGV."
       }
     ],
     "vehicles": [
@@ -106,20 +126,15 @@
         "causally_relevant": true,
         "causal_role_reason": "Primary collision participant (Defendant HGV, 80% liable): encroached 1.15m across the Diagram 1004.1 centre hazard line on a wet 30 mph bend at 38.5 mph.",
         "keyframes": [
-          {"timestamp_sec": 0.0, "x_meters": 22.0, "z_meters": -1.4, "heading_deg": 266.0, "speed_mph": 38.5, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.25, "x_meters": 17.7, "z_meters": -1.0, "heading_deg": 263.0, "speed_mph": 38.5, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.5, "x_meters": 13.4, "z_meters": -0.5, "heading_deg": 260.0, "speed_mph": 38.0, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 0.75, "x_meters": 9.1, "z_meters": 0.0, "heading_deg": 258.0, "speed_mph": 36.2, "braking_active": true, "roll_deg": 3.0},
-          {"timestamp_sec": 1.0, "x_meters": 4.9, "z_meters": 0.3, "heading_deg": 257.0, "speed_mph": 33.8, "braking_active": true, "roll_deg": 4.0},
-          {"timestamp_sec": 1.25, "x_meters": 0.8, "z_meters": 0.5, "heading_deg": 259.0, "speed_mph": 31.0, "braking_active": true, "roll_deg": 4.0},
-          {"timestamp_sec": 1.35, "x_meters": -0.8, "z_meters": 0.5, "heading_deg": 261.0, "speed_mph": 29.4, "braking_active": true, "roll_deg": 5.0},
-          {"timestamp_sec": 1.5, "x_meters": -2.8, "z_meters": 0.3, "heading_deg": 264.0, "speed_mph": 25.0, "braking_active": true, "roll_deg": 3.0},
-          {"timestamp_sec": 1.75, "x_meters": -5.6, "z_meters": -0.1, "heading_deg": 268.0, "speed_mph": 18.2, "braking_active": true, "roll_deg": 2.0},
-          {"timestamp_sec": 2.0, "x_meters": -7.6, "z_meters": -0.4, "heading_deg": 270.0, "speed_mph": 11.4, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 2.25, "x_meters": -8.9, "z_meters": -0.6, "heading_deg": 270.0, "speed_mph": 5.2, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 2.5, "x_meters": -9.5, "z_meters": -0.7, "heading_deg": 270.0, "speed_mph": 1.4, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 2.75, "x_meters": -9.7, "z_meters": -0.7, "heading_deg": 270.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 3.0, "x_meters": -9.7, "z_meters": -0.7, "heading_deg": 270.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
+          {"timestamp_sec": 0.0, "x_meters": 25.0, "z_meters": -1.45, "heading_deg": 266.0, "speed_mph": 38.5, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.5, "x_meters": 16.8, "z_meters": -0.95, "heading_deg": 264.0, "speed_mph": 38.0, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 0.9, "x_meters": 10.4, "z_meters": -0.6, "heading_deg": 263.0, "speed_mph": 35.4, "braking_active": true, "roll_deg": 3.0},
+          {"timestamp_sec": 1.15, "x_meters": 6.6, "z_meters": -0.42, "heading_deg": 263.0, "speed_mph": 32.2, "braking_active": true, "roll_deg": 4.0},
+          {"timestamp_sec": 1.35, "x_meters": 3.65, "z_meters": -0.35, "heading_deg": 264.0, "speed_mph": 29.4, "braking_active": true, "roll_deg": 5.0},
+          {"timestamp_sec": 1.65, "x_meters": 0.15, "z_meters": -0.65, "heading_deg": 268.0, "speed_mph": 20.4, "braking_active": true, "roll_deg": 2.0},
+          {"timestamp_sec": 2.05, "x_meters": -2.85, "z_meters": -0.8, "heading_deg": 270.0, "speed_mph": 9.6, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 2.5, "x_meters": -4.25, "z_meters": -0.85, "heading_deg": 270.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 3.0, "x_meters": -4.25, "z_meters": -0.85, "heading_deg": 270.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
         ]
       },
       {
@@ -133,8 +148,7 @@
         "dvsa_mot_expiry": "2027-03-13",
         "dvsa_mileage_last_mot": "51,290 miles",
         "dvsa_advisories": [
-          "Parking brake efficiency only just met statutory requirement (1.4.2)",
-          "Historical 2024 MOT Failure: Offside Rear Stop lamp not working [4.3.1 (a) (ii)] — Rectified Same Day"
+          "Parking brake efficiency only just met statutory requirement (1.4.2)"
         ],
         "dvsa_defect_classifications": [
           {
@@ -143,32 +157,20 @@
             "defect_category": "Advisory",
             "causal_status": "NOT CAUSAL",
             "forensic_explanation": "NOT CAUSAL — Mechanical handbrake/parking brake efficiency applies only to stationary parking; LV20 RTY was in motion and decelerated using its serviceable four-wheel hydraulic ABS footbrake."
-          },
-          {
-            "defect_text": "Historical 2024 MOT Failure: Offside Rear Stop lamp not working [4.3.1 (a) (ii)] — Rectified Same Day",
-            "test_date": "2024-03-11",
-            "defect_category": "Historical Failure (Rectified)",
-            "causal_status": "NOT CAUSAL",
-            "forensic_explanation": "NOT CAUSAL — Historical failure was rectified two years prior to the collision and rear stop lamps were not in the line of sight of an oncoming HGV."
           }
         ],
         "causally_relevant": true,
         "causal_role_reason": "Primary collision participant (Claimant vehicle, 20% contributory negligence): remained in its own Eastbound lane when struck by the encroaching HGV, but approached the wet bend at 34.0 mph in a 30 mph limit.",
         "keyframes": [
-          {"timestamp_sec": 0.0, "x_meters": -21.0, "z_meters": 1.5, "heading_deg": 90.0, "speed_mph": 34.0, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.25, "x_meters": -17.2, "z_meters": 1.5, "heading_deg": 90.0, "speed_mph": 34.0, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.5, "x_meters": -13.4, "z_meters": 1.4, "heading_deg": 90.0, "speed_mph": 33.8, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.75, "x_meters": -9.7, "z_meters": 1.3, "heading_deg": 91.0, "speed_mph": 31.2, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 1.0, "x_meters": -6.0, "z_meters": 1.1, "heading_deg": 92.0, "speed_mph": 27.4, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 1.25, "x_meters": -2.3, "z_meters": 0.8, "heading_deg": 94.0, "speed_mph": 23.1, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 1.35, "x_meters": -0.8, "z_meters": 0.5, "heading_deg": 96.0, "speed_mph": 20.8, "braking_active": true, "roll_deg": 8.0},
-          {"timestamp_sec": 1.5, "x_meters": 0.4, "z_meters": 1.4, "heading_deg": 118.0, "speed_mph": 12.6, "braking_active": true, "roll_deg": 11.0},
-          {"timestamp_sec": 1.75, "x_meters": 1.8, "z_meters": 2.2, "heading_deg": 128.0, "speed_mph": 6.4, "braking_active": true, "roll_deg": 4.0},
-          {"timestamp_sec": 2.0, "x_meters": 2.5, "z_meters": 2.6, "heading_deg": 131.0, "speed_mph": 2.1, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 2.25, "x_meters": 2.7, "z_meters": 2.8, "heading_deg": 131.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 2.5, "x_meters": 2.7, "z_meters": 2.8, "heading_deg": 131.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 2.75, "x_meters": 2.7, "z_meters": 2.8, "heading_deg": 131.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 3.0, "x_meters": 2.7, "z_meters": 2.8, "heading_deg": 131.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
+          {"timestamp_sec": 0.0, "x_meters": -21.5, "z_meters": 2.3, "heading_deg": 90.0, "speed_mph": 34.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.5, "x_meters": -14.2, "z_meters": 2.28, "heading_deg": 90.0, "speed_mph": 33.8, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.9, "x_meters": -8.4, "z_meters": 2.25, "heading_deg": 90.5, "speed_mph": 29.6, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.15, "x_meters": -5.1, "z_meters": 2.22, "heading_deg": 91.0, "speed_mph": 25.4, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.35, "x_meters": -2.55, "z_meters": 2.18, "heading_deg": 92.0, "speed_mph": 20.8, "braking_active": true, "roll_deg": 8.0},
+          {"timestamp_sec": 1.65, "x_meters": -0.35, "z_meters": 2.95, "heading_deg": 112.0, "speed_mph": 9.8, "braking_active": true, "roll_deg": 6.0},
+          {"timestamp_sec": 2.05, "x_meters": 0.95, "z_meters": 3.3, "heading_deg": 122.0, "speed_mph": 2.4, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 2.5, "x_meters": 1.35, "z_meters": 3.4, "heading_deg": 124.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 3.0, "x_meters": 1.35, "z_meters": 3.4, "heading_deg": 124.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
         ]
       }
     ],

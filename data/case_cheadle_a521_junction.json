@@ -48,11 +48,11 @@
       ]
     },
     "impact_timestamp_sec": 1.15,
-    "impact_x_meters": 0.0,
+    "impact_x_meters": -0.95,
     "impact_z_meters": 0.2,
     "claimant_PreImpact_Speed_mph": 41.2,
     "defendant_PreImpact_Speed_mph": 18.6,
-    "stopping_distance_analysis": "Under UK Highway Code Rule 126, at the lawful 30.0 mph speed limit (13.41 m/s) on damp tarmac (mu = 0.55), thinking distance (t_r = 0.67s) is 8.98m and wet braking distance is 16.66m, yielding a total stopping distance of 25.64m (meaning a compliant driver sighting VL19 OKP at 24.5m would have slowed to <7 mph or avoided contact entirely). At GD64 LKU's actual pre-braking speed of 41.2 mph (18.42 m/s), kinetic energy increased by +88.6%; compounded by DVSA-recorded worn/pitted front and offside-rear brake discs (effective mu_eff = 0.51), total stopping distance expanded to 46.25m (12.34m thinking + 33.91m braking), leaving GD64 LKU travelling at 33.4 mph at the point of impact.",
+    "stopping_distance_analysis": "Under UK Highway Code Rule 126, at the lawful 30.0 mph speed limit (13.41 m/s) on damp tarmac (mu = 0.55), thinking distance (t_r = 0.67s) is 8.98m and wet braking distance is 16.66m, yielding a total stopping distance of 25.64m (meaning a compliant driver sighting VL19 OKP at 22.4m would have slowed to <6 mph or avoided contact entirely). At GD64 LKU's actual pre-braking speed of 41.2 mph (18.42 m/s), kinetic energy increased by +88.6%; compounded by DVSA-recorded worn/pitted front and offside-rear brake discs (effective mu_eff = 0.51), total stopping distance expanded to 46.25m (12.34m thinking + 33.91m braking), leaving GD64 LKU travelling at 29.5 mph at the point of impact.",
     "causal_filtering_summary": "Stripped 3 non-causal background objects (2 distant parked domestic vehicles on Draycott Cross Rd and 1 non-involved pedestrian bin cluster) while preserving both collision vehicles (VL19 OKP & GD64 LKU), the Draycott Cross Rd Give Way sign & Diagram 1003 triangle markings, the A521 30 mph limit sign, and the northwest corner brick terrace & hedgerow that restricted sightlines to 26m.",
     "filtered_irrelevant_objects_count": 3,
     "scene_environment_elements": [
@@ -62,7 +62,11 @@
         "label": "UK Diagram 602 Give Way Sign & Diagram 1003 Double Dashed Line",
         "x_meters": -2.4,
         "z_meters": -4.2,
-        "causal_relevance_note": "Establishes statutory duty under Highway Code Rule 172 and RTA 1988 s.36 for emerging Southbound traffic (VL19 OKP) to yield priority to A521 traffic."
+        "causal_relevance_note": "Establishes statutory duty under Highway Code Rule 172 and RTA 1988 s.36 for emerging Southbound traffic (VL19 OKP) to yield priority to A521 traffic.",
+        "tsrgd_diagram": "TSRGD 2016 Diagram 602 & 1003 (Give Way Sign & Transverse Double Broken Line)",
+        "statutory_duty": "Road Traffic Act 1988 s.36 / TSRGD 2016 Schedule 9 Part 7 / Highway Code Rule 172: Driver emerging from Draycott Cross Rd minor approach must give way to priority traffic on the A521 major carriageway.",
+        "driver_compliance": "BREACHED by Vehicle A (VL19 OKP — Peugeot 2008): Crossed the Diagram 1003 Give Way line at t=0.50s..0.85s at 19.0–19.4 mph with zero braking (braking_active=False), failing to halt or creep.",
+        "legal_liability_impact": "Establishes 75% primary liability against VL19 OKP under Powell v Moody [1966] 110 SJ 215 and Worsfold v Howe [1980] 1 WLR 1175 for emerging across a mandatory Give Way line into a priority corridor."
       },
       {
         "element_id": "sign_speed_30_a521",
@@ -70,7 +74,23 @@
         "label": "A521 Statutory 30 mph Built-Up Area Repeater & Street Lamp Column",
         "x_meters": -18.0,
         "z_meters": 4.5,
-        "causal_relevance_note": "Confirms 30 mph speed limit breached by GD64 LKU (approaching at 41.2 mph) under Highway Code Rule 124."
+        "causal_relevance_note": "Confirms 30 mph speed limit breached by GD64 LKU (approaching at 41.2 mph) under Highway Code Rule 124.",
+        "tsrgd_diagram": "TSRGD 2016 Diagram 670 (30 mph Mandatory Restricted Road Speed Limit)",
+        "statutory_duty": "Road Traffic Regulation Act 1984 s.81 & s.82 / Highway Code Rule 124: Mandatory 30 mph maximum speed limit across street-lit built-up A521 corridor; requires lower speed on damp tarmac (Rule 126).",
+        "driver_compliance": "BREACHED by Vehicle B (GD64 LKU — VW Golf): Approached Eastbound at 41.2 mph (+37.3% above the 30 mph limit, +88.6% excess kinetic energy) before braking at t=0.50s; COMPLIED by Vehicle A (19.8 mph).",
+        "legal_liability_impact": "Establishes 25% contributory negligence against GD64 LKU under Harding v Hinchcliffe [1964] RTR 112 and Froom v Butcher [1976] QB 286 for expanding wet stopping distance from 25.64m to 46.25m."
+      },
+      {
+        "element_id": "marking_give_way_triangle_draycott",
+        "element_type": "road_marking",
+        "label": "UK Diagram 1023 Give Way Approach Triangle & Diagram 1004 Centre Warning Line",
+        "x_meters": -0.4,
+        "z_meters": -6.5,
+        "causal_relevance_note": "Provides advance carriageway surface warning of the Diagram 1003 Give Way threshold on Draycott Cross Rd.",
+        "tsrgd_diagram": "TSRGD 2016 Diagram 1023 & 1003 (Give Way Approach Triangle & Transverse Give Way Line)",
+        "statutory_duty": "TSRGD 2016 Schedule 9 / Highway Code Rules 170 & 172: Requires approaching minor-road driver to decelerate on approach and prepare to stop at the transverse double broken Give Way line.",
+        "driver_compliance": "BREACHED by Vehicle A (VL19 OKP): Traversed the Diagram 1023 triangle at 19.4 mph without deceleration pitch or brake light activation.",
+        "legal_liability_impact": "Reinforces primary negligence finding against VL19 OKP by demonstrating continuous disregard of both upright and carriageway priority warnings."
       },
       {
         "element_id": "sightline_blocker_nw_terrace",
@@ -107,20 +127,6 @@
         ],
         "dvsa_defect_classifications": [
           {
-            "defect_text": "MOT Test PASS (Expiry 2027-08-27 at 39,953 miles) — Statutory MOT Status: VALID",
-            "test_date": "2026-08-28",
-            "defect_category": "Statutory Compliance",
-            "causal_status": "NOT CAUSAL",
-            "forensic_explanation": "NOT CAUSAL — Vehicle held a valid statutory UK DVSA MOT certificate at the time of the collision; Section 47 RTA 1988 is satisfied."
-          },
-          {
-            "defect_text": "Historical 2024 MOT Failure: Nearside Front Headlamp aim projected too high [4.1.2 (a)] — Rectified & Passed Same Day",
-            "test_date": "2024-08-22",
-            "defect_category": "Historical Failure (Rectified)",
-            "causal_status": "NOT CAUSAL",
-            "forensic_explanation": "NOT CAUSAL — Historical 2024 MOT failure was rectified and passed same day over a year before the incident; moreover, the collision occurred in daylight (14:22 BST)."
-          },
-          {
             "defect_text": "Advisory: Offside Front Service brake binding [1.2.1 (f)] & Front Brake disc worn, pitted or scored both sides [1.1.14 (a) (i)]",
             "test_date": "2026-08-28",
             "defect_category": "Advisory",
@@ -138,20 +144,16 @@
         "causally_relevant": true,
         "causal_role_reason": "Primary collision participant (Defendant vehicle): emerged Southbound from Draycott Cross Rd across Diagram 1003 Give Way markings at 18.6 mph directly into the A521 Eastbound priority corridor, sustaining offside B-pillar impact and rolling 86.0° onto its nearside.",
         "keyframes": [
-          {"timestamp_sec": 0.0, "x_meters": -0.4, "z_meters": -16.5, "heading_deg": 180.0, "speed_mph": 19.4, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.25, "x_meters": -0.4, "z_meters": -12.8, "heading_deg": 180.0, "speed_mph": 19.1, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.5, "x_meters": -0.3, "z_meters": -9.1, "heading_deg": 180.0, "speed_mph": 18.9, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.75, "x_meters": -0.2, "z_meters": -5.4, "heading_deg": 179.0, "speed_mph": 18.7, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 1.0, "x_meters": -0.1, "z_meters": -1.8, "heading_deg": 176.0, "speed_mph": 18.6, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 1.15, "x_meters": 0.0, "z_meters": 0.2, "heading_deg": 168.0, "speed_mph": 16.2, "braking_active": false, "roll_deg": 28.0},
-          {"timestamp_sec": 1.25, "x_meters": 1.1, "z_meters": 0.9, "heading_deg": 152.0, "speed_mph": 14.5, "braking_active": false, "roll_deg": 48.0},
-          {"timestamp_sec": 1.5, "x_meters": 2.9, "z_meters": 1.9, "heading_deg": 134.0, "speed_mph": 10.8, "braking_active": false, "roll_deg": 72.0},
-          {"timestamp_sec": 1.75, "x_meters": 4.2, "z_meters": 2.6, "heading_deg": 124.0, "speed_mph": 6.4, "braking_active": false, "roll_deg": 82.0},
-          {"timestamp_sec": 2.0, "x_meters": 5.0, "z_meters": 3.0, "heading_deg": 120.0, "speed_mph": 3.1, "braking_active": false, "roll_deg": 86.0},
-          {"timestamp_sec": 2.25, "x_meters": 5.4, "z_meters": 3.2, "heading_deg": 119.0, "speed_mph": 1.4, "braking_active": false, "roll_deg": 86.0},
-          {"timestamp_sec": 2.5, "x_meters": 5.7, "z_meters": 3.3, "heading_deg": 118.0, "speed_mph": 0.4, "braking_active": false, "roll_deg": 86.0},
-          {"timestamp_sec": 2.75, "x_meters": 5.8, "z_meters": 3.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 86.0},
-          {"timestamp_sec": 3.0, "x_meters": 5.8, "z_meters": 3.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 86.0}
+          {"timestamp_sec": 0.0, "x_meters": 0.0, "z_meters": -9.8, "heading_deg": 180.0, "speed_mph": 19.8, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.5, "x_meters": 0.02, "z_meters": -5.35, "heading_deg": 179.5, "speed_mph": 19.4, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.85, "x_meters": 0.05, "z_meters": -2.3, "heading_deg": 179.0, "speed_mph": 19.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 1.0, "x_meters": 0.08, "z_meters": -1.02, "heading_deg": 178.0, "speed_mph": 18.6, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 1.15, "x_meters": 0.12, "z_meters": 0.15, "heading_deg": 175.0, "speed_mph": 17.8, "braking_active": false, "roll_deg": 6.0},
+          {"timestamp_sec": 1.35, "x_meters": 1.58, "z_meters": 0.85, "heading_deg": 136.0, "speed_mph": 13.8, "braking_active": true, "roll_deg": 48.0},
+          {"timestamp_sec": 1.65, "x_meters": 2.98, "z_meters": 1.55, "heading_deg": 114.0, "speed_mph": 5.8, "braking_active": true, "roll_deg": 86.0},
+          {"timestamp_sec": 2.1, "x_meters": 3.78, "z_meters": 1.85, "heading_deg": 106.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 86.0},
+          {"timestamp_sec": 2.5, "x_meters": 3.78, "z_meters": 1.85, "heading_deg": 106.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 86.0},
+          {"timestamp_sec": 3.0, "x_meters": 3.78, "z_meters": 1.85, "heading_deg": 106.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 86.0}
         ]
       },
       {
@@ -183,7 +185,7 @@
             "test_date": "2025-05-03",
             "defect_category": "Advisory",
             "causal_status": "CAUSAL",
-            "forensic_explanation": "CAUSAL / CONTRIBUTORY — GD64 LKU was braking hard from 41.2 mph in a 30 mph zone on damp tarmac (mu=0.55) from t=0.50s to t=1.15s. Degraded and pitted front brake discs directly lengthened its wet stopping distance and prevented velocity scrubbing below 33.4 mph."
+            "forensic_explanation": "CAUSAL / CONTRIBUTORY — GD64 LKU was braking hard from 41.2 mph in a 30 mph zone on damp tarmac (mu=0.55) from t=0.50s to t=1.15s. Degraded and pitted front brake discs directly lengthened its wet stopping distance and prevented velocity scrubbing below 29.5 mph."
           },
           {
             "defect_text": "Advisory: Offside Rear Brake disc worn, pitted or scored, but not seriously weakened [1.1.14 (a) (i)]",
@@ -198,32 +200,21 @@
             "defect_category": "Advisory",
             "causal_status": "NOT CAUSAL",
             "forensic_explanation": "NOT CAUSAL — Superficial surface corrosion on suspension arms had zero mechanical impact on straight-line emergency braking performance."
-          },
-          {
-            "defect_text": "Historical 2023 MOT Failure: Nearside Front Shock absorber has a serious fluid leak [5.3.2 (b)] — Rectified & Passed on Re-test",
-            "test_date": "2023-04-28",
-            "defect_category": "Historical Failure (Rectified)",
-            "causal_status": "NOT CAUSAL",
-            "forensic_explanation": "NOT CAUSAL — Historical MOT failure was rectified on subsequent pass test over two years prior to the collision."
           }
         ],
         "causally_relevant": true,
-        "causal_role_reason": "Primary collision participant (Claimant priority vehicle): approached Eastbound on A521 at 41.2 mph in a 30 mph zone with an expired MOT and worn brake discs, striking VL19 OKP's offside flank at 33.4 mph after 0.65s of emergency braking.",
+        "causal_role_reason": "Primary collision participant (Claimant priority vehicle): approached Eastbound on A521 at 41.2 mph in a 30 mph zone with an expired MOT and worn brake discs, striking VL19 OKP's offside flank at 29.5 mph after 0.65s of emergency braking.",
         "keyframes": [
-          {"timestamp_sec": 0.0, "x_meters": -24.5, "z_meters": 0.4, "heading_deg": 90.0, "speed_mph": 41.2, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.25, "x_meters": -19.9, "z_meters": 0.4, "heading_deg": 90.0, "speed_mph": 41.2, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.5, "x_meters": -15.3, "z_meters": 0.4, "heading_deg": 90.0, "speed_mph": 40.8, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 0.75, "x_meters": -10.4, "z_meters": 0.3, "heading_deg": 91.0, "speed_mph": 38.1, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 1.0, "x_meters": -4.8, "z_meters": 0.3, "heading_deg": 92.0, "speed_mph": 35.2, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 1.15, "x_meters": -1.6, "z_meters": 0.2, "heading_deg": 94.0, "speed_mph": 33.4, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 1.25, "x_meters": -0.4, "z_meters": 0.4, "heading_deg": 99.0, "speed_mph": 22.0, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 1.5, "x_meters": 1.4, "z_meters": 0.6, "heading_deg": 103.0, "speed_mph": 14.2, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 1.75, "x_meters": 2.6, "z_meters": 0.8, "heading_deg": 105.0, "speed_mph": 8.5, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 2.0, "x_meters": 3.4, "z_meters": 0.9, "heading_deg": 107.0, "speed_mph": 4.2, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 2.25, "x_meters": 3.9, "z_meters": 1.0, "heading_deg": 108.0, "speed_mph": 1.6, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 2.5, "x_meters": 4.1, "z_meters": 1.1, "heading_deg": 108.0, "speed_mph": 0.4, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 2.75, "x_meters": 4.2, "z_meters": 1.1, "heading_deg": 108.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 3.0, "x_meters": 4.2, "z_meters": 1.1, "heading_deg": 108.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
+          {"timestamp_sec": 0.0, "x_meters": -22.4, "z_meters": 0.35, "heading_deg": 90.0, "speed_mph": 41.2, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.5, "x_meters": -13.2, "z_meters": 0.35, "heading_deg": 90.0, "speed_mph": 41.2, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 0.85, "x_meters": -7.4, "z_meters": 0.3, "heading_deg": 90.5, "speed_mph": 36.8, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.0, "x_meters": -5.1, "z_meters": 0.25, "heading_deg": 90.5, "speed_mph": 34.2, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.15, "x_meters": -3.12, "z_meters": 0.2, "heading_deg": 91.0, "speed_mph": 29.5, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.35, "x_meters": -2.15, "z_meters": 1.45, "heading_deg": 108.0, "speed_mph": 14.2, "braking_active": true, "roll_deg": -3.0},
+          {"timestamp_sec": 1.65, "x_meters": -0.95, "z_meters": 2.15, "heading_deg": 116.0, "speed_mph": 4.6, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 2.1, "x_meters": -0.5, "z_meters": 2.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 2.5, "x_meters": -0.5, "z_meters": 2.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 3.0, "x_meters": -0.5, "z_meters": 2.4, "heading_deg": 118.0, "speed_mph": 0.0, "braking_active": true, "roll_deg": 0.0}
         ]
       }
     ],

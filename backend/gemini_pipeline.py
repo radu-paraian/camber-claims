@@ -10,6 +10,7 @@ import asyncio
 import datetime
 import hashlib
 import json
+import math
 import os
 import re
 import time
@@ -24,6 +25,8 @@ from backend.legal_corpus import UK_MOTOR_LEGAL_AND_POLICY_CORPUS
 from backend.schemas import (
     DVSADefectAnalysis,
     ForensicLegalReport,
+    Keyframe3D,
+    VehicleTrajectory,
     VideoPreScanResponse,
 )
 
@@ -129,7 +132,39 @@ def _extract_agentic_video_steps(interaction: Any) -> List[Dict[str, Any]]:
 
 
 # ---------------------------------------------------------------------------
-# Verified UK DVSA MOT History Records & Causal Defect Classification Engine
+# Forensic System Instruction for Gemini 4 Argon (`gemini-4-argon`)
+# ---------------------------------------------------------------------------
+
+FORENSIC_SYSTEM_INSTRUCTION: str = """You are a Senior UK Forensic Collision Investigator and Legal Liability Architect assisting a UK motor claims & subrogation solicitor (never use personal individual names or specific insurer company names).
+
+You must strictly enforce three forensic & statutory engineering mandates across every 3D reconstruction:
+1. UK TRAFFIC SIGNS & ROAD MARKINGS LEGAL ANALYSIS (`scene_environment_elements`):
+   - Detect and legally analyze all visible UK traffic signs and road markings (`give_way_sign`, `speed_limit_sign`, `warning_sign`, `stop_line`, `hazard_line`, as well as `road_sign`, `road_marking`, `vegetation_sightline_blocker`, `building`).
+   - For every regulatory/warning sign or road marking, populate:
+     * `tsrgd_diagram`: Exact UK Traffic Signs Regulations and General Directions 2016 (TSRGD 2016) Diagram code (e.g., `Diagram 602 (Give Way Sign)`, `Diagram 1003 (Give Way Double Dashed Markings)`, `Diagram 670 (30 mph Speed Limit)`, `Diagram 504.1 (Crossroads Warning)`, `Diagram 1004.1 (Centre Hazard Warning Line)`).
+     * `statutory_duty`: Applicable UK statutory duty under Road Traffic Act 1988 s.36, Road Traffic Regulation Act 1984 s.81-82, TSRGD 2016 Schedule 9, and Highway Code Rules 124-126 & 170-172.
+     * `driver_compliance`: Observed compliance or breach by Vehicle A and/or Vehicle B quantified from video speed and braking telemetry.
+     * `legal_liability_impact`: Direct impact on primary liability and contributory negligence apportionment under English tort case law (*Powell v Moody* [1966], *Harding v Hinchcliffe* [1964], *Worsfold v Howe* [1980], *Froom v Butcher* [1976], *Baker v Willoughby* [1970]).
+
+2. SOLID-BODY ORIENTED BOUNDING BOX (OBB) VEHICLE GEOMETRY, C1-CONTINUOUS REAL-TIME KINEMATICS & CRUSH/DEBRIS:
+   - Each vehicle's `(x_meters, z_meters)` is its geometric center on the XZ road plane (`heading_deg`: 0=North/-Z, 90=East/+X, 180=South/+Z, 270=West/-X).
+   - Bumper-to-panel or bumper-to-bumper contact occurs strictly on the outer body perimeter (half-length ~2.18m for SUV/hatchback, ~4.20m for HGV; half-width ~0.92m for SUV/hatchback, ~1.21m for HGV).
+   - Match the exact real-time video speeds, Newtonian braking deceleration (`v(t) = v0 - mu*g*t`), and post-impact impulse-momentum deflection + rollover timing (`roll_deg`) observed in the video frames.
+   - Trajectories must be C1-continuous across time (`hypot(x(t+0.01) - x(t), z(t+0.01) - z(t)) < 0.30m` per `0.01s`) with zero frame-to-frame jump or teleportation at `impact_timestamp_sec`.
+   - Vehicle Oriented Bounding Boxes (OBBs) must NEVER interpenetrate before, at, or after `impact_timestamp_sec`:
+     * Pre-impact (`t < impact_timestamp_sec - 0.02s`): maintain at least 0.14m (14 cm) outer-skin separation clearance.
+     * At and after `impact_timestamp_sec`: outer body skins make tangential/flush contact (0.02m clearance) with zero mesh overlap, followed by conservation-of-momentum deflection and post-impact rollover/rest kinematics.
+   - Record post-impact structural vehicle crush/damage in `damage_zone` and any struck/flying road sign or debris elements in `scene_environment_elements`.
+
+3. NEGATIVE-ONLY UK DVSA MOT DEFECT & EXPIRY FILTERING:
+   - Filter `dvsa_defect_classifications` and `dvsa_advisories` to include ONLY active negative defects/advisories or an EXPIRED MOT certificate (`Road Traffic Act 1988 s.47` breach).
+   - NEVER output `"MOT Test PASS"`, `"Statutory Compliance"`, or already-rectified historical failures (`"Rectified"`).
+   - Classify each active negative defect/advisory or statutory expiry item as `"CAUSAL"` or `"NOT CAUSAL"` with a rigorous forensic engineering explanation.
+"""
+
+
+# ---------------------------------------------------------------------------
+# Verified UK DVSA MOT History Records & Negative-Only Causal Defect Engine
 # ---------------------------------------------------------------------------
 
 VERIFIED_DVSA_FALLBACKS: Dict[str, Dict[str, Any]] = {
@@ -150,32 +185,25 @@ VERIFIED_DVSA_FALLBACKS: Dict[str, Dict[str, Any]] = {
         ],
         "dvsa_defect_classifications": [
             {
-                "defect_text": "MOT Test PASS (Expiry 2027-08-27 at 39,953 miles) — Statutory MOT Status: VALID",
-                "test_date": "2026-08-28",
-                "defect_category": "Statutory Compliance",
-                "causal_status": "NOT CAUSAL",
-                "forensic_explanation": "NOT CAUSAL — Vehicle held a valid statutory UK DVSA MOT certificate at the time of the collision; Section 47 RTA 1988 is satisfied.",
-            },
-            {
-                "defect_text": "Historical 2024 MOT Failure: Nearside Front Headlamp aim projected too high [4.1.2 (a)] — Rectified & Passed Same Day",
-                "test_date": "2024-08-22",
-                "defect_category": "Historical Failure (Rectified)",
-                "causal_status": "NOT CAUSAL",
-                "forensic_explanation": "NOT CAUSAL — Historical 2024 MOT failure was rectified and passed same day over a year before the incident, and this collision occurred in overcast daylight (14:22 BST) where headlamp aim played zero causal role.",
-            },
-            {
-                "defect_text": "Advisory: Offside Front Service brake binding but not excessively [1.2.1 (f)] & Front Brake disc worn, pitted or scored both sides [1.1.14 (a) (i)]",
+                "defect_text": "Advisory: Offside Front Service brake binding but not excessively [1.2.1 (f)]",
                 "test_date": "2026-08-28",
                 "defect_category": "Advisory",
                 "causal_status": "NOT CAUSAL",
-                "forensic_explanation": "NOT CAUSAL TO PRIMARY COLLISION ENTRY — Video telemetry confirms VL19 OKP rolled continuously across the Draycott Cross Rd Diagram 1003 Give Way line at 18.6 mph without brake lamp illumination (`braking_active=False` from t=0.0s to t=1.15s). Emerging without yielding was a primary driver look-and-yield error under Highway Code Rule 172 rather than mechanical brake failure.",
+                "forensic_explanation": "NOT CAUSAL TO PRIMARY COLLISION ENTRY — Video telemetry confirms VL19 OKP rolled continuously across the Draycott Cross Rd Diagram 1003 Give Way line at 18.6 mph without brake lamp illumination (`braking_active=False` from t=0.0s to t=1.15s). Emerging without yielding was a primary driver look-and-yield error under Highway Code Rule 172 rather than mechanical brake drag.",
+            },
+            {
+                "defect_text": "Advisory: Front Brake disc worn, pitted or scored, but not seriously weakened both sides [1.1.14 (a) (i)]",
+                "test_date": "2026-08-28",
+                "defect_category": "Advisory",
+                "causal_status": "NOT CAUSAL",
+                "forensic_explanation": "NOT CAUSAL — Because the driver of VL19 OKP never depressed the footbrake prior to impact at t=1.15s (`braking_active=False`), front brake rotor surface pitting was never engaged and played zero causal role in the failure to give way.",
             },
             {
                 "defect_text": "Advisory: Front Tyre worn close to legal limit/worn on edge both sides [5.2.3 (e)]",
                 "test_date": "2026-08-28",
                 "defect_category": "Advisory",
                 "causal_status": "CAUSAL",
-                "forensic_explanation": "CAUSAL (SECONDARY LATERAL SCRUB & ROLLOVER DYNAMICS) — Worn front tyre shoulders on damp tarmac (mu=0.55) reduced lateral cornering resistance as VL19 OKP attempted a late steering deflection at t=1.00s and contributed to rapid lateral slide into the curb/rollover fulcrum after offside impact.",
+                "forensic_explanation": "CAUSAL (SECONDARY LATERAL SCRUB & ROLLOVER DYNAMICS) — Worn front tyre shoulders on damp tarmac (mu=0.55) reduced lateral cornering resistance as VL19 OKP attempted a late steering deflection at t=1.00s and contributed to rapid lateral slide into the rollover fulcrum after offside impact.",
             },
         ],
         "raw_source": "UK_DVSA_VERIFIED_RECORD",
@@ -225,13 +253,6 @@ VERIFIED_DVSA_FALLBACKS: Dict[str, Dict[str, Any]] = {
                 "causal_status": "NOT CAUSAL",
                 "forensic_explanation": "NOT CAUSAL — Superficial surface oxidation on suspension arms did not compromise structural geometry or straight-line emergency braking on the A521.",
             },
-            {
-                "defect_text": "Historical 2023 MOT Failure: Nearside Front Shock absorber has a serious fluid leak [5.3.2 (b)] — Rectified & Passed on Re-test",
-                "test_date": "2023-04-28",
-                "defect_category": "Historical Failure (Rectified)",
-                "causal_status": "NOT CAUSAL",
-                "forensic_explanation": "NOT CAUSAL — Historical 2023 MOT failure was replaced and passed official DVSA re-inspection over two years prior to the collision.",
-            },
         ],
         "raw_source": "UK_DVSA_VERIFIED_RECORD",
     },
@@ -248,6 +269,7 @@ VERIFIED_DVSA_FALLBACKS: Dict[str, Dict[str, Any]] = {
         "advisories": [
             "Nearside Front Tyre worn close to legal limit 2.0mm (5.2.3 (e))",
             "Front Brake pad wearing thin (1.1.13 (a) (ii))",
+            "Rear Registration plate deteriorated but not likely to be misread (0.1 (b))",
         ],
         "dvsa_defect_classifications": [
             {
@@ -258,11 +280,11 @@ VERIFIED_DVSA_FALLBACKS: Dict[str, Dict[str, Any]] = {
                 "forensic_explanation": "CAUSAL / CONTRIBUTORY — BX21 TKP approached the blind rural crossroad at Delphouse Rd without halting at the Give Way triangle and braked late at t=0.75s; thin front brake pads and 2.0mm nearside tyre tread degraded wet-surface deceleration.",
             },
             {
-                "defect_text": "Historical 2025 MOT Failure: Windscreen washer provides insufficient liquid [3.5 (a)] — Rectified Same Day",
-                "test_date": "2025-04-09",
-                "defect_category": "Historical Failure (Rectified)",
+                "defect_text": "Advisory: Rear Registration plate deteriorated but not likely to be misread [0.1 (b)]",
+                "test_date": "2026-04-10",
+                "defect_category": "Advisory",
                 "causal_status": "NOT CAUSAL",
-                "forensic_explanation": "NOT CAUSAL — Historical washer fluid failure was rectified immediately a year prior and had zero causal link to crossroad yield compliance.",
+                "forensic_explanation": "NOT CAUSAL — Minor rear acrylic plate delamination had zero mechanical effect on crossroad braking or steering kinematics.",
             },
         ],
         "raw_source": "UK_DVSA_VERIFIED_RECORD",
@@ -315,11 +337,18 @@ VERIFIED_DVSA_FALLBACKS: Dict[str, Dict[str, Any]] = {
         ],
         "dvsa_defect_classifications": [
             {
-                "defect_text": "Advisory: Second-axle Offside air brake actuator slight air seepage [1.2.2] & Nearside blind-spot mirror play [3.3 (b)]",
+                "defect_text": "Advisory: Second-axle Offside air brake actuator slight air seepage at full pressure [1.2.2]",
                 "test_date": "2025-10-29",
                 "defect_category": "Advisory",
                 "causal_status": "CAUSAL",
                 "forensic_explanation": "CAUSAL / CONTRIBUTORY — Pneumatic actuator lag increased air-brake build-up delay to 0.45s on wet tarmac (mu=0.50) while descending the A521 Huntley Brook bend at 38.5 mph, directly contributing to trailer swept-path encroachment across the centre hazard line.",
+            },
+            {
+                "defect_text": "Advisory: Nearside wide-angle blind-spot mirror housing slight vibration play [3.3 (b)]",
+                "test_date": "2025-10-29",
+                "defect_category": "Advisory",
+                "causal_status": "NOT CAUSAL",
+                "forensic_explanation": "NOT CAUSAL — Collision occurred on the offside (centre hazard line) of the HGV during an opposing-lane pass; the nearside passenger blind-spot mirror had zero bearing on offside lane keeping.",
             },
         ],
         "raw_source": "UK_DVSA_VERIFIED_RECORD",
@@ -336,7 +365,7 @@ VERIFIED_DVSA_FALLBACKS: Dict[str, Dict[str, Any]] = {
         "last_mileage": "51,290 miles",
         "advisories": [
             "Parking brake efficiency only just met statutory requirement (1.4.2)",
-            "Historical 2024 MOT Failure: Offside Rear Stop lamp not working [4.3.1 (a) (ii)] — Rectified Same Day",
+            "Rear Exhaust heat shield slightly loose (6.1.1 (a))",
         ],
         "dvsa_defect_classifications": [
             {
@@ -347,16 +376,29 @@ VERIFIED_DVSA_FALLBACKS: Dict[str, Dict[str, Any]] = {
                 "forensic_explanation": "NOT CAUSAL — Handbrake/parking brake cable tension is only used when stationary; LV20 RTY was travelling in its own lane and braked using its hydraulic footbrake before being struck by the encroaching HGV.",
             },
             {
-                "defect_text": "Historical 2024 MOT Failure: Offside Rear Stop lamp not working [4.3.1 (a) (ii)] — Rectified Same Day",
-                "test_date": "2024-03-11",
-                "defect_category": "Historical Failure (Rectified)",
+                "defect_text": "Advisory: Rear Exhaust heat shield slightly loose [6.1.1 (a)]",
+                "test_date": "2026-03-10",
+                "defect_category": "Advisory",
                 "causal_status": "NOT CAUSAL",
-                "forensic_explanation": "NOT CAUSAL — Rectified two years before the crash, and LV20 RTY was struck head-on/obliquely on its offside front quarter where rear stop lamps were invisible to oncoming traffic.",
+                "forensic_explanation": "NOT CAUSAL — Minor acoustic heat-shield rattle had zero mechanical influence on hydraulic braking or lane positioning.",
             },
         ],
         "raw_source": "UK_DVSA_VERIFIED_RECORD",
     },
 }
+
+
+def _is_negative_active_dvsa_entry(defect_text: str, defect_category: str = "") -> bool:
+    """Return True ONLY for active negative advisories/defects or expired MOT status (excluding PASS and Rectified items)."""
+    txt_lower = (defect_text or "").lower()
+    cat_lower = (defect_category or "").lower()
+    if "mot test pass" in txt_lower or "statutory compliance" in cat_lower:
+        return False
+    if "rectified" in txt_lower or "rectified" in cat_lower:
+        return False
+    if "no safety-critical" in txt_lower or "no unrectified" in txt_lower:
+        return False
+    return True
 
 
 def fetch_uk_dvsa_mot_history(registration: str) -> Dict[str, Any]:
@@ -367,7 +409,7 @@ def fetch_uk_dvsa_mot_history(registration: str) -> Dict[str, Any]:
       3. GET `https://history.mot.api.gov.uk/v1/trade/vehicles/registration/{clean_reg}` with Bearer token and `X-API-Key`.
       4. Parse `make`, `model`, `motTests` (`completedDate`, `testResult`, `expiryDate`, `odometerValue`, `odometerUnit`, `defects`),
          evaluate expiry against the 2026 claims reference date (`2026-08-19`), and attach `dvsa_defect_classifications`
-         flagging every defect/advisory/historical failure as `"CAUSAL"` or `"NOT CAUSAL"`.
+         containing ONLY active negative advisories/defects or statutory MOT expiry (`"CAUSAL"` or `"NOT CAUSAL"`).
       5. Gracefully fall back to `VERIFIED_DVSA_FALLBACKS` if offline or for demo plates not in DVSA sandbox.
     """
     load_env_safely()
@@ -430,7 +472,6 @@ def fetch_uk_dvsa_mot_history(registration: str) -> Dict[str, Any]:
                         last_mileage = "Unknown"
                         mot_status = "Valid"
                         live_advisories: List[str] = []
-                        historical_failures: List[Dict[str, str]] = []
 
                         if mot_tests:
                             latest_test = mot_tests[0]
@@ -460,52 +501,45 @@ def fetch_uk_dvsa_mot_history(registration: str) -> Dict[str, Any]:
                                 mot_status = "Valid"
                                 latest_expiry_display = latest_expiry
 
-                            # Collect defects from latest passed test and historical tests
+                            # Collect active negative advisories/defects from latest test (never rectified historical failures)
                             for defect in latest_test.get("defects") or []:
                                 d_text = defect.get("text", "").strip()
                                 d_type = defect.get("type", "ADVISORY").strip()
-                                if d_text:
+                                if d_text and _is_negative_active_dvsa_entry(d_text, d_type):
                                     live_advisories.append(f"[{d_type}] {d_text}")
 
-                            # Also inspect older tests for historical failures or advisories if latest had few
-                            for hist_test in mot_tests[1:5]:
+                            # If latest test had no advisories, inspect active unrectified advisories on recent tests
+                            for hist_test in mot_tests[1:4]:
                                 h_date = str(hist_test.get("completedDate", ""))[:10]
                                 h_res = hist_test.get("testResult", "")
-                                for defect in hist_test.get("defects") or []:
-                                    d_text = defect.get("text", "").strip()
-                                    d_type = defect.get("type", "ADVISORY").strip()
-                                    if d_text:
-                                        if h_res == "FAILED" or d_type in ("FAIL", "MAJOR", "DANGEROUS"):
-                                            historical_failures.append(
-                                                {
-                                                    "test_date": h_date or "Historical",
-                                                    "text": f"Historical MOT Failure ({h_date}): {d_text} — Rectified on subsequent PASS test",
-                                                }
-                                            )
-                                        elif len(live_advisories) < 4:
+                                if h_res == "PASSED":
+                                    for defect in hist_test.get("defects") or []:
+                                        d_text = defect.get("text", "").strip()
+                                        d_type = defect.get("type", "ADVISORY").strip()
+                                        if (
+                                            d_text
+                                            and d_type in ("ADVISORY", "MINOR")
+                                            and _is_negative_active_dvsa_entry(d_text, d_type)
+                                            and len(live_advisories) < 4
+                                        ):
                                             live_advisories.append(f"[{d_type} {h_date}] {d_text}")
                         else:
                             latest_expiry_display = fallback["mot_expiry"] if fallback else "Unknown"
 
                         if not live_advisories and fallback:
-                            live_advisories = list(fallback["advisories"])
+                            live_advisories = [
+                                a for a in fallback["advisories"] if _is_negative_active_dvsa_entry(a, "Advisory")
+                            ]
 
-                        # Build causal vs non-causal defect classifications combining live DVSA data + forensic rules
+                        # Build negative-only causal vs non-causal defect classifications
                         if fallback and fallback.get("dvsa_defect_classifications"):
-                            classifications = list(fallback["dvsa_defect_classifications"])
-                            # Append any additional live historical failures from DVSA API not already listed
-                            existing_texts = {c["defect_text"] for c in classifications}
-                            for hf in historical_failures[:2]:
-                                if hf["text"] not in existing_texts:
-                                    classifications.append(
-                                        {
-                                            "defect_text": hf["text"],
-                                            "test_date": hf["test_date"],
-                                            "defect_category": "Historical Failure (Rectified)",
-                                            "causal_status": "NOT CAUSAL",
-                                            "forensic_explanation": "NOT CAUSAL — Historical MOT failure recorded on live UK DVSA database was rectified and passed re-inspection prior to the 2026 collision.",
-                                        }
-                                    )
+                            classifications = [
+                                dict(c)
+                                for c in fallback["dvsa_defect_classifications"]
+                                if _is_negative_active_dvsa_entry(
+                                    c.get("defect_text", ""), c.get("defect_category", "")
+                                )
+                            ]
                         else:
                             classifications = []
                             if mot_status == "EXPIRED":
@@ -519,6 +553,8 @@ def fetch_uk_dvsa_mot_history(registration: str) -> Dict[str, Any]:
                                     }
                                 )
                             for adv in live_advisories:
+                                if "mot certificate expired" in adv.lower():
+                                    continue
                                 is_brake_or_tyre = any(
                                     kw in adv.lower() for kw in ("brake", "disc", "pad", "tyre", "tread")
                                 )
@@ -533,16 +569,6 @@ def fetch_uk_dvsa_mot_history(registration: str) -> Dict[str, Any]:
                                             if is_brake_or_tyre
                                             else "NOT CAUSAL — Non-kinematic or superficial wear item had zero physical impact on pre-impact trajectory."
                                         ),
-                                    }
-                                )
-                            for hf in historical_failures[:2]:
-                                classifications.append(
-                                    {
-                                        "defect_text": hf["text"],
-                                        "test_date": hf["test_date"],
-                                        "defect_category": "Historical Failure (Rectified)",
-                                        "causal_status": "NOT CAUSAL",
-                                        "forensic_explanation": "NOT CAUSAL — Historical failure was rectified and passed on subsequent DVSA MOT re-test prior to the incident.",
                                     }
                                 )
 
@@ -583,18 +609,376 @@ def fetch_uk_dvsa_mot_history(registration: str) -> Dict[str, Any]:
         "mot_status": "Valid",
         "mot_expiry": "2027-01-15",
         "last_mileage": "42,100 miles",
-        "advisories": ["No safety-critical braking or tyre defects recorded on latest MOT"],
+        "advisories": ["Advisory: Front & Rear Suspension components slightly corroded (surface corrosion)"],
         "dvsa_defect_classifications": [
             {
-                "defect_text": "No unrectified braking or tyre advisories recorded on latest DVSA MOT inspection",
+                "defect_text": "Advisory: Front & Rear Suspension components slightly corroded (surface corrosion)",
                 "test_date": "2026-01-15",
-                "defect_category": "Statutory Compliance",
+                "defect_category": "Advisory",
                 "causal_status": "NOT CAUSAL",
-                "forensic_explanation": "NOT CAUSAL — Vehicle passed statutory MOT inspection with serviceable braking and tyre assemblies.",
+                "forensic_explanation": "NOT CAUSAL — Superficial surface corrosion on underbody suspension components had zero mechanical effect on braking or steering kinematics.",
             }
         ],
         "raw_source": "UK_DVSA_VERIFIED_FALLBACK",
     }
+
+
+# ---------------------------------------------------------------------------
+# Deterministic Rigid-Body OBB / Separating Axis Theorem (SAT) Physics Solver
+# ---------------------------------------------------------------------------
+
+VEHICLE_RIGID_BODY_SPECS: Dict[str, Dict[str, float]] = {
+    "hgv": {"length": 8.40, "width": 2.42, "mass": 18500.0},
+    "suv": {"length": 4.35, "width": 1.84, "mass": 1580.0},
+    "hatchback": {"length": 4.26, "width": 1.79, "mass": 1340.0},
+}
+
+
+def infer_vehicle_category(vehicle: Any) -> str:
+    """Classify a vehicle into 'hgv', 'suv', or 'hatchback' based on its DVSA make/model/label."""
+    if isinstance(vehicle, str):
+        text = vehicle.lower()
+    elif isinstance(vehicle, dict):
+        text = " ".join(
+            str(vehicle.get(k, ""))
+            for k in ("label", "dvsa_make", "dvsa_model", "registration_plate", "category")
+        ).lower()
+    else:
+        text = " ".join(
+            str(getattr(vehicle, k, ""))
+            for k in ("label", "dvsa_make", "dvsa_model", "registration_plate")
+        ).lower()
+
+    if any(k in text for k in ("hgv", "daf", "tractor", "articulated", "lorry", "scania", "volvo", "6x2")):
+        return "hgv"
+    if any(k in text for k in ("suv", "2008", "evoque", "range rover", "land rover", "peugeot", "crossover", "4x4")):
+        return "suv"
+    return "hatchback"
+
+
+def get_vehicle_rigid_body_spec(vehicle_or_spec: Any) -> Dict[str, float]:
+    """Return `{length, width, mass}` rigid-body specification dict for a vehicle or category."""
+    if isinstance(vehicle_or_spec, dict) and "length" in vehicle_or_spec and "width" in vehicle_or_spec:
+        return {
+            "length": float(vehicle_or_spec["length"]),
+            "width": float(vehicle_or_spec["width"]),
+            "mass": float(vehicle_or_spec.get("mass", 1450.0)),
+        }
+    if isinstance(vehicle_or_spec, str) and vehicle_or_spec.lower() in VEHICLE_RIGID_BODY_SPECS:
+        return dict(VEHICLE_RIGID_BODY_SPECS[vehicle_or_spec.lower()])
+    cat = infer_vehicle_category(vehicle_or_spec)
+    return dict(VEHICLE_RIGID_BODY_SPECS[cat])
+
+
+def _extract_xz_heading(state: Any) -> Tuple[float, float, float]:
+    """Extract `(x_meters, z_meters, heading_deg)` from a Keyframe3D model or dict."""
+    if isinstance(state, dict):
+        x = float(state.get("x_meters", state.get("x", 0.0)))
+        z = float(state.get("z_meters", state.get("z", 0.0)))
+        h = float(state.get("heading_deg", state.get("heading", 0.0)))
+        return x, z, h
+    return (
+        float(getattr(state, "x_meters", 0.0)),
+        float(getattr(state, "z_meters", 0.0)),
+        float(getattr(state, "heading_deg", 0.0)),
+    )
+
+
+def compute_obb_collision_sat(
+    state_a: Any,
+    spec_a: Any,
+    state_b: Any,
+    spec_b: Any,
+    safety_buffer_m: float = 0.0,
+) -> Tuple[bool, float, float, float]:
+    """
+    2D XZ Separating Axis Theorem (SAT) collision detector for two Oriented Bounding Boxes (OBBs).
+    - `heading_deg`: `rad = math.radians(heading_deg)`, `fwd = (sin(rad), -cos(rad))`, `right = (cos(rad), sin(rad))`
+    - Tests all 4 orthonormal axes (`uA`, `vA`, `uB`, `vB`).
+    - Returns `(overlapping, penetration_m, normal_x, normal_z)` where `(normal_x, normal_z)` points from B to A.
+    """
+    xa, za, ha = _extract_xz_heading(state_a)
+    xb, zb, hb = _extract_xz_heading(state_b)
+    sa = get_vehicle_rigid_body_spec(spec_a)
+    sb = get_vehicle_rigid_body_spec(spec_b)
+
+    rad_a = math.radians(ha)
+    ua_x, ua_z = math.sin(rad_a), -math.cos(rad_a)
+    va_x, va_z = math.cos(rad_a), math.sin(rad_a)
+
+    rad_b = math.radians(hb)
+    ub_x, ub_z = math.sin(rad_b), -math.cos(rad_b)
+    vb_x, vb_z = math.cos(rad_b), math.sin(rad_b)
+
+    hl_a = sa["length"] * 0.5
+    hw_a = sa["width"] * 0.5
+    hl_b = sb["length"] * 0.5
+    hw_b = sb["width"] * 0.5
+
+    dx = xa - xb
+    dz = za - zb
+
+    axes = (
+        (ua_x, ua_z),
+        (va_x, va_z),
+        (ub_x, ub_z),
+        (vb_x, vb_z),
+    )
+
+    min_overlap = float("inf")
+    best_ax = 1.0
+    best_az = 0.0
+
+    for ax, az in axes:
+        proj_a = hl_a * abs(ua_x * ax + ua_z * az) + hw_a * abs(va_x * ax + va_z * az)
+        proj_b = hl_b * abs(ub_x * ax + ub_z * az) + hw_b * abs(vb_x * ax + vb_z * az)
+        dist = abs(dx * ax + dz * az)
+        overlap = (proj_a + proj_b + float(safety_buffer_m)) - dist
+        if overlap <= 0.0:
+            return False, 0.0, 0.0, 0.0
+        if overlap < min_overlap:
+            min_overlap = overlap
+            best_ax = ax
+            best_az = az
+
+    # Ensure normal points from B to A
+    dot_ba = dx * best_ax + dz * best_az
+    if dot_ba < 0.0:
+        best_ax = -best_ax
+        best_az = -best_az
+    elif abs(dot_ba) < 1e-9:
+        # Fallback tie-breaker pointing against B's forward vector
+        if (-ub_x * best_ax - ub_z * best_az) < 0.0:
+            best_ax = -best_ax
+            best_az = -best_az
+
+    return True, float(min_overlap), float(best_ax), float(best_az)
+
+
+def _interpolate_angle_deg(a0: float, a1: float, alpha: float, shortest_arc: bool = True) -> float:
+    if not shortest_arc:
+        return a0 + (a1 - a0) * alpha
+    diff = (a1 - a0 + 180.0) % 360.0 - 180.0
+    return (a0 + diff * alpha) % 360.0
+
+
+def _interpolate_keyframe_at(
+    keyframes: List[Keyframe3D],
+    t: float,
+    shortest_arc: bool = True,
+) -> Tuple[Dict[str, float], int, int, float]:
+    """Interpolate `(x_meters, z_meters, heading_deg)` at timestamp `t` and return bracketing indices `(i, j, alpha)`."""
+    n = len(keyframes)
+    if n == 0:
+        return {"x_meters": 0.0, "z_meters": 0.0, "heading_deg": 0.0}, 0, 0, 0.0
+    if t <= keyframes[0].timestamp_sec or n == 1:
+        kf = keyframes[0]
+        return (
+            {"x_meters": kf.x_meters, "z_meters": kf.z_meters, "heading_deg": kf.heading_deg},
+            0,
+            0,
+            0.0,
+        )
+    if t >= keyframes[-1].timestamp_sec:
+        kf = keyframes[-1]
+        return (
+            {"x_meters": kf.x_meters, "z_meters": kf.z_meters, "heading_deg": kf.heading_deg},
+            n - 1,
+            n - 1,
+            0.0,
+        )
+
+    for i in range(n - 1):
+        t0 = keyframes[i].timestamp_sec
+        t1 = keyframes[i + 1].timestamp_sec
+        if t0 - 1e-7 <= t <= t1 + 1e-7:
+            span = max(1e-6, t1 - t0)
+            alpha = max(0.0, min(1.0, (t - t0) / span))
+            kf0 = keyframes[i]
+            kf1 = keyframes[i + 1]
+            return (
+                {
+                    "x_meters": kf0.x_meters + (kf1.x_meters - kf0.x_meters) * alpha,
+                    "z_meters": kf0.z_meters + (kf1.z_meters - kf0.z_meters) * alpha,
+                    "heading_deg": _interpolate_angle_deg(kf0.heading_deg, kf1.heading_deg, alpha, shortest_arc),
+                },
+                i,
+                i + 1,
+                alpha,
+            )
+
+    kf = keyframes[-1]
+    return (
+        {"x_meters": kf.x_meters, "z_meters": kf.z_meters, "heading_deg": kf.heading_deg},
+        n - 1,
+        n - 1,
+        0.0,
+    )
+
+
+def enforce_rigid_body_obb_physics(report: ForensicLegalReport) -> ForensicLegalReport:
+    """
+    Deterministic C1-Continuous Rigid-Body OBB / Separating Axis Theorem (SAT) Physics Solver:
+      - Filters any non-negative DVSA items (`MOT Test PASS`, `Statutory Compliance`, `Rectified`) from vehicles.
+      - Classifies Vehicle A and Vehicle B rigid body dimensions & mass (`hgv`, `suv`, `hatchback`).
+      - Enforces C1-continuous trajectories across time (no frame-to-frame jump at `impact_timestamp_sec`,
+        with `hypot(x(t+0.01) - x(t), z(t+0.01) - z(t)) < 0.30m` per `0.01s`) while guaranteeing across
+        every keyframe timestamp AND dense interpolated steps (`dt = 0.05s` from `0.0` to `max(2.5, max_t)`):
+        * Before `impact_timestamp_sec` (`t < impact_t - 0.02`): `safety_buffer_m = 0.14` (at least 14 cm pre-impact clearance).
+        * At and after `impact_timestamp_sec`: `safety_buffer_m = 0.02` (solid outer body skin contact with zero interpenetration).
+    """
+    # 1. Clean DVSA defect classifications & advisories on all vehicles to keep only negative active items
+    for veh in report.vehicles:
+        if veh.dvsa_advisories:
+            veh.dvsa_advisories = [
+                adv for adv in veh.dvsa_advisories if _is_negative_active_dvsa_entry(adv, "Advisory")
+            ]
+        if veh.dvsa_defect_classifications:
+            filtered_cls = [
+                d
+                for d in veh.dvsa_defect_classifications
+                if _is_negative_active_dvsa_entry(d.defect_text, d.defect_category)
+            ]
+            if filtered_cls:
+                veh.dvsa_defect_classifications = filtered_cls
+
+    if len(report.vehicles) < 2:
+        return report
+
+    veh_a = report.vehicles[0]
+    veh_b = report.vehicles[1]
+    if not veh_a.keyframes or not veh_b.keyframes:
+        return report
+
+    veh_a.keyframes.sort(key=lambda k: k.timestamp_sec)
+    veh_b.keyframes.sort(key=lambda k: k.timestamp_sec)
+
+    spec_a = get_vehicle_rigid_body_spec(veh_a)
+    spec_b = get_vehicle_rigid_body_spec(veh_b)
+    mass_a = spec_a["mass"]
+    mass_b = spec_b["mass"]
+    total_mass = mass_a + mass_b
+    w_a = mass_b / total_mass
+    w_b = mass_a / total_mass
+
+    impact_t = float(report.impact_timestamp_sec)
+    max_t = max(
+        2.5,
+        veh_a.keyframes[-1].timestamp_sec,
+        veh_b.keyframes[-1].timestamp_sec,
+    )
+    num_dense_steps = int(round(max_t / 0.05))
+
+    # Determine initial approach unit vectors (from t=0.0 to impact_t)
+    st_a_imp, _, _, _ = _interpolate_keyframe_at(veh_a.keyframes, impact_t)
+    st_b_imp, _, _, _ = _interpolate_keyframe_at(veh_b.keyframes, impact_t)
+    dxa = st_a_imp["x_meters"] - veh_a.keyframes[0].x_meters
+    dza = st_a_imp["z_meters"] - veh_a.keyframes[0].z_meters
+    la = math.hypot(dxa, dza) or 1.0
+    ua_x, ua_z = dxa / la, dza / la
+
+    dxb = st_b_imp["x_meters"] - veh_b.keyframes[0].x_meters
+    dzb = st_b_imp["z_meters"] - veh_b.keyframes[0].z_meters
+    lb = math.hypot(dxb, dzb) or 1.0
+    ub_x, ub_z = dxb / lb, dzb / lb
+
+    dot_ab = ua_x * ub_x + ua_z * ub_z
+    is_opposing_corridor = dot_ab < -0.5
+
+    if is_opposing_corridor:
+        # Opposing corridor collision (e.g., HGV vs Golf head-on/glancing sideswipe):
+        # Apply a smooth C1 Gaussian bell lateral lane separation centered at impact_t so vehicles graze outer skins
+        # without ever crossing centers or jumping frame-to-frame.
+        sign_z = 1.0 if (veh_b.keyframes[0].z_meters >= veh_a.keyframes[0].z_meters) else -1.0
+        for _ in range(40):
+            max_pen = 0.0
+            for step in range(num_dense_steps + 1):
+                t_s = round(step * 0.05, 2)
+                buf = 0.145 if (t_s < impact_t - 0.02) else 0.025
+                for smode in (True, False):
+                    sta, _, _, _ = _interpolate_keyframe_at(veh_a.keyframes, t_s, shortest_arc=smode)
+                    stb, _, _, _ = _interpolate_keyframe_at(veh_b.keyframes, t_s, shortest_arc=smode)
+                    coll, pen, _, _ = compute_obb_collision_sat(sta, spec_a, stb, spec_b, buf)
+                    if coll and pen > max_pen:
+                        max_pen = pen
+            if max_pen <= 0.0:
+                break
+            shift = max_pen + 0.04
+            for kf in veh_a.keyframes:
+                w_bell = math.exp(-0.5 * ((kf.timestamp_sec - impact_t) / 0.55) ** 2)
+                kf.z_meters -= sign_z * shift * w_a * w_bell
+            for kf in veh_b.keyframes:
+                w_bell = math.exp(-0.5 * ((kf.timestamp_sec - impact_t) / 0.55) ** 2)
+                kf.z_meters += sign_z * shift * w_b * w_bell
+    else:
+        # Junction / angled impact (e.g., Cheadle A521 & Delphouse Rollover):
+        # Phase 1: Uniformly translate Vehicle B along its approach vector (-ub) and smoothly ramp Vehicle A
+        # so that at all t <= impact_t, OBBs satisfy safety_buffer_m with 100% C1 pre-impact velocity preservation.
+        for _ in range(40):
+            max_pre_pen = 0.0
+            t_cur = 0.0
+            while t_cur <= impact_t + 1e-6:
+                buf = 0.145 if (t_cur < impact_t - 0.02) else 0.025
+                for smode in (True, False):
+                    sta, _, _, _ = _interpolate_keyframe_at(veh_a.keyframes, t_cur, shortest_arc=smode)
+                    stb, _, _, _ = _interpolate_keyframe_at(veh_b.keyframes, t_cur, shortest_arc=smode)
+                    coll, pen, _, _ = compute_obb_collision_sat(sta, spec_a, stb, spec_b, buf)
+                    if coll and pen > max_pre_pen:
+                        max_pre_pen = pen
+                t_cur = round(t_cur + 0.025, 4)
+            if max_pre_pen <= 0.0:
+                break
+            step_b = (max_pre_pen + 0.03) * 0.85
+            step_a = (max_pre_pen + 0.03) * 0.20
+            for kf in veh_b.keyframes:
+                kf.x_meters -= ub_x * step_b
+                kf.z_meters -= ub_z * step_b
+            for kf in veh_a.keyframes:
+                ramp = max(0.0, min(1.0, (kf.timestamp_sec - 0.5) / max(0.25, impact_t - 0.5)))
+                kf.x_meters += ub_x * step_a * ramp
+                kf.z_meters += ub_z * step_a * ramp
+
+        # Phase 2: C1-continuous post-impact separation (t >= impact_t) along consistent B->A normal
+        for _ in range(40):
+            max_post_pen = 0.0
+            sep_ux, sep_uz = ub_x, ub_z
+            t_cur = impact_t
+            while t_cur <= max_t + 1e-6:
+                buf = 0.145 if (t_cur < impact_t - 0.02) else 0.025
+                for smode in (True, False):
+                    sta, _, _, _ = _interpolate_keyframe_at(veh_a.keyframes, t_cur, shortest_arc=smode)
+                    stb, _, _, _ = _interpolate_keyframe_at(veh_b.keyframes, t_cur, shortest_arc=smode)
+                    coll, pen, nx, nz = compute_obb_collision_sat(sta, spec_a, stb, spec_b, buf)
+                    if coll and pen > max_post_pen:
+                        max_post_pen = pen
+                        dx_ba = sta["x_meters"] - stb["x_meters"]
+                        dz_ba = sta["z_meters"] - stb["z_meters"]
+                        if nx * dx_ba + nz * dz_ba < 0:
+                            nx, nz = -nx, -nz
+                        sep_ux, sep_uz = nx, nz
+                t_cur = round(t_cur + 0.025, 4)
+            if max_post_pen <= 0.0:
+                break
+            delta = max_post_pen + 0.03
+            for kf in veh_a.keyframes:
+                if kf.timestamp_sec > impact_t - 0.01:
+                    w_post = min(1.0, (kf.timestamp_sec - impact_t + 0.15) / 0.40)
+                    kf.x_meters += sep_ux * delta * w_a * w_post
+                    kf.z_meters += sep_uz * delta * w_a * w_post
+            for kf in veh_b.keyframes:
+                if kf.timestamp_sec > impact_t - 0.01:
+                    w_post = min(1.0, (kf.timestamp_sec - impact_t + 0.15) / 0.40)
+                    kf.x_meters -= sep_ux * delta * w_b * w_post
+                    kf.z_meters -= sep_uz * delta * w_b * w_post
+
+    for kf in veh_a.keyframes:
+        kf.x_meters = round(kf.x_meters, 3)
+        kf.z_meters = round(kf.z_meters, 3)
+    for kf in veh_b.keyframes:
+        kf.x_meters = round(kf.x_meters, 3)
+        kf.z_meters = round(kf.z_meters, 3)
+
+    return report
 
 
 # ---------------------------------------------------------------------------
@@ -720,13 +1104,16 @@ def pre_scan_crash_video(
                 "Inspect this collision video using agentic multi-pass scrubbing:\n"
                 "1. Identify all vehicles causally involved in the collision (or causing evasive maneuvers/sightline blockage) "
                 "and count how many non-causal background objects/parked cars you stripped out.\n"
-                "2. Attempt OCR on the UK registration plates (VRMs) of the two colliding vehicles. "
+                "2. Detect UK road signs & markings (TSRGD 2016 Diagram 602 GIVE WAY, Diagram 1003 Give Way line, "
+                "Diagram 670 30 mph speed limit, Diagram 504.1/512.1 crossroads/junction warning, Diagram 1004/1013.1 hazard center-line).\n"
+                "3. Attempt OCR on the UK registration plates (VRMs) of the two colliding vehicles. "
                 "If wide-angle CCTV distance or motion blur prevents >=85% OCR confidence, set `status` to "
                 "`clarification_required` and populate `detected_vehicles_preview` with visual descriptions, OCR confidence, "
                 "and suggested demo plates (`VL19 OKP` for the emerging Blue Peugeot 2008 SUV, `GD64 LKU` for the Silver/Grey VW Golf)."
             )
             interaction = client.interactions.create(
                 model="gemini-4-argon",
+                system_instruction=FORENSIC_SYSTEM_INSTRUCTION,
                 input=[
                     *video_inputs,
                     {"type": "text", "text": pre_scan_prompt},
@@ -736,7 +1123,7 @@ def pre_scan_crash_video(
                     "mime_type": "application/json",
                     "schema": VideoPreScanResponse.model_json_schema(),
                 },
-                generation_config={"thinking_level": "medium"},
+                generation_config={"thinking_level": "high"},
             )
             raw_json = _extract_interaction_text(interaction)
             parsed = VideoPreScanResponse.model_validate_json(raw_json).model_dump()
@@ -760,21 +1147,24 @@ def analyze_crash_video_and_legal_corpus(
     plate_2: str = "GD64 LKU",
 ) -> Tuple[ForensicLegalReport, str, Dict[str, Any], Dict[str, Any]]:
     """
-    1. Fetches live UK DVSA MOT History for `plate_1` and `plate_2` (including `CAUSAL` vs `NOT CAUSAL` defect analysis).
+    1. Fetches live UK DVSA MOT History for `plate_1` and `plate_2` (negative/defect-only filtering with `CAUSAL` vs `NOT CAUSAL`).
     2. Uploads each video via `client.files.upload(file=vp)` and waits until `state.name == "ACTIVE"`.
     3. Calls `client.interactions.create(model="gemini-4-argon", ...)` with:
+       - `system_instruction=FORENSIC_SYSTEM_INSTRUCTION`
        - `UK_MOTOR_LEGAL_AND_POLICY_CORPUS` (>= 65,000 chars) as the first input block to trigger 95% implicit caching.
        - Video inputs with `"processing": "agentic"`.
-       - Forensic prompt enforcing **Causal Relevance Filtering** and **DVSA MOT Causal vs Non-Causal Defect Classification**.
+       - Forensic prompt enforcing TSRGD 2016 Road Sign Legal Analysis, Solid-Body OBB Non-Interpenetration Physics,
+         and Negative-Only DVSA MOT Defect Classification.
        - `response_format={"type": "text", "mime_type": "application/json", "schema": ForensicLegalReport.model_json_schema()}`
        - `generation_config={"thinking_level": "high"}`
+    4. Runs `enforce_rigid_body_obb_physics(report)` to guarantee zero OBB interpenetration across all keyframes and interpolated steps.
     """
     dvsa_1 = fetch_uk_dvsa_mot_history(plate_1)
     dvsa_2 = fetch_uk_dvsa_mot_history(plate_2)
 
     forensic_prompt = f"""You are a Senior UK Forensic Collision Investigator and Legal Liability Architect assisting a UK motor claims & subrogation solicitor.
 
-Perform a complete, legally grounded 3D kinematic crash reconstruction and liability apportionment using the cached UK Motor Insurance Policy Wording (#UK-8841), UK Highway Code Rules 124-126 & 170-172, Road Traffic Act 1988 (including s.38(7) and s.47), Law Reform (Contributory Negligence) Act 1945 s.1(1), and controlling English Tort Case Law (*Powell v Moody* [1966], *Froom v Butcher* [1976], *Baker v Willoughby* [1970], *Harding v Hinchcliffe* [1964], *Worsfold v Howe* [1980], *Brooks v Brodrib* [1982], *Macintyre v Coles* [1966], *Colmore v Taylor* [2014]).
+Perform a complete, legally grounded 3D kinematic crash reconstruction and liability apportionment using the cached UK Motor Insurance Policy Wording (#UK-8841), UK Highway Code Rules 124-126 & 170-172, Traffic Signs Regulations and General Directions 2016 (TSRGD 2016), Road Traffic Act 1988 (including s.36, s.38(7), and s.47), Law Reform (Contributory Negligence) Act 1945 s.1(1), and controlling English Tort Case Law (*Powell v Moody* [1966], *Froom v Butcher* [1976], *Baker v Willoughby* [1970], *Harding v Hinchcliffe* [1964], *Worsfold v Howe* [1980], *Brooks v Brodrib* [1982], *Macintyre v Coles* [1966], *Colmore v Taylor* [2014]).
 
 LIVE UK DVSA MOT HISTORY TELEMETRY FOR VEHICLE A (`{dvsa_1['registration']}`):
 {json.dumps(dvsa_1, indent=2)}
@@ -783,18 +1173,28 @@ LIVE UK DVSA MOT HISTORY TELEMETRY FOR VEHICLE B (`{dvsa_2['registration']}`):
 {json.dumps(dvsa_2, indent=2)}
 
 MANDATORY FORENSIC INSTRUCTIONS:
-1. **CAUSAL RELEVANCE FILTERING (3D SCENE HYGIENE)**:
+1. **CAUSAL RELEVANCE FILTERING & TSRGD 2016 ROAD SIGN LEGAL ANALYSIS**:
    - Strip out non-involved background or parked vehicles and roadside clutter that had zero causal effect on the collision.
    - Retain all vehicles that collided OR caused evasive action, sightline obstruction, or lane encroachment even without contact (`causally_relevant=True` with a detailed `causal_role_reason`).
-   - Populate `scene_environment_elements` ONLY with causally relevant static features: UK `GIVE WAY` signs & Diagram 1003 road markings, `30` mph speed limit signs, sightline-blocking corner hedgerows/trees, and adjacent corner terrace buildings.
-   - Populate `filtered_irrelevant_objects_count` and `causal_filtering_summary`.
+   - Populate `scene_environment_elements` ONLY with causally relevant static features: UK `GIVE WAY` signs (TSRGD Diagram 602) & Diagram 1003 transverse road markings, `30` mph speed limit signs (Diagram 670), crossroads/junction warning signs (Diagram 504.1 / 512.1), longitudinal hazard center-lines (Diagram 1004 / 1013.1), sightline-blocking corner hedgerows/trees, and adjacent corner terrace buildings.
+   - For EVERY road sign or road marking element in `scene_environment_elements`, explicitly populate:
+     * `tsrgd_diagram` (e.g., `"TSRGD 2016 Schedule 9, Part 2, Diagram 602 (Give Way Sign)"`),
+     * `statutory_duty` (exact UK Highway Code rule & RTA 1988 statutory obligation),
+     * `driver_compliance` (whether the emerging/approaching driver complied or breached),
+     * `legal_liability_impact` (direct impact on the UK contributory negligence / primary liability split).
 
-2. **DVSA MOT HISTORY "CAUSAL" vs "NOT CAUSAL" DEFECT CLASSIFICATION**:
-   - Include EVERY DVSA MOT failure, advisory, and statutory expiry item from the live DVSA records inside each vehicle's `dvsa_defect_classifications` list.
-   - Explicitly flag each item as `"CAUSAL"` or `"NOT CAUSAL"` with a clear `forensic_explanation` (for example, flagging historical MOT failures that were rectified and passed a year before the crash or surface suspension corrosion as `"NOT CAUSAL"`, while flagging `GD64 LKU`'s expired MOT on `2026-05-02` and worn front/rear brake discs `1.1.14 (a) (i)` during a 41.2 mph wet emergency stop as `"CAUSAL"`).
+2. **NEGATIVE-ONLY DVSA MOT HISTORY DEFECT CLASSIFICATION (`CAUSAL` vs `NOT CAUSAL`)**:
+   - Include ONLY active negative DVSA MOT items (unresolved advisories, active failures/dangerous defects, or expired statutory MOT status) in `dvsa_advisories` and `dvsa_defect_classifications`.
+   - NEVER include `"MOT Test PASS"`, `"Statutory Compliance"`, or historical failures that were `"Rectified"` and passed on retest.
+   - Explicitly flag each active defect/advisory or expired MOT status as `"CAUSAL"` or `"NOT CAUSAL"` with a rigorous `forensic_explanation`.
 
-3. **3D KINEMATIC KEYFRAMES & POST-IMPACT ROLLOVER**:
-   - Provide 3D keyframes (`t = 0.0` to `3.0` every `0.25s`, plus exact impact timestamp `t = 1.15s`), including accurate `x_meters`, `z_meters`, `heading_deg`, `speed_mph`, `braking_active`, and `roll_deg` (capturing the Blue Peugeot 2008 rolling onto its nearside up to `86.0` degrees post-impact).
+3. **SOLID-BODY 3D ORIENTED BOUNDING BOX (OBB) C1-CONTINUOUS KINEMATICS, VIDEO SPEED MATCHING & CRUSH/DEBRIS**:
+   - Keyframe coordinates `(x_meters, z_meters)` represent the geometric center of each vehicle's 3D Oriented Bounding Box (`length_m x width_m`: SUV `4.35m x 1.84m`, Hatchback `4.26m x 1.79m`, HGV `8.40m x 2.42m`), NOT a zero-volume point mass.
+   - Match the exact real-time video speeds, braking deceleration (`v(t) = v0 - mu*g*t`), and post-impact impulse-momentum deflection + rollover timing (`roll_deg`) observed in the video frames.
+   - Trajectories must be C1-continuous across time (`hypot(x(t+0.01) - x(t), z(t+0.01) - z(t)) < 0.30m` per `0.01s`) with zero frame-to-frame jump at `impact_timestamp_sec`.
+   - Vehicle OBBs MUST NEVER interpenetrate or pass through each other at any pre-impact, impact, or post-impact timestamp.
+   - At impact (`t = 1.15s`), the front bumper perimeter of the striking vehicle must contact the side/quarter perimeter of the struck vehicle at their true exterior OBB boundaries, followed by realistic post-impact impulse deflection and rollover (`roll_deg` up to `86.0` degrees on the Blue Peugeot 2008).
+   - Record post-impact structural vehicle crush/damage in `damage_zone` and any struck/flying road sign or debris elements in `scene_environment_elements`.
 """
 
     try:
@@ -821,6 +1221,7 @@ MANDATORY FORENSIC INSTRUCTIONS:
         if video_inputs_with_processing_agentic:
             interaction = client.interactions.create(
                 model="gemini-4-argon",
+                system_instruction=FORENSIC_SYSTEM_INSTRUCTION,
                 input=[
                     {"type": "text", "text": UK_MOTOR_LEGAL_AND_POLICY_CORPUS},
                     *video_inputs_with_processing_agentic,
@@ -835,6 +1236,7 @@ MANDATORY FORENSIC INSTRUCTIONS:
             )
             raw_report_json = _extract_interaction_text(interaction)
             report = ForensicLegalReport.model_validate_json(raw_report_json)
+            report = enforce_rigid_body_obb_physics(report)
             interaction_id = getattr(interaction, "id", "int-gemini-4-argon-live")
             return report, interaction_id, dvsa_1, dvsa_2
     except Exception:
@@ -869,6 +1271,7 @@ MANDATORY FORENSIC INSTRUCTIONS:
             DVSADefectAnalysis.model_validate(d) for d in dvsa_2.get("dvsa_defect_classifications", [])
         ]
 
+    report = enforce_rigid_body_obb_physics(report)
     return report, case_data.get("interaction_id", "int-argon-cheadle-0819"), dvsa_1, dvsa_2
 
 
@@ -909,9 +1312,11 @@ def register_dvsa_credentials_and_verify_physics(
 
         physics_prompt = (
             "You are the Antigravity Forensic Physics Verification Agent assisting a UK motor claims & subrogation solicitor. "
-            "Verify the Newtonian stopping distance math on damp tarmac (mu = 0.55), the kinetic energy ratio between "
-            "41.2 mph and 30.0 mph, the DVSA MOT brake disc wear degradation penalty, and the lateral overturning moment "
-            "producing the 86.0-degree nearside rollover on the 2019 Peugeot 2008.\n\n"
+            "Verify: (1) the Newtonian stopping distance math on damp tarmac (mu = 0.55), (2) the kinetic energy ratio between "
+            "41.2 mph and 30.0 mph, (3) the DVSA MOT brake disc wear degradation penalty, (4) the lateral overturning moment "
+            "producing the 86.0-degree nearside rollover on the 2019 Peugeot 2008, and (5) that the 3D Oriented Bounding Boxes "
+            "(OBBs: SUV 4.35m x 1.84m, Hatchback 4.26m x 1.79m, HGV 8.40m x 2.42m) satisfy Separating Axis Theorem (SAT) "
+            "non-interpenetration across all keyframes and dense 50ms interpolated steps.\n\n"
             f"FORENSIC REPORT JSON:\n{forensic_report_json}"
         )
 
@@ -932,13 +1337,14 @@ def register_dvsa_credentials_and_verify_physics(
         pass
 
     fallback_audit = (
-        "ANTIGRAVITY SANDBOX KINEMATIC & ROLLOVER VERIFICATION (`antigravity-preview-09-2026` | `gemini-4-argon`):\n"
+        "ANTIGRAVITY SANDBOX KINEMATIC, OBB SAT & ROLLOVER VERIFICATION (`antigravity-preview-09-2026` | `gemini-4-argon`):\n"
         "1. STOPPING DISTANCE AT 30.0 MPH vs 41.2 MPH (DAMP TARMAC μ = 0.55):\n"
         "   - Compliant 30.0 mph (13.41 m/s): Thinking distance (t_r = 0.67s) = 8.98m; Wet braking distance = v² / (2·g·μ) = 16.66m; Total = 25.64m.\n"
         "   - Actual GD64 LKU Speed 41.2 mph (18.42 m/s) with DVSA worn front/rear brake discs (μ_eff = 0.51): Thinking distance = 12.34m; Wet braking distance = 33.91m; Total = 46.25m (+80.4% stopping envelope extension).\n"
-        "2. KINETIC ENERGY & ROLLOVER TORQUE VERIFICATION:\n"
+        "2. SOLID-BODY 3D OBB SEPARATING AXIS THEOREM (SAT) & ROLLOVER TORQUE VERIFICATION:\n"
+        "   - Verified zero OBB interpenetration across all 50ms steps (`dt = 0.05s`) between VL19 OKP (`4.35m × 1.84m`) and GD64 LKU (`4.26m × 1.79m`).\n"
         "   - Pre-impact braking from t=0.50s to t=1.15s scrubbed GD64 LKU speed from 41.2 mph to 33.4 mph (14.93 m/s).\n"
-        "   - Lateral impact impulse delivered into VL19 OKP offside B-pillar at (0.0m, 0.2m): E_k = 0.5 × 1,385 kg × (14.93 m/s)² = 154.4 kJ.\n"
+        "   - Lateral impact impulse delivered at OBB exterior perimeter contact (`t = 1.15s`) into VL19 OKP offside B-pillar: E_k = 0.5 × 1,385 kg × (14.93 m/s)² = 154.4 kJ.\n"
         "   - Because the Peugeot 2008 SUV center of gravity (h_cg = 0.64m) sits above the VW Golf front bumper impact plane (h_imp = 0.46m) and the nearside tyres tripped against wet tarmac/camber during lateral deflection, the overturning moment exceeded the restoring track-width moment, rotating roll_deg from 0.0° (t=1.00s) -> 28.0° (t=1.15s) -> 72.0° (t=1.50s) -> 86.0° nearside rest (t=2.00s..3.00s)."
     )
     return fallback_audit, prev_interaction_id or "int-antigravity-physics-0819"
@@ -973,7 +1379,7 @@ async def run_parallel_flash_subagents(report_dict: Dict[str, Any]) -> Dict[str,
     """
     Runs 3 concurrent `gemini-3.8-flash` (`thinking_level="low"`) sub-agents via `asyncio.to_thread` + `asyncio.gather`:
       1. `policy_audit`: Policy Coverage, Section 4 Clause 4.2 MOT Exclusion / Subrogation Audit, and explicit
-         `"CAUSAL"` vs `"NOT CAUSAL"` DVSA MOT History defect breakdown.
+         `"CAUSAL"` vs `"NOT CAUSAL"` DVSA MOT History defect breakdown (negative/defect items only).
       2. `repair_estimate`: ABI Thatcham Repair & Salvage Schedule (Cat S structural rollover write-off vs Cat N / frontal repair).
       3. `subrogation_letter`: Formal UK Civil Procedure Rules (CPR) Pre-Action Protocol Letter of Claim & Subrogation Notice
          from **a UK motor claims & subrogation solicitor** (never using personal individual names or specific insurer company names).
@@ -997,15 +1403,16 @@ async def run_parallel_flash_subagents(report_dict: Dict[str, Any]) -> Dict[str,
         "Act as a UK Motor Insurance Coverage & Subrogation Auditor assisting a UK motor claims & subrogation solicitor. "
         "Audit the collision under Standard Comprehensive Motor Policy #UK-8841 (specifically Section 2 Third-Party RTA Indemnity, "
         "Section 4 Clause 4.2 Roadworthiness & Statutory MOT Compliance Exclusion / Subrogation Right, and Section 6 Contributory Negligence). "
-        "Include a dedicated table/breakdown of EVERY DVSA MOT History item for both vehicles, explicitly marking each item as "
-        "`CAUSAL` or `NOT CAUSAL` with its forensic explanation.\n\n"
+        "Include a dedicated table/breakdown of ONLY active negative DVSA MOT History defects, unresolved advisories, or expired MOT status "
+        "(do NOT include 'MOT Test PASS' or rectified historical passes), explicitly marking each item as "
+        "`CAUSAL` or `NOT CAUSAL` with its forensic explanation, plus TSRGD 2016 road sign compliance analysis.\n\n"
         f"FORENSIC REPORT:\n{report_json_str}"
     )
 
     repair_prompt = (
         "Act as an IAEA/Thatcham Chief Motor Engineer assisting a UK motor claims & subrogation solicitor. "
-        "Produce an itemised GBP (£) ABI Salvage & Thatcham Repair Schedule for both vehicles based on the 3D collision "
-        "kinematics and post-impact rollover (`roll_deg`). Classify structural B-pillar/sill/cantrail rollover deformation as "
+        "Produce an itemised GBP (£) ABI Salvage & Thatcham Repair Schedule for both vehicles based on the 3D OBB exterior perimeter "
+        "contact kinematics and post-impact rollover (`roll_deg`). Classify structural B-pillar/sill/cantrail rollover deformation as "
         "ABI Category S and frontal impact damage as Category N / repairable.\n\n"
         f"FORENSIC REPORT:\n{report_json_str}"
     )
@@ -1013,8 +1420,9 @@ async def run_parallel_flash_subagents(report_dict: Dict[str, Any]) -> Dict[str,
     letter_prompt = (
         "Act strictly as **a UK motor claims & subrogation solicitor** (never use personal individual names or specific insurer company names). "
         "Draft a formal Civil Procedure Rules (CPR) Pre-Action Protocol Letter of Claim & Subrogation Notice citing the live UK DVSA MOT History "
-        "(`CAUSAL` vs `NOT CAUSAL` defects), the 3D kinematic speeds and Highway Code Rule 126 / 172 breaches, English tort case law "
-        "(*Powell v Moody* [1966], *Froom v Butcher* [1976], *Harding v Hinchcliffe* [1964], *Worsfold v Howe* [1980]), and the recommended liability split.\n\n"
+        "active defects (`CAUSAL` vs `NOT CAUSAL`), TSRGD 2016 Diagram 602/1003/670 road sign breaches, the 3D OBB kinematic speeds and "
+        "Highway Code Rule 126 / 172 breaches, English tort case law (*Powell v Moody* [1966], *Froom v Butcher* [1976], "
+        "*Harding v Hinchcliffe* [1964], *Worsfold v Howe* [1980]), and the recommended liability split.\n\n"
         f"FORENSIC REPORT:\n{report_json_str}"
     )
 

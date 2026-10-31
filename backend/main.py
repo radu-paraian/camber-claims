@@ -26,6 +26,7 @@ from pydantic import BaseModel, Field
 
 from backend.gemini_pipeline import (
     analyze_crash_video_and_legal_corpus,
+    enforce_rigid_body_obb_physics,
     execute_human_approved_settlement,
     fetch_uk_dvsa_mot_history,
     load_env_safely,
@@ -34,6 +35,7 @@ from backend.gemini_pipeline import (
     run_fast_guardrail_check,
     run_parallel_flash_subagents,
 )
+from backend.schemas import ForensicLegalReport
 
 load_env_safely()
 
@@ -79,15 +81,60 @@ CASE_FILE_MAP: Dict[str, str] = {
 }
 
 
+def _sanitize_case_report_physics_and_dvsa(case_dict: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Validates `case_dict["report"]` against `ForensicLegalReport`, strips any positive/pass or rectified
+    historical DVSA entries from `dvsa_defect_classifications` and `dvsa_advisories`, and enforces
+    deterministic Rigid-Body OBB / Separating Axis Theorem (SAT) non-interpenetration physics.
+    """
+    report_raw = case_dict.get("report")
+    if not report_raw:
+        return case_dict
+
+    try:
+        report_obj = ForensicLegalReport.model_validate(report_raw)
+        for veh in report_obj.vehicles:
+            # Strip positive pass / rectified historical entries if any remain
+            filtered_defects = [
+                d
+                for d in veh.dvsa_defect_classifications
+                if "MOT TEST PASS" not in d.defect_category.upper()
+                and "STATUTORY COMPLIANCE" not in d.defect_category.upper()
+                and "PASS WITH NO ADVISORIES" not in d.defect_text.upper()
+                and "NO STATUTORY DEFECTS" not in d.defect_text.upper()
+                and not (
+                    "HISTORICAL" in d.defect_category.upper()
+                    and "RECTIFIED" in d.defect_category.upper()
+                )
+            ]
+            if filtered_defects:
+                veh.dvsa_defect_classifications = filtered_defects
+            filtered_adv = [
+                a
+                for a in veh.dvsa_advisories
+                if "PASS WITH NO ADVISORIES" not in a.upper()
+                and "NO STATUTORY DEFECTS" not in a.upper()
+            ]
+            if filtered_adv:
+                veh.dvsa_advisories = filtered_adv
+
+        report_obj = enforce_rigid_body_obb_physics(report_obj)
+        case_dict["report"] = report_obj.model_dump()
+    except Exception:
+        pass
+    return case_dict
+
+
 def _load_cases_from_disk(enrich_live_dvsa: bool = False) -> Dict[str, Dict[str, Any]]:
-    """Load the 3 pre-computed UK crash reconstruction datasets and optionally enrich Case 1 with live DVSA telemetry."""
+    """Load the 3 pre-computed UK crash reconstruction datasets, enforce OBB SAT physics, and enrich with DVSA telemetry."""
     global _CASES_CACHE, _DVSA_ENRICHED
     if not _CASES_CACHE:
         for case_key, filename in CASE_FILE_MAP.items():
             fpath = DATA_DIR / filename
             if fpath.exists():
                 with open(fpath, "r", encoding="utf-8") as f:
-                    _CASES_CACHE[case_key] = json.load(f)
+                    loaded_case = json.load(f)
+                _CASES_CACHE[case_key] = _sanitize_case_report_physics_and_dvsa(loaded_case)
 
     if enrich_live_dvsa and not _DVSA_ENRICHED and "cheadle_a521" in _CASES_CACHE:
         try:
@@ -124,6 +171,7 @@ def _load_cases_from_disk(enrich_live_dvsa: bool = False) -> Dict[str, Dict[str,
                 "VL19 OKP": dvsa_vl19,
                 "GD64 LKU": dvsa_gd64,
             }
+            _CASES_CACHE["cheadle_a521"] = _sanitize_case_report_physics_and_dvsa(case_1)
             _DVSA_ENRICHED = True
         except Exception:
             pass
@@ -274,6 +322,7 @@ async def _run_full_pipeline_task(
         plate_1,
         plate_2,
     )
+    report_obj = enforce_rigid_body_obb_physics(report_obj)
     report_dict = report_obj.model_dump()
 
     _JOBS_STORE[job_id]["stage"] = "antigravity_physics_and_parallel_subagents"
@@ -375,6 +424,52 @@ async def get_job_status(job_id: str) -> Dict[str, Any]:
     if not job:
         raise HTTPException(status_code=404, detail=f"Job '{job_id}' not found.")
     return job
+
+
+@app.post("/api/reconstruct")
+async def reconstruct_endpoint(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    videos: Optional[List[UploadFile]] = File(default=None),
+    video: Optional[UploadFile] = File(default=None),
+    plate_1: Optional[str] = Form(default=None),
+    plate_2: Optional[str] = Form(default=None),
+    case_id: Optional[str] = Form(default=None),
+) -> Dict[str, Any]:
+    """
+    3D Rigid-Body OBB Crash Reconstruction Endpoint (`POST /api/reconstruct`).
+    Accepts either JSON (`{"case_id": ...}` or `{"report": ...}`) or multipart Form/File uploads,
+    and returns the OBB-SAT non-interpenetrating 3D kinematic reconstruction and legal report.
+    """
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type:
+        body = await request.json()
+        if isinstance(body, dict) and "report" in body:
+            sanitized = _sanitize_case_report_physics_and_dvsa(copy.deepcopy(body))
+            return sanitized
+        target_case = str(body.get("case_id") or body.get("id") or "cheadle_a521")
+        return await get_case_by_id(target_case)
+
+    if case_id:
+        return await get_case_by_id(case_id)
+
+    p1 = (plate_1 or "VL19 OKP").strip()
+    p2 = (plate_2 or "GD64 LKU").strip()
+    return await analyze_claim_endpoint(
+        background_tasks=background_tasks,
+        videos=videos,
+        video=video,
+        plate_1=p1,
+        plate_2=p2,
+        mode="sync",
+        require_clarification_check=False,
+    )
+
+
+@app.get("/api/reconstruct/{case_id}")
+async def get_reconstruct_by_case_id(case_id: str) -> Dict[str, Any]:
+    """Return the OBB-SAT physics-verified 3D reconstruction for a specific `case_id`."""
+    return await get_case_by_id(case_id)
 
 
 class SettlementApprovalRequest(BaseModel):

@@ -52,11 +52,38 @@ class VehicleTrajectory(BaseModel):
 
 class SceneEnvironmentElement(BaseModel):
     element_id: str = Field(description="Unique identifier, e.g. 'sign_give_way_draycott'")
-    element_type: Literal["road_sign", "vegetation_sightline_blocker", "building", "road_marking"]
+    element_type: Literal[
+        "road_sign",
+        "vegetation_sightline_blocker",
+        "building",
+        "road_marking",
+        "give_way_sign",
+        "speed_limit_sign",
+        "warning_sign",
+        "stop_line",
+        "hazard_line",
+        "sightline_blocker",
+    ]
     label: str = Field(description="Human-readable label, e.g. 'UK Give Way Sign & Double Dashed Line'")
     x_meters: float = Field(description="East-West coordinate in meters relative to junction center")
     z_meters: float = Field(description="North-South coordinate in meters relative to junction center")
     causal_relevance_note: str = Field(description="Why this static object is causally relevant to the collision")
+    tsrgd_diagram: Optional[str] = Field(
+        default=None,
+        description="UK TSRGD 2016 Diagram number, e.g., 'Diagram 602 (Give Way Sign)' or 'Diagram 1003 (Give Way Markings)' or 'Diagram 670 (30 mph Speed Limit)'",
+    )
+    statutory_duty: Optional[str] = Field(
+        default=None,
+        description="Applicable UK statutory duty & Highway Code rule, e.g., 'RTA 1988 s.36 / TSRGD 2016 Schedule 9 / Highway Code Rule 172: Driver emerging from minor road must yield priority.'",
+    )
+    driver_compliance: Optional[str] = Field(
+        default=None,
+        description="Observed compliance or breach by Vehicle A and/or Vehicle B from video telemetry, e.g., 'BREACHED by VL19 OKP (crossed Give Way line at 18.6 mph without halting)'",
+    )
+    legal_liability_impact: Optional[str] = Field(
+        default=None,
+        description="Direct impact on contributory negligence / primary liability split under English case law",
+    )
 
 
 class DetectedCameraSource(BaseModel):

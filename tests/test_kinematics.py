@@ -14,6 +14,7 @@ Validates:
 from __future__ import annotations
 
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -116,29 +117,181 @@ def test_case_1_peugeot_rollover_and_vw_golf_kinematics() -> None:
     assert golf.dvsa_mot_status == "EXPIRED"
     assert "2026-05-02" in golf.dvsa_mot_expiry
 
-    # Check Peugeot rollover progression (0.0 at t=1.0s -> 28.0 at t=1.15s -> 72.0 at t=1.5s -> 86.0 at t=2.0s..3.0s)
+    # Check Peugeot rollover progression (0.0 at t=1.0s -> 6.0 at t=1.15s -> 48.0 at t=1.35s -> 86.0 at t=1.65s..3.0s)
     roll_by_t = {kf.timestamp_sec: kf.roll_deg for kf in peugeot.keyframes}
     assert roll_by_t[1.0] == 0.0
-    assert roll_by_t[1.15] == 28.0
-    assert roll_by_t[1.5] == 72.0
-    assert roll_by_t[2.0] == 86.0
+    assert roll_by_t[1.15] == 6.0
+    assert roll_by_t[1.35] == 48.0
+    assert roll_by_t[1.65] == 86.0
     assert roll_by_t[3.0] == 86.0
 
     # Check VW Golf speeds and braking
     golf_by_t = {kf.timestamp_sec: kf for kf in golf.keyframes}
     assert golf_by_t[0.0].speed_mph == 41.2
     assert golf_by_t[0.5].braking_active is True
-    assert golf_by_t[1.15].speed_mph == 33.4
+    assert golf_by_t[1.15].speed_mph == 29.5
     assert golf_by_t[3.0].speed_mph == 0.0
 
-    # Check both CAUSAL and NOT CAUSAL DVSA items exist on both vehicles
+    # Check both CAUSAL and NOT CAUSAL DVSA items exist on Golf and negative-only NOT CAUSAL item on Peugeot
     golf_causal = [d for d in golf.dvsa_defect_classifications if d.causal_status == "CAUSAL"]
     golf_not_causal = [d for d in golf.dvsa_defect_classifications if d.causal_status == "NOT CAUSAL"]
     assert len(golf_causal) >= 2
     assert len(golf_not_causal) >= 1
 
     peugeot_not_causal = [d for d in peugeot.dvsa_defect_classifications if d.causal_status == "NOT CAUSAL"]
-    assert len(peugeot_not_causal) >= 2
+    assert len(peugeot_not_causal) >= 1
+
+
+def _interpolate_keyframe(keyframes: list[dict], t: float) -> dict[str, float]:
+    if t <= keyframes[0]["timestamp_sec"]:
+        return dict(keyframes[0])
+    if t >= keyframes[-1]["timestamp_sec"]:
+        return dict(keyframes[-1])
+    for i in range(len(keyframes) - 1):
+        k0, k1 = keyframes[i], keyframes[i + 1]
+        t0, t1 = k0["timestamp_sec"], k1["timestamp_sec"]
+        if t0 <= t <= t1:
+            alpha = 0.0 if t1 == t0 else (t - t0) / (t1 - t0)
+            dh = ((k1["heading_deg"] - k0["heading_deg"] + 180.0) % 360.0) - 180.0
+            return {
+                "timestamp_sec": t,
+                "x_meters": k0["x_meters"] + alpha * (k1["x_meters"] - k0["x_meters"]),
+                "z_meters": k0["z_meters"] + alpha * (k1["z_meters"] - k0["z_meters"]),
+                "heading_deg": k0["heading_deg"] + alpha * dh,
+                "speed_mph": k0["speed_mph"] + alpha * (k1["speed_mph"] - k0["speed_mph"]),
+                "roll_deg": k0["roll_deg"] + alpha * (k1["roll_deg"] - k0["roll_deg"]),
+            }
+    return dict(keyframes[-1])
+
+
+def _obb_sat_penetration_and_clearance(
+    x_a: float,
+    z_a: float,
+    hdg_a: float,
+    dims_a: tuple[float, float],
+    x_b: float,
+    z_b: float,
+    hdg_b: float,
+    dims_b: tuple[float, float],
+) -> tuple[float, float]:
+    """Exact 2D Separating Axis Theorem (SAT) OBB overlap/clearance in XZ plane."""
+    def _axes_and_corners(x: float, z: float, hdg: float, length: float, width: float):
+        rad = math.radians(hdg)
+        fx, fz = math.sin(rad), -math.cos(rad)
+        rx, rz = math.cos(rad), math.sin(rad)
+        hl, hw = length / 2.0, width / 2.0
+        corners = [
+            (x + fx * hl + rx * hw, z + fz * hl + rz * hw),
+            (x + fx * hl - rx * hw, z + fz * hl - rz * hw),
+            (x - fx * hl - rx * hw, z - fz * hl - rz * hw),
+            (x - fx * hl + rx * hw, z - fz * hl + rz * hw),
+        ]
+        return [(fx, fz), (rx, rz)], corners
+
+    axes_a, corners_a = _axes_and_corners(x_a, z_a, hdg_a, dims_a[0], dims_a[1])
+    axes_b, corners_b = _axes_and_corners(x_b, z_b, hdg_b, dims_b[0], dims_b[1])
+
+    min_overlap = float("inf")
+    max_gap = -float("inf")
+    separated = False
+
+    for ax, az in axes_a + axes_b:
+        proj_a = [cx * ax + cz * az for cx, cz in corners_a]
+        proj_b = [cx * ax + cz * az for cx, cz in corners_b]
+        min_a, max_a = min(proj_a), max(proj_a)
+        min_b, max_b = min(proj_b), max(proj_b)
+        overlap = min(max_a, max_b) - max(min_a, min_b)
+        if overlap <= 0.0:
+            separated = True
+            max_gap = max(max_gap, -overlap)
+        else:
+            min_overlap = min(min_overlap, overlap)
+
+    if separated:
+        return 0.0, max_gap
+    return min_overlap, 0.0
+
+
+def test_zero_obb_interpenetration_and_c1_smooth_trajectories_all_cases() -> None:
+    """Verify 0.00m OBB penetration at every 0.01s step (0.00s..3.00s) and C1 smoothness across all 3 cases."""
+    case_specs = [
+        ("case_cheadle_a521_junction.json", (4.35, 1.84), (4.26, 1.79)),
+        ("case_delphouse_rollover.json", (4.35, 1.84), (4.26, 1.79)),
+        ("case_a521_hgv_corridor.json", (8.40, 2.42), (4.26, 1.79)),
+    ]
+
+    for filename, dims_a, dims_b in case_specs:
+        with open(DATA_DIR / filename, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+
+        report = payload["report"]
+        impact_t = float(report["impact_timestamp_sec"])
+        kfs_a = report["vehicles"][0]["keyframes"]
+        kfs_b = report["vehicles"][1]["keyframes"]
+
+        prev_a = None
+        prev_b = None
+        for step in range(301):
+            t = round(step * 0.01, 2)
+            sa = _interpolate_keyframe(kfs_a, t)
+            sb = _interpolate_keyframe(kfs_b, t)
+            pen_m, clear_m = _obb_sat_penetration_and_clearance(
+                sa["x_meters"],
+                sa["z_meters"],
+                sa["heading_deg"],
+                dims_a,
+                sb["x_meters"],
+                sb["z_meters"],
+                sb["heading_deg"],
+                dims_b,
+            )
+            assert pen_m == 0.0, f"{filename} at t={t:.2f}s has OBB penetration {pen_m:.4f}m"
+            if t < round(impact_t - 0.05, 2):
+                assert clear_m >= 0.08, f"{filename} at t={t:.2f}s has pre-impact clearance {clear_m:.4f}m < 0.08m"
+            if abs(t - impact_t) < 1e-6:
+                assert 0.01 <= clear_m <= 0.12, (
+                    f"{filename} at impact t={t:.2f}s expected clearance in [0.01, 0.12]m, got {clear_m:.4f}m"
+                )
+
+            if prev_a is not None and prev_b is not None:
+                step_a = math.hypot(sa["x_meters"] - prev_a["x_meters"], sa["z_meters"] - prev_a["z_meters"])
+                step_b = math.hypot(sb["x_meters"] - prev_b["x_meters"], sb["z_meters"] - prev_b["z_meters"])
+                assert step_a < 0.23, f"{filename} vehicle_a teleport jump {step_a:.4f}m at t={t:.2f}s"
+                assert step_b < 0.23, f"{filename} vehicle_b teleport jump {step_b:.4f}m at t={t:.2f}s"
+            prev_a = sa
+            prev_b = sb
+
+
+def test_road_sign_legal_analysis_and_negative_only_dvsa_and_video_urls() -> None:
+    """Verify road sign legal fields, negative-only DVSA MOT items, and real video URLs in all 3 cases."""
+    expected_videos = {
+        "case_cheadle_a521_junction.json": "/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4",
+        "case_delphouse_rollover.json": "/videos/clip1_0s_to_5.03s_suv_vs_van.mp4",
+        "case_a521_hgv_corridor.json": "/videos/clip2_5.07s_to_10.90s_pickup_vs_lorry.mp4",
+    }
+
+    for filename, expected_video_url in expected_videos.items():
+        with open(DATA_DIR / filename, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+
+        assert payload["case_metadata"]["video_url"] == expected_video_url
+
+        elements = payload["report"]["scene_environment_elements"]
+        sign_elements = [
+            el for el in elements
+            if el.get("tsrgd_diagram") and el.get("statutory_duty") and el.get("driver_compliance") and el.get("legal_liability_impact")
+        ]
+        assert len(sign_elements) >= 2, f"{filename} must have >=2 enriched road sign/marking legal elements"
+
+        for veh in payload["report"]["vehicles"]:
+            for adv in veh["dvsa_advisories"]:
+                assert "MOT Test PASS" not in adv
+                assert "Rectified" not in adv
+            for defect in veh["dvsa_defect_classifications"]:
+                assert "MOT Test PASS" not in defect["defect_text"]
+                assert "Rectified" not in defect["defect_text"]
+                assert "Statutory Compliance" not in defect["defect_category"]
+                assert "Rectified" not in defect["defect_category"]
 
 
 def test_live_uk_dvsa_mot_history_lookup() -> None:

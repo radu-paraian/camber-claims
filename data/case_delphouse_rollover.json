@@ -5,7 +5,7 @@
     "claim_id": "UK-2026-0842",
     "title": "Case 2: Delphouse Rd / Cheadle Rural Crossroad T-Bone",
     "subtitle": "BX21 TKP (Range Rover Evoque) vs MK18 PZR (Ford Focus ST-Line — Multi-Cam)",
-    "video_url": "/videos/clip3_10.93s_to_15.50s_golf_vs_blue_suv.mp4",
+    "video_url": "/videos/clip1_0s_to_5.03s_suv_vs_van.mp4",
     "badge": "MULTI-CAM RURAL 65/35",
     "plate_1": "BX21 TKP",
     "plate_2": "MK18 PZR"
@@ -47,8 +47,8 @@
       ]
     },
     "impact_timestamp_sec": 1.25,
-    "impact_x_meters": 0.4,
-    "impact_z_meters": 0.1,
+    "impact_x_meters": 0.45,
+    "impact_z_meters": -0.18,
     "claimant_PreImpact_Speed_mph": 46.0,
     "defendant_PreImpact_Speed_mph": 28.4,
     "stopping_distance_analysis": "Under Highway Code Rules 125, 126, and 146, the national 60 mph limit on an unlit rural lane is an absolute maximum, not a safe target at a blind crossroad with a 21.5m visibility splay. At MK18 PZR's approach speed of 46.0 mph (20.56 m/s) on damp rural tarmac (mu = 0.58), total stopping distance is 50.9m (13.8m thinking + 37.1m braking), exceeding the 21.5m sightline splay by 29.4m. Meanwhile, BX21 TKP approached the Give Way line at 28.4 mph and braked only 6.8m before the line (t=0.75s), where DVSA-recorded thin front brake pads and a 2.0mm nearside front tyre prevented stopping outside the priority corridor.",
@@ -57,19 +57,39 @@
     "scene_environment_elements": [
       {
         "element_id": "sign_give_way_delphouse",
-        "element_type": "road_sign",
-        "label": "Delphouse Rd Give Way Sign & Diagram 1003 Markings",
+        "element_type": "give_way_sign",
+        "label": "Delphouse Rd Give Way Sign (TSRGD Diagram 602)",
         "x_meters": -2.1,
         "z_meters": -4.6,
-        "causal_relevance_note": "Required BX21 TKP to yield priority and creep forward given the obstructed hawthorn hedgerow sightline."
+        "causal_relevance_note": "Required BX21 TKP to yield priority and creep forward given the obstructed hawthorn hedgerow sightline.",
+        "tsrgd_diagram": "TSRGD Diagram 602",
+        "statutory_duty": "Road Traffic Act 1988 s.36 & Highway Code Rule 172: Mandatory obligation on minor-road traffic to give way to all traffic on the priority crossroad.",
+        "driver_compliance": "BREACHED by BX21 TKP (approached at 28.4 mph, braked late at t=0.75s, and overshot the Give Way line at 21.8 mph into the priority lane).",
+        "legal_liability_impact": "Establishes primary statutory liability (65% fault) against BX21 TKP under Harding v Hinchcliffe [1964] RTR 112."
+      },
+      {
+        "element_id": "marking_give_way_delphouse",
+        "element_type": "road_marking",
+        "label": "Delphouse Rd Double Broken Give Way Line (TSRGD Diagram 1003)",
+        "x_meters": 0.35,
+        "z_meters": -3.8,
+        "causal_relevance_note": "Transverse double dashed priority line crossed by BX21 TKP at t=1.00s (24.6 mph) due to late braking and thin front brake pads.",
+        "tsrgd_diagram": "TSRGD Diagram 1003",
+        "statutory_duty": "Highway Code Rule 172 & TSRGD Schedule 9 Part 6: Vehicles must not cross the transverse double broken line unless the priority road is clear.",
+        "driver_compliance": "BREACHED by BX21 TKP (crossed at t=1.00s at 24.6 mph into the Eastbound path of MK18 PZR).",
+        "legal_liability_impact": "Corroborates physical encroachment into the priority corridor prior to impact at t=1.25s."
       },
       {
         "element_id": "sign_crossroads_warning",
-        "element_type": "road_sign",
+        "element_type": "warning_sign",
         "label": "UK Diagram 504.1 Crossroads Hazard Warning Sign",
         "x_meters": -21.0,
         "z_meters": 3.8,
-        "causal_relevance_note": "Alerted MK18 PZR on the priority rural road to moderate speed below 46.0 mph under Highway Code Rule 146."
+        "causal_relevance_note": "Alerted MK18 PZR on the priority rural road to moderate speed below 46.0 mph under Highway Code Rule 146.",
+        "tsrgd_diagram": "TSRGD Diagram 504.1",
+        "statutory_duty": "Highway Code Rules 125 & 146: Advance warning of a rural crossroad hazard requiring priority-road drivers to adapt speed to restricted corner visibility.",
+        "driver_compliance": "BREACHED by MK18 PZR (maintained 46.0 mph past the warning sign despite a 21.5m hedgerow visibility splay requiring a 50.9m wet stopping distance).",
+        "legal_liability_impact": "Fixes 35% contributory negligence on MK18 PZR under Harding v Hinchcliffe [1964] RTR 112 and Macintyre v Coles [1966] 1 WLR 831."
       },
       {
         "element_id": "sightline_hawthorn_hedge_nw",
@@ -77,7 +97,11 @@
         "label": "2.4m Uncut Hawthorn Hedgerow (Northwest Corner)",
         "x_meters": -7.4,
         "z_meters": -6.0,
-        "causal_relevance_note": "Severely restricted mutual diagonal sightline between Southbound and Eastbound approaches to 21.5m."
+        "causal_relevance_note": "Severely restricted mutual diagonal sightline between Southbound and Eastbound approaches to 21.5m.",
+        "tsrgd_diagram": "Highways Act 1980 s.79 (Corner Visibility Splay Obstruction)",
+        "statutory_duty": "Highway Code Rules 126 & 170: Both drivers must adjust approach speed so they can stop well within the distance they can see to be clear.",
+        "driver_compliance": "BREACHED by both BX21 TKP (failed to creep to the Give Way splay) and MK18 PZR (Stopping distance 50.9m > 21.5m sightline).",
+        "legal_liability_impact": "Explains mutual late hazard perception and supports the 65% Defendant / 35% Claimant split."
       }
     ],
     "vehicles": [
@@ -97,36 +121,32 @@
         ],
         "dvsa_defect_classifications": [
           {
-            "defect_text": "Advisory: Front Brake pad wearing thin [1.1.13 (a) (ii)] & Nearside Front Tyre worn close to legal limit 2.0mm [5.2.3 (e)]",
+            "defect_text": "Advisory: Front Brake pad wearing thin [1.1.13 (a) (ii)]",
             "test_date": "2026-04-10",
             "defect_category": "Advisory",
             "causal_status": "CAUSAL",
-            "forensic_explanation": "CAUSAL / CONTRIBUTORY — BX21 TKP braked late at t=0.75s (z=-6.2m) on damp tarmac; thin front brake pads and depleted 2.0mm nearside front tread extended braking distance by 2.4m across the Give Way line."
+            "forensic_explanation": "CAUSAL / CONTRIBUTORY — BX21 TKP braked late at t=0.75s (z=-7.55m) on damp tarmac; thin front brake pads reduced peak deceleration efficiency and contributed to overshooting the Diagram 1003 Give Way line at 21.8 mph."
           },
           {
-            "defect_text": "Historical 2025 MOT Failure: Windscreen washer provides insufficient liquid [3.5 (a)] — Rectified Same Day",
-            "test_date": "2025-04-09",
-            "defect_category": "Historical Failure (Rectified)",
-            "causal_status": "NOT CAUSAL",
-            "forensic_explanation": "NOT CAUSAL — Historical washer fluid failure was rectified over a year prior to the collision and had zero causal effect on crossroad braking."
+            "defect_text": "Advisory: Nearside Front Tyre worn close to legal limit 2.0mm [5.2.3 (e)]",
+            "test_date": "2026-04-10",
+            "defect_category": "Advisory",
+            "causal_status": "CAUSAL",
+            "forensic_explanation": "CAUSAL / CONTRIBUTORY — Depleted 2.0mm nearside front tread depth on damp rural macadam with leaf mulch (mu=0.58) degraded front-axle wet grip during emergency braking before the crossroad."
           }
         ],
         "causally_relevant": true,
         "causal_role_reason": "Primary collision participant (Defendant vehicle, 65% liable): failed to slow in time for the Delphouse Rd Give Way line and overshot into the priority crossroad corridor at 21.8 mph.",
         "keyframes": [
-          {"timestamp_sec": 0.0, "x_meters": -0.2, "z_meters": -16.0, "heading_deg": 180.0, "speed_mph": 28.4, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.25, "x_meters": -0.2, "z_meters": -12.8, "heading_deg": 180.0, "speed_mph": 28.2, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.5, "x_meters": -0.2, "z_meters": -9.5, "heading_deg": 180.0, "speed_mph": 27.9, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.75, "x_meters": -0.1, "z_meters": -6.2, "heading_deg": 179.0, "speed_mph": 26.8, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 1.0, "x_meters": 0.1, "z_meters": -2.8, "heading_deg": 176.0, "speed_mph": 24.1, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 1.25, "x_meters": 0.4, "z_meters": 0.1, "heading_deg": 170.0, "speed_mph": 21.8, "braking_active": true, "roll_deg": 18.0},
-          {"timestamp_sec": 1.5, "x_meters": 2.2, "z_meters": 1.8, "heading_deg": 142.0, "speed_mph": 14.6, "braking_active": true, "roll_deg": 34.0},
-          {"timestamp_sec": 1.75, "x_meters": 3.6, "z_meters": 2.9, "heading_deg": 128.0, "speed_mph": 9.2, "braking_active": true, "roll_deg": 22.0},
-          {"timestamp_sec": 2.0, "x_meters": 4.5, "z_meters": 3.6, "heading_deg": 122.0, "speed_mph": 4.8, "braking_active": true, "roll_deg": 12.0},
-          {"timestamp_sec": 2.25, "x_meters": 5.0, "z_meters": 4.0, "heading_deg": 120.0, "speed_mph": 1.9, "braking_active": true, "roll_deg": 8.0},
-          {"timestamp_sec": 2.5, "x_meters": 5.2, "z_meters": 4.2, "heading_deg": 120.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 8.0},
-          {"timestamp_sec": 2.75, "x_meters": 5.2, "z_meters": 4.2, "heading_deg": 120.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 8.0},
-          {"timestamp_sec": 3.0, "x_meters": 5.2, "z_meters": 4.2, "heading_deg": 120.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 8.0}
+          {"timestamp_sec": 0.0, "x_meters": 0.25, "z_meters": -16.2, "heading_deg": 180.0, "speed_mph": 28.4, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.5, "x_meters": 0.28, "z_meters": -10.4, "heading_deg": 180.0, "speed_mph": 27.9, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.75, "x_meters": 0.31, "z_meters": -7.55, "heading_deg": 179.5, "speed_mph": 26.8, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.0, "x_meters": 0.35, "z_meters": -4.85, "heading_deg": 179.0, "speed_mph": 24.6, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.25, "x_meters": 0.4, "z_meters": -2.42, "heading_deg": 176.0, "speed_mph": 21.8, "braking_active": true, "roll_deg": 4.0},
+          {"timestamp_sec": 1.55, "x_meters": 2.05, "z_meters": -2.05, "heading_deg": 142.0, "speed_mph": 12.4, "braking_active": true, "roll_deg": 34.0},
+          {"timestamp_sec": 1.95, "x_meters": 3.35, "z_meters": -1.25, "heading_deg": 134.0, "speed_mph": 4.2, "braking_active": true, "roll_deg": 18.0},
+          {"timestamp_sec": 2.5, "x_meters": 3.85, "z_meters": -1.05, "heading_deg": 132.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 8.0},
+          {"timestamp_sec": 3.0, "x_meters": 3.85, "z_meters": -1.05, "heading_deg": 132.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 8.0}
         ]
       },
       {
@@ -162,19 +182,15 @@
         "causally_relevant": true,
         "causal_role_reason": "Primary collision participant (Claimant vehicle, 35% contributory negligence): approached a signed blind rural crossroad at 46.0 mph in breach of Highway Code Rules 125 and 146.",
         "keyframes": [
-          {"timestamp_sec": 0.0, "x_meters": -25.0, "z_meters": 0.2, "heading_deg": 90.0, "speed_mph": 46.0, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.25, "x_meters": -19.8, "z_meters": 0.2, "heading_deg": 90.0, "speed_mph": 46.0, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.5, "x_meters": -14.7, "z_meters": 0.2, "heading_deg": 90.0, "speed_mph": 45.6, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 0.75, "x_meters": -9.6, "z_meters": 0.2, "heading_deg": 91.0, "speed_mph": 42.4, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 1.0, "x_meters": -4.4, "z_meters": 0.2, "heading_deg": 93.0, "speed_mph": 38.2, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 1.25, "x_meters": 0.4, "z_meters": 0.1, "heading_deg": 98.0, "speed_mph": 34.0, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 1.5, "x_meters": 3.8, "z_meters": 1.2, "heading_deg": 126.0, "speed_mph": 21.5, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 1.75, "x_meters": 6.1, "z_meters": 2.1, "heading_deg": 144.0, "speed_mph": 12.0, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 2.0, "x_meters": 7.4, "z_meters": 2.7, "heading_deg": 152.0, "speed_mph": 5.4, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 2.25, "x_meters": 8.0, "z_meters": 3.0, "heading_deg": 154.0, "speed_mph": 1.5, "braking_active": true, "roll_deg": 0.0},
-          {"timestamp_sec": 2.5, "x_meters": 8.2, "z_meters": 3.1, "heading_deg": 154.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 2.75, "x_meters": 8.2, "z_meters": 3.1, "heading_deg": 154.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
-          {"timestamp_sec": 3.0, "x_meters": 8.2, "z_meters": 3.1, "heading_deg": 154.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
+          {"timestamp_sec": 0.0, "x_meters": -23.5, "z_meters": 0.8, "heading_deg": 90.0, "speed_mph": 46.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.5, "x_meters": -13.3, "z_meters": 0.8, "heading_deg": 90.0, "speed_mph": 45.6, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 0.75, "x_meters": -8.4, "z_meters": 0.8, "heading_deg": 90.5, "speed_mph": 42.4, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.0, "x_meters": -3.8, "z_meters": 0.8, "heading_deg": 91.0, "speed_mph": 38.2, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.25, "x_meters": 0.55, "z_meters": 0.8, "heading_deg": 92.0, "speed_mph": 33.8, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.55, "x_meters": 4.05, "z_meters": 2.45, "heading_deg": 122.0, "speed_mph": 18.5, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 1.95, "x_meters": 6.15, "z_meters": 3.3, "heading_deg": 146.0, "speed_mph": 5.8, "braking_active": true, "roll_deg": 0.0},
+          {"timestamp_sec": 2.5, "x_meters": 6.85, "z_meters": 3.6, "heading_deg": 152.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0},
+          {"timestamp_sec": 3.0, "x_meters": 6.85, "z_meters": 3.6, "heading_deg": 152.0, "speed_mph": 0.0, "braking_active": false, "roll_deg": 0.0}
         ]
       }
     ],
